@@ -1,0 +1,10 @@
+if(UNIX) 
+    set( PLATFORM_LINKS GL X11 pthread dl glfw)
+    set( PLATFORM_DEFINES "-DIMGUI_IMPL_OPENGL_LOADER_GLAD" )
+else()
+    set( PLATFORM_LINKS winmm openGL32 glfw)
+    set( PLATFORM_DEFINES "-DIMGUI_IMPL_OPENGL_LOADER_GLAD -D_CRT_SECURE_NO_WARNINGS" )
+endif()
+
+set( PLATFORM_SRC_DIR "${PROJECT_SOURCE_DIR}/src/glfw_main" )
+

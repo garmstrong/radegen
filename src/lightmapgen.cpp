@@ -1,0 +1,804 @@
+#include <cstring>
+#include <thread>
+#include <chrono>
+#include "point3d.h"
+#include "lightmapgen.h"
+#include "plane3d.h"
+#include "image.h"
+#include "rmath.h"
+#include "osutils.h"
+
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
+
+void PrintProgress(double percentage)
+{
+	int val = (int)(percentage * 100);
+	int lpad = (int)(percentage * PBWIDTH);
+	int rpad = PBWIDTH - lpad;
+	OS::Log("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+	fflush(stdout);
+}
+
+CLightmapGen::sphereMap_t* CLightmapGen::GetSphereRaysForNormal(const CPoint3D& normal)
+{
+	for (auto & m_sphere : m_spheres)
+	{
+		if (m_sphere->normal == normal)
+		{
+			return m_sphere;
+		}
+	}
+
+	auto* newMap = new sphereMap_t;
+	newMap->normal = normal;
+
+	for (uint16_t i = 0; i < m_options.numSphereRays; i++)
+	{
+		CPoint3D rayPoint;
+		GenerateHemisphereRay(normal, &rayPoint);
+		rayPoint.Scale(m_options.sphereSize);
+		newMap->rays.push_back(rayPoint);
+	}
+
+	m_spheres.push_back(newMap);
+	return m_spheres.at(m_spheres.size() - 1);
+}
+
+void CLightmapGen::GenerateHemisphereRay(const CPoint3D& normal, CPoint3D* ret)
+{
+	while (true)
+	{
+		CPoint3D p;
+		p.x = RMATH::RandomFloat(-1, 1);
+		p.y = RMATH::RandomFloat(-1, 1);
+		p.z = RMATH::RandomFloat(-1, 1);
+
+		// reject ones outside unit sphere
+		if (p.x * p.x + p.y * p.y + p.z * p.z > 0.9999) continue;
+
+		if (p.Dot(normal) < 0.001) continue;  // ignore "down" dirs (below the surface)
+
+		p.Normalize();
+
+		ret->x = p.x;
+		ret->y = p.y;
+		ret->z = p.z;
+		return;
+	}
+}
+
+bool CLightmapGen::DoesLineIntersectWithPolyList(const CPoint3D& lightPos, const CPoint3D& lumelPos,
+		const std::vector<CPoly3D>& polyList)
+{
+	int count = 0;
+
+	for (const CPoly3D& poly: polyList)
+	{
+		count++;
+		CPlane3D plane(poly);
+		// does this line cross the plane at any point
+		RMATH::ESide lightSide = plane.ClassifyPoint(lightPos);
+		RMATH::ESide lumelSide = plane.ClassifyPoint(lumelPos);
+		if (lightSide != lumelSide)
+		{
+			CPoint3D hitPos;
+			if (plane.GetRayIntersect(lightPos, lumelPos, &hitPos))
+			{
+				if (poly.PointInPoly(hitPos))
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool CLightmapGen::DoesLineIntersectWithPolyList(const CPoint3D& lightPos, const CPoint3D& lumelPos,
+		const std::vector<CPoly3D>& polyList, float* distance)
+{
+	int count = 0;
+
+	for (const CPoly3D& poly: polyList)
+	{
+		count++;
+		CPlane3D plane(poly);
+		// does this line cross the plane at any point
+		RMATH::ESide lightSide = plane.ClassifyPoint(lightPos);
+		RMATH::ESide lumelSide = plane.ClassifyPoint(lumelPos);
+		if (lightSide != lumelSide)
+		{
+			CPoint3D hitPos;
+			if (plane.GetRayIntersect(lightPos, lumelPos, &hitPos))
+			{
+				if (poly.PointInPoly(hitPos))
+				{
+					*distance = hitPos.Distance(lightPos);
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+void CLightmapGen::CalcEdgeVectors(const CPlane3D& plane, const float* uvMin, const float* uvMax, CPoint3D& edge1, CPoint3D& edge2,
+		CPoint3D& UVVector)
+{
+	float Distance = plane.GetDistance();
+	const CPoint3D& normal = plane.GetNormal();
+
+	float Min_U = uvMin[0];
+	float Min_V = uvMin[1];
+	float Max_U = uvMax[0];
+	float Max_V = uvMax[1];
+
+	CPoint3D vect1, vect2;
+	float X, Y, Z;
+
+	// calc the missing uv vector based on plane equation
+	switch (plane.GetPlaneAxis())
+	{
+	case CPlane3D::EPlaneAxis::EPlaneAxis_YZ:
+		X = -(normal.y * Min_U + normal.z * Min_V + Distance)
+			/ normal.x;
+		UVVector.x = X;
+		UVVector.y = Min_U;
+		UVVector.z = Min_V;
+		X = -(normal.y * Max_U + normal.z * Min_V + Distance)
+			/ normal.x;
+		vect1.x = X;
+		vect1.y = Max_U;
+		vect1.z = Min_V;
+		X = -(normal.y * Min_U + normal.z * Max_V + Distance)
+			/ normal.x;
+		vect2.x = X;
+		vect2.y = Min_U;
+		vect2.z = Max_V;
+		break;
+
+	case CPlane3D::EPlaneAxis::EPlaneAxis_XZ:
+		Y = -(normal.x * Min_U + normal.z * Min_V + Distance)
+			/ normal.y;
+		UVVector.x = Min_U;
+		UVVector.y = Y;
+		UVVector.z = Min_V;
+		Y = -(normal.x * Max_U + normal.z * Min_V + Distance)
+			/ normal.y;
+		vect1.x = Max_U;
+		vect1.y = Y;
+		vect1.z = Min_V;
+		Y = -(normal.x * Min_U + normal.z * Max_V + Distance)
+			/ normal.y;
+		vect2.x = Min_U;
+		vect2.y = Y;
+		vect2.z = Max_V;
+		break;
+
+	case CPlane3D::EPlaneAxis::EPlaneAxis_XY:
+		Z = -(normal.x * Min_U + normal.y * Min_V + Distance)
+			/ normal.z;
+		UVVector.x = Min_U;
+		UVVector.y = Min_V;
+		UVVector.z = Z;
+		Z = -(normal.x * Max_U + normal.y * Min_V + Distance)
+			/ normal.z;
+		vect1.x = Max_U;
+		vect1.y = Min_V;
+		vect1.z = Z;
+		Z = -(normal.x * Min_U + normal.y * Max_V + Distance)
+			/ normal.z;
+		vect2.x = Min_U;
+		vect2.y = Max_V;
+		vect2.z = Z;
+		break;
+	}
+	edge1 = vect1 - UVVector;
+	edge2 = vect2 - UVVector;
+}
+
+void CLightmapGen::NormalizeLightmapUVs(std::vector<CPoint3D>& polyPoints, float* minimums, float* maximums,
+		uint16_t* polyUWidth, uint16_t* polyVHeight)
+{
+	// get min/max uv values and re-scale the co-ords to fit
+	const CPoint3D& puv = polyPoints.at(0);
+	float Min_U = puv.lmU;
+	float Min_V = puv.lmV;
+	float Max_U = puv.lmU;
+	float Max_V = puv.lmV;
+
+	for (auto & p : polyPoints)
+	{
+			if (p.lmU < Min_U)
+			Min_U = p.lmU;
+		if (p.lmV < Min_V)
+			Min_V = p.lmV;
+		if (p.lmU > Max_U)
+			Max_U = p.lmU;
+		if (p.lmV > Max_V)
+			Max_V = p.lmV;
+	}
+
+	float Delta_U = Max_U - Min_U;
+	float Delta_V = Max_V - Min_V;
+
+	for (auto & polyPoint : polyPoints)
+	{
+		polyPoint.lmU -= Min_U;
+		polyPoint.lmV -= Min_V;
+		polyPoint.lmU /= Delta_U;
+		polyPoint.lmV /= Delta_V;
+	}
+
+	*polyUWidth = (uint16_t)Delta_U;
+	*polyVHeight = (uint16_t)Delta_V;
+
+	// return min and max ranges
+	minimums[0] = Min_U;
+	minimums[1] = Min_V;
+	maximums[0] = Max_U;
+	maximums[1] = Max_V;
+}
+
+void CLightmapGen::CalcLightmapUV(std::vector<CPoint3D>& polyPoints, CPlane3D::EPlaneAxis bestAxis)
+{
+	switch (bestAxis)
+	{
+	case CPlane3D::EPlaneAxis::EPlaneAxis_YZ:
+		for (auto & point : polyPoints)
+		{
+			point.lmU = point.y;
+			point.lmV = point.z;
+		}
+		break;
+
+	case CPlane3D::EPlaneAxis::EPlaneAxis_XZ:
+		for (auto & point : polyPoints)
+		{
+			point.lmU = point.x;
+			point.lmV = point.z;
+		}
+		break;
+
+	case CPlane3D::EPlaneAxis::EPlaneAxis_XY:
+		for (auto & point : polyPoints)
+		{
+			point.lmU = point.x;
+			point.lmV = point.y;
+		}
+		break;
+	}
+}
+
+int CLightmapGen::CalcShadowLightmap(CPoly3D* poly, std::vector<CPoly3D>& polyList, const std::vector<CLight>& lights,
+		CLightmapImg& lightmap) const
+{
+	CPlane3D plane(poly);
+	std::vector<CPoint3D>& polyPoints = poly->GetPointListRef();
+	CPlane3D::EPlaneAxis bestAxis = plane.GetPlaneAxis();
+
+	// calc new planar mapped uvs for lightmap (world position values based on best/closest axis)
+	CalcLightmapUV(polyPoints, bestAxis);
+
+	// convert the world based vertex positions to texture space ones (0-1 range)
+	float uvMin[2];
+	float uvMax[2];
+	uint16_t lightmapWidth = 0;
+	uint16_t lightmapHeight = 0;
+	NormalizeLightmapUVs(polyPoints, uvMin, uvMax, &lightmapWidth, &lightmapHeight);
+
+	lightmapWidth = static_cast<uint16_t>(lightmapWidth * m_options.lmDetail);
+	lightmapHeight = static_cast<uint16_t>(lightmapHeight * m_options.lmDetail);
+
+	lightmap.Allocate(lightmapWidth, lightmapHeight);
+
+	// calculate the edge vectors to interpolate over later
+	CPoint3D edge1, edge2, UVVector;
+	CalcEdgeVectors(plane, uvMin, uvMax, edge1, edge2, UVVector);
+
+	// now that we have the two edge vectors, we can find the lumel positions in world space by
+	// interpolating along these edges using the width and height of the lightmap
+	LumelData lumelData(lightmapWidth, lightmapHeight);
+
+	bool dataModified = false;
+
+	for (int iX = 0; iX < lightmapWidth; iX++)
+	{
+		for (int iY = 0; iY < lightmapHeight; iY++)
+		{
+			float ufactor = ((float)iX / (float)lightmapWidth) + 0.0025f;
+			float vfactor = ((float)iY / (float)lightmapHeight) + 0.0025f;
+
+			CPoint3D newedge1, newedge2;
+			newedge1 = edge1 * ufactor;
+			newedge2 = edge2 * vfactor;
+			lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
+
+			CPoint3D color(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+
+			for (auto& light :lights)
+			{
+				CPoint3D* lumelPos = lumelData.GetPosition(iX, iY);
+
+				CPoint3D lightVector = *lumelPos - light.pos;
+				lightVector.Normalize();
+				float distanceFromLightToLumel = light.pos.Distance(*lumelPos);
+				float radius = light.radius;
+
+				if (distanceFromLightToLumel < radius)
+				{
+					if (plane.ClassifyPoint(light.pos) == RMATH::ESide_FRONT)
+					{
+						// do a ray test on this vector with the polyset, if it doesnt intersect
+						// set the light, otherwise leave black!
+						//if (RayIntersect(&lights[i], lumelData->pos[iX][iY], brushList) == 0)
+						if (!DoesLineIntersectWithPolyList(light.pos, *lumelPos, polyList))
+						{
+							float intensity = (radius / distanceFromLightToLumel) - 1.0f;
+							float r = (light.color[0] * light.brightness) * intensity;
+							float g = (light.color[1] * light.brightness) * intensity;
+							float b = (light.color[2] * light.brightness) * intensity;
+
+							color.Set(color.x + r, color.y + g, color.z + b);
+							dataModified = true;
+						}
+					}
+				}
+			}
+			if (color.x > 254) color.x = 254;
+			if (color.y > 254) color.y = 254;
+			if (color.z > 254) color.z = 254;
+
+			lumelData.SetColor(iX, iY, color);
+		}
+	}
+
+	if (dataModified)
+	{
+		for (int iX = 0; iX < lightmapWidth; iX++)
+		{
+			for (int iY = 0; iY < lightmapHeight; iY++)
+			{
+				lightmap.SetPixel(iX, iY, *lumelData.GetColor(iX, iY));
+			}
+		}
+
+		CImage bm(lightmapWidth, lightmapHeight, CImage::Format_RGBA, lightmap.m_data);
+		for (uint16_t i = 0; i < 1; i++)
+			bm.Blur();
+
+		static int counter = 0;
+		char fname[128];
+		sprintf(fname, "smooth%d.png", counter);
+		counter++;
+		bm.SavePNG(fname);
+
+		unsigned char* pixBuff = bm.GetPixelBuffer();
+		memcpy(lightmap.m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
+	}
+	else
+	{
+		for (int iX = 0; iX < lightmapWidth; iX++)
+		{
+			for (int iY = 0; iY < lightmapHeight; iY++)
+			{
+				CPoint3D p(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+				lightmap.SetPixel(iX, iY, p);
+			}
+		}
+	}
+	return dataModified;
+}
+
+int CLightmapGen::CalcSunLightmap(CPoly3D* poly, std::vector<CPoly3D>& polyList, const CPoint3D& sunDir,
+		const CPoint3D& sunColor,
+		CLightmapImg& lightmap) const
+{
+	CPlane3D plane(poly);
+	std::vector<CPoint3D>& polyPoints = poly->GetPointListRef();
+	CPlane3D::EPlaneAxis bestAxis = plane.GetPlaneAxis();
+
+	// calc new planar mapped uvs for lightmap (world position values based on best/closest axis)
+	CalcLightmapUV(polyPoints, bestAxis);
+
+	// convert the world based vertex positions to texture space ones (0-1 range)
+	float uvMin[2];
+	float uvMax[2];
+	uint16_t lightmapWidth = 0;
+	uint16_t lightmapHeight = 0;
+	NormalizeLightmapUVs(polyPoints, uvMin, uvMax, &lightmapWidth, &lightmapHeight);
+
+	lightmapWidth = static_cast<uint16_t>(lightmapWidth * m_options.lmDetail);
+	lightmapHeight = static_cast<uint16_t>(lightmapHeight * m_options.lmDetail);
+
+	lightmap.Allocate(lightmapWidth, lightmapHeight);
+
+	// calculate the edge vectors to interpolate over later
+	CPoint3D edge1, edge2, UVVector;
+	CalcEdgeVectors(plane, uvMin, uvMax, edge1, edge2, UVVector);
+
+	// now that we have the two edge vectors, we can find the lumel positions in world space by
+	// interpolating along these edges using the width and height of the lightmap
+	LumelData lumelData(lightmapWidth, lightmapHeight);
+
+	bool dataModified = false;
+
+	for (int iX = 0; iX < lightmapWidth; iX++)
+	{
+		for (int iY = 0; iY < lightmapHeight; iY++)
+		{
+			float ufactor = ((float)iX / (float)lightmapWidth); //  - 0.1f;
+			float vfactor = ((float)iY / (float)lightmapHeight); //- 0.1f;
+
+			CPoint3D newedge1, newedge2;
+			newedge1 = edge1 * ufactor;
+			newedge2 = edge2 * vfactor;
+			lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
+
+			CPoint3D color(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+
+
+			CPoint3D* lumelPos = lumelData.GetPosition(iX, iY);
+
+			CPoint3D lightVector = (*lumelPos + sunDir) - *lumelPos;
+			lightVector.Normalize();
+			//float distanceFromLightToLumel = light.pos.Distance(*lumelPos);
+			//float radius = light.radius;
+
+			//if (distanceFromLightToLumel < radius)
+			{
+				// TODO: is this the best way to do this?
+				CPoint3D fakeSunPos = *lumelPos + (lightVector * 1000);
+				fakeSunPos = fakeSunPos * 2000;
+
+				//if (plane.ClassifyPoint(fakeSunPos) == RMATH::ESide_FRONT)
+				{
+					// do a ray test on this vector with the polyset, if it doesnt intersect
+					// set the light, otherwise leave black!
+					//if (RayIntersect(&lights[i], lumelData->pos[iX][iY], brushList) == 0)
+					if (!DoesLineIntersectWithPolyList(fakeSunPos, *lumelPos, polyList))
+					{
+						color.Set(color.x + sunColor.x, color.y + sunColor.y, color.z + sunColor.z);
+						dataModified = true;
+					}
+				}
+			}
+
+			if (color.x > 254) color.x = 254;
+			if (color.y > 254) color.y = 254;
+			if (color.z > 254) color.z = 254;
+
+			lumelData.SetColor(iX, iY, color);
+		}
+	}
+
+	if (dataModified)
+	{
+		for (int iX = 0; iX < lightmapWidth; iX++)
+		{
+			for (int iY = 0; iY < lightmapHeight; iY++)
+			{
+				lightmap.SetPixel(iX, iY, *lumelData.GetColor(iX, iY));
+			}
+		}
+
+        CImage bm(lightmapWidth, lightmapHeight, CImage::Format_RGBA, lightmap.m_data);
+		for (uint16_t i = 0; i < 3; i++)
+			bm.Blur();
+
+		static int counter = 0;
+		char fname[128];
+		sprintf(fname, "smooth%d.png", counter);
+		counter++;
+		bm.SavePNG(fname);
+
+		unsigned char* pixBuff = bm.GetPixelBuffer();
+		memcpy(lightmap.m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
+	}
+	else
+	{
+		for (int iX = 0; iX < lightmapWidth; iX++)
+		{
+			for (int iY = 0; iY < lightmapHeight; iY++)
+			{
+				CPoint3D p(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+				lightmap.SetPixel(iX, iY, p);
+			}
+		}
+	}
+	return dataModified;
+}
+
+int CLightmapGen::CalcPolyAmbientOcclusion(CPoly3D* poly, std::vector<CPoly3D>& polyList, CLightmapImg& lightmap)
+{
+	CPlane3D plane(poly);
+	std::vector<CPoint3D>& polyPoints = poly->GetPointListRef();
+	CPlane3D::EPlaneAxis bestAxis = plane.GetPlaneAxis();
+
+	// calc new planar mapped uvs for lightmap (world position values based on best/closest axis)
+	CalcLightmapUV(polyPoints, bestAxis);
+
+	// convert the world based vertex positions to texture space ones (0-1 range)
+	float uvMin[2];
+	float uvMax[2];
+	uint16_t lightmapWidth = 0;
+	uint16_t lightmapHeight = 0;
+	NormalizeLightmapUVs(polyPoints, uvMin, uvMax, &lightmapWidth, &lightmapHeight);
+
+	lightmapWidth = static_cast<uint16_t>(lightmapWidth * m_options.lmDetail);
+	lightmapHeight = static_cast<uint16_t>(lightmapHeight * m_options.lmDetail);
+
+	lightmap.Allocate(lightmapWidth, lightmapHeight);
+
+	// calculate the edge vectors to interpolate over later
+	CPoint3D edge1, edge2, UVVector;
+	CalcEdgeVectors(plane, uvMin, uvMax, edge1, edge2, UVVector);
+
+	// now that we have the two edge vectors, we can find the lumel positions in world space by
+	// interpolating along these edges using the width and height of the lightmap
+	LumelData lumelData(lightmapWidth, lightmapHeight);
+
+	bool dataModified = false;
+
+	sphereMap_t* sphere = GetSphereRaysForNormal(plane.GetNormal());
+
+	for (int iX = 0; iX < lightmapWidth; iX++)
+	{
+		for (int iY = 0; iY < lightmapHeight; iY++)
+		{
+			// 0.0025f -> perfect for detail of 1.0 0.7 0.4
+			// 2.0 (noticed white line in images, but not in game, so moved down to 0.0015 and all good)
+			// 0.0015f -> 2.0 OK, 0.4 OK
+
+			float ufactor = ((float)iX / (float)lightmapWidth) + 0.0015f;
+			float vfactor = ((float)iY / (float)lightmapHeight) + 0.0015f;
+
+			CPoint3D newedge1 = edge1 * ufactor;
+			CPoint3D newedge2 = edge2 * vfactor;
+			lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
+
+			CPoint3D color(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+			dataModified = true;
+
+			CPoint3D* lumelPos = lumelData.GetPosition(iX, iY);
+
+			int numhits = 0;
+			float avgDist = 0;
+			for (uint16_t i = 0; i < m_options.numSphereRays; i++)
+			{
+				CPoint3D testPos = (*lumelPos + /*sphereRays[i]*/ sphere->rays.at(i));
+				float distance = 0;
+				if (DoesLineIntersectWithPolyList(testPos, *lumelPos, polyList, &distance))
+				{
+					numhits++;
+					avgDist += distance;
+				}
+			}
+			avgDist /= (m_options.numSphereRays);
+
+			float shadeAmt = avgDist * 40;
+
+			//shadeAmt *= 1.5;
+			if (shadeAmt > 254)
+				shadeAmt = 254;
+
+			color.x = color.x - shadeAmt;
+			color.y = color.y - shadeAmt;
+			color.z = color.z - shadeAmt;
+
+
+			if (color.x > 254) color.x = 254;
+			if (color.y > 254) color.y = 254;
+			if (color.z > 254) color.z = 254;
+
+			if (color.x < 0) color.x = 0;
+			if (color.y < 0) color.y = 0;
+			if (color.z < 0) color.z = 0;
+
+			lumelData.SetColor(iX, iY, color);
+		}
+	}
+
+	if (dataModified)
+	{
+		for (int iX = 0; iX < lightmapWidth; iX++)
+		{
+			for (int iY = 0; iY < lightmapHeight; iY++)
+			{
+				CPoint3D* color = lumelData.GetColor(iX, iY);
+				lightmap.SetPixel(iX, iY, *color);
+			}
+		}
+	}
+
+    CImage bm(lightmapWidth, lightmapHeight, CImage::Format_RGBA, lightmap.m_data);
+	//bm.Blur();
+	static int counter = 0;
+	char fname[128];
+	sprintf(fname, "smooth%d.png", counter);
+	counter++;
+	//bm.SavePNG(fname);
+	unsigned char* pixBuff = bm.GetPixelBuffer();
+	memcpy(lightmap.m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
+
+	return dataModified;
+}
+
+void CLightmapGen::GenerateLMData(unsigned char val, CLightmapImg& lm)
+{
+	lm.Allocate(64, 64);
+
+	for (int iX = 0; iX < lm.m_width; iX++)
+	{
+		for (int iY = 0; iY < lm.m_height; iY++)
+		{
+			CPoint3D p(val, val, val);
+			lm.SetPixel(iX, iY, p);
+		}
+	}
+}
+
+int CLightmapGen::GenerateLightMapDataRange(std::vector<CPoly3D>& polyList,
+		const std::vector<CLight>& lights,
+		threadData_t* threadData)
+{
+	for (unsigned int i = threadData->startIndex; i < threadData->endIndex; i++)
+	{
+		CPoly3D& poly = polyList.at(i);
+
+		bool writeLM = false;
+
+
+//		CLightmapImg lmAO;
+//		CPoint3D sunDir(0.1, 0.6, 0.3);
+//		CPoint3D sunColor(102, 178, 255);
+//		CalcSunLightmap(&poly, polyList, sunDir, sunColor, lmAO);
+//		writeLM = true;
+
+
+
+
+		int hasAmbient = 0;
+		CLightmapImg lmAO;
+		hasAmbient = CalcPolyAmbientOcclusion(&poly, polyList, lmAO);
+		writeLM = true;
+
+		int hasShadows = 0;
+		CLightmapImg lmShadow;
+		hasShadows = CalcShadowLightmap(&poly, polyList, lights, lmShadow);
+		if (hasShadows)
+		{
+			// lmShadow contains shadow pixel data
+			writeLM = true;
+		}
+		else
+		{
+			// no lights touched, use standard black lightmap, unless ambient already there
+			// lmShadow will have unlit default texture data, we need to mix it into lmAO
+			if (!hasAmbient)
+			{
+				// no ambient - so just blank out LM
+				poly.SetLightmapDataIndex(0);
+			}
+		}
+
+		lmAO.Combine(lmShadow);
+		lmShadow.Free();
+
+		if (writeLM)
+		{
+			// BEGIN LOCK
+			m_lmMutex.lock();
+			// copy the ptr to the shared list, get an index and quickly get out of here
+			m_lightMapList.push_back(lmAO);
+			uint32_t lmIndex = m_lightMapList.size() - 1;
+			m_lmMutex.unlock();
+			// END LOCK
+			poly.SetLightmapDataIndex(lmIndex);
+		}
+
+		threadData->completedItems++;
+	}
+	return 0;
+}
+
+void CLightmapGen::ThreadWorkerLightmapRange(std::vector<CPoly3D>* polyList,
+		const std::vector<CLight>* lights,
+		threadData_t* threadData,
+		int threadID)
+{
+	//printf("\nthread %i processing from %i - %i\n", threadID, startIndex, endIndex);
+	GenerateLightMapDataRange(*polyList, *lights, threadData);
+}
+
+void CLightmapGen::ThreadStatusUpdate(threadData_t* threadData, uint16_t numThreads, uint16_t totalItems)
+{
+	bool complete = false;
+	uint16_t totalDone = 0;
+	do
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+		totalDone = 0;
+		for (uint16_t i = 0; i < numThreads; i++)
+		{
+			totalDone += threadData[i].completedItems;
+		}
+
+		float pctComplete = float(totalDone) / float(totalItems);
+		PrintProgress(pctComplete);
+
+		if (totalDone >= totalItems)
+			complete = true;
+
+	} while (!complete);
+}
+
+int CLightmapGen::GenerateLightmaps(
+		NRadeLamp::lmOptions_t lampOptions,
+		std::vector<CPoly3D>& polyList,
+		const std::vector<CLight>& lights,
+		std::vector<CLightmapImg>* lightMapList)
+{
+	// copy options
+	m_options = lampOptions;
+
+	uint16_t processor_count = std::thread::hardware_concurrency();
+	if (processor_count == 0)
+	{
+		processor_count = 1;
+	}
+
+	threadData_t threadData[/*processor_count*/ 128];
+	printf("spawning %i threads\n", processor_count);
+
+	size_t polyCount = polyList.size();
+	size_t range = polyCount / processor_count;
+
+	// generate simple black lightmap to use for all polys that have no lights affecting them
+	CLightmapImg lmBlack;
+	GenerateLMData(m_options.shadowUnlit, lmBlack);
+	m_lightMapList.push_back(lmBlack);
+
+    std::vector<std::thread> workers;
+    for (int i = 0; i < processor_count; i++)
+    {
+        threadData[i].startIndex = i * range;
+        threadData[i].endIndex = threadData[i].startIndex + range;
+
+        // if last thread, process to end of list (rounding due to divide of items/num threads)
+        bool isLastRange = (i + 1 == processor_count);
+        if (isLastRange)
+        {
+            threadData[i].endIndex = polyCount;
+        }
+        threadData[i].completedItems = 0;
+
+        workers.emplace_back(&CLightmapGen::ThreadWorkerLightmapRange,
+                this, &polyList, &lights, &threadData[i], i);
+    }
+
+    std::thread statusThread(&CLightmapGen::ThreadStatusUpdate, this,
+            &threadData[0], processor_count, polyCount);
+
+    for (std::thread& t: workers)
+    {
+        if (t.joinable())
+        {
+            t.join();
+        }
+    }
+    statusThread.join();
+    OS::Log("\nall threads complete\n");
+
+	for (auto sphere : m_spheres)
+	{
+		delete sphere;
+	}
+
+	// copy the pointers to the returned list
+	for (auto & j : m_lightMapList)
+	{
+		lightMapList->push_back(j);
+	}
+	return 0;
+}
