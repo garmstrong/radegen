@@ -109,7 +109,7 @@ void CAppMain::OnMouseMove(double xrel, double yrel)
 
     float delta = -10.0f * m_lastDeltaTime;
 
-    if(m_isMouseDown)
+    if (m_isMouseDown)
     {
         m_camera.OffsetOrientation(0.0f, xrel * delta);
         m_camera.OffsetOrientation(yrel * delta, 0.0f);
@@ -121,7 +121,7 @@ void CAppMain::OnMouseWheel(int y)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    if(y == 1)
+    if (y == 1)
     {
         m_camera.OffsetPosition(10.0f * m_camera.ForwardVector());
     }
@@ -238,14 +238,14 @@ bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<
     std::string outFile(OS::ResourcePath("meshes/simple_out_new.rbmesh"));
 
     // scale light colour values
-    for(auto& light : lights)
+    for (auto& light : lights)
     {
-        for(int i=0;i<3;i++)
+        for (int i = 0; i < 3; i++)
             light.color[i] = std::min<float>(light.color[i] * 255, 255);
     }
 
     CMeshFile meshFile;
-    if(!meshFile.LoadFromFile(OS::ResourcePath("meshes/simple.rbmesh")))
+    if (!meshFile.LoadFromFile(OS::ResourcePath("meshes/simple.rbmesh")))
     {
         OS::Log("meshfile does not exists\n");
         return false;

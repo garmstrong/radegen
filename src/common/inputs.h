@@ -7,10 +7,11 @@ class CInputSystem
 private:
     const int m_cNumKeys = 512;
 
-    bool m_keystates[512] {};
+    bool m_keystates[512]{};
 public:
 
     CInputSystem();
+
     ~CInputSystem();
 
     bool IsPressed(int keyCode);

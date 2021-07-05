@@ -7,12 +7,12 @@ CInputSystem::CInputSystem()
 
 CInputSystem::~CInputSystem()
 {
-	//delete []m_keystates;
+    //delete []m_keystates;
 }
 
 bool CInputSystem::IsPressed(const int keyCode)
 {
-    if(keyCode < 0 || keyCode >= m_cNumKeys)
+    if (keyCode < 0 || keyCode >= m_cNumKeys)
         return false;
 
     return m_keystates[keyCode];
@@ -20,7 +20,7 @@ bool CInputSystem::IsPressed(const int keyCode)
 
 void CInputSystem::Press(const int keyCode)
 {
-    if(keyCode < 0 || keyCode >= m_cNumKeys)
+    if (keyCode < 0 || keyCode >= m_cNumKeys)
         return;
 
     m_keystates[keyCode] = true;
@@ -28,7 +28,7 @@ void CInputSystem::Press(const int keyCode)
 
 void CInputSystem::Release(const int keyCode)
 {
-    if(keyCode < 0 || keyCode >= m_cNumKeys)
+    if (keyCode < 0 || keyCode >= m_cNumKeys)
         return;
 
     m_keystates[keyCode] = false;

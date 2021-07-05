@@ -3,67 +3,66 @@
 
 #include <vector>
 #include <cstring>
-//#include <zlib.h>
 
 #include "polygon3d.h"
 
 namespace NMeshFile
 {
-	const int MATERIAL_NAME_LEN = 16;
+    const int MATERIAL_NAME_LEN = 16;
 
-	// no auto byte alignment (these structs are written to file)
+    // no auto byte alignment (these structs are written to file)
 #pragma pack(push, 1)
-	typedef struct
-	{
-		uint8_t id;
-		uint8_t version;
-		uint32_t numFaces;
-		uint32_t numMaterials;
-		uint32_t numLightmaps;
-		char name[16];
-	} SMeshHeader;
+    typedef struct
+    {
+        uint8_t id;
+        uint8_t version;
+        uint32_t numFaces;
+        uint32_t numMaterials;
+        uint32_t numLightmaps;
+        char name[16];
+    } SMeshHeader;
 
-	typedef struct
-	{
-		char materialName[MATERIAL_NAME_LEN];
-		uint8_t numTextureKeys;
-	} SMaterialHeader;
+    typedef struct
+    {
+        char materialName[MATERIAL_NAME_LEN];
+        uint8_t numTextureKeys;
+    } SMaterialHeader;
 
-	typedef struct
-	{
-		char keyName[MATERIAL_NAME_LEN];     // ie, diffuse
-		char fileName[MATERIAL_NAME_LEN];    // ie, water.png
-	} STextureKey;
+    typedef struct
+    {
+        char keyName[MATERIAL_NAME_LEN];     // ie, diffuse
+        char fileName[MATERIAL_NAME_LEN];    // ie, water.png
+    } STextureKey;
 
-	typedef struct
-	{
-		uint32_t numPoints;
-		uint32_t matIndex;
-		uint32_t lmIndex;
-	} SPolyHeader;
+    typedef struct
+    {
+        uint32_t numPoints;
+        uint32_t matIndex;
+        uint32_t lmIndex;
+    } SPolyHeader;
 
-	typedef struct
-	{
-		float point[3];
-		float nornmal[3];
-		float uv0[2];
-		float uv1[2];
-		float uv2[2];
-	} SPolyPoint;
+    typedef struct
+    {
+        float point[3];
+        float nornmal[3];
+        float uv0[2];
+        float uv1[2];
+        float uv2[2];
+    } SPolyPoint;
 
-	typedef struct
-	{
-		uint8_t compression;
-		uint16_t width;
-		uint16_t height;
-		uint32_t dataSize;
+    typedef struct
+    {
+        uint8_t compression;
+        uint16_t width;
+        uint16_t height;
+        uint32_t dataSize;
         uint32_t compressedDataSize;
-	} SLightmapHeader;
+    } SLightmapHeader;
 
-	typedef struct
-	{
-		unsigned char *data;
-	} SLightmap;
+    typedef struct
+    {
+        unsigned char* data;
+    } SLightmap;
 
 #pragma pack(pop)
 
@@ -72,183 +71,184 @@ namespace NMeshFile
 class CLogicalPolygon
 {
 public:
-	CLogicalPolygon() = default;
+    CLogicalPolygon() = default;
 
-	~CLogicalPolygon() = default;
+    ~CLogicalPolygon() = default;
 
-	void SetMaterialIndex(uint16_t matindex)
-	{
-		polyHeader.matIndex = matindex;
-	}
+    void SetMaterialIndex(uint16_t matindex)
+    {
+        polyHeader.matIndex = matindex;
+    }
 
-	void SetLightmapDataIndex(uint16_t lmindex)
-	{
-		polyHeader.lmIndex = lmindex;
-	}
+    void SetLightmapDataIndex(uint16_t lmindex)
+    {
+        polyHeader.lmIndex = lmindex;
+    }
 
-	uint16_t GetLightmapDataIndex()
-	{
-		return polyHeader.lmIndex;
-	}
+    uint16_t GetLightmapDataIndex()
+    {
+        return polyHeader.lmIndex;
+    }
 
-	void AddPoint(NMeshFile::SPolyPoint point)
-	{
-		points.push_back(point);
-		polyHeader.numPoints++;
-	}
+    void AddPoint(NMeshFile::SPolyPoint point)
+    {
+        points.push_back(point);
+        polyHeader.numPoints++;
+    }
 
-	NMeshFile::SPolyHeader* GetHeaderPtr()
-	{
-		return &polyHeader;
-	}
+    NMeshFile::SPolyHeader* GetHeaderPtr()
+    {
+        return &polyHeader;
+    }
 
-	std::vector<NMeshFile::SPolyPoint> & GetPoints()
-	{
-		return points;
-	}
+    std::vector<NMeshFile::SPolyPoint>& GetPoints()
+    {
+        return points;
+    }
 
 protected:
-	NMeshFile::SPolyHeader polyHeader{};
-	std::vector<NMeshFile::SPolyPoint> points;
+    NMeshFile::SPolyHeader polyHeader{};
+    std::vector<NMeshFile::SPolyPoint> points;
 };
 
 class CLogicalMaterial
 {
 public:
-	CLogicalMaterial() = default;
+    CLogicalMaterial() = default;
 
-	~CLogicalMaterial() = default;
+    ~CLogicalMaterial() = default;
 
-	void SetKey(const std::string& matkey)
-	{
-		strncpy(materialHeader.materialName, matkey.c_str(), NMeshFile::MATERIAL_NAME_LEN);
-	}
+    void SetKey(const std::string& matkey)
+    {
+        strncpy(materialHeader.materialName, matkey.c_str(), NMeshFile::MATERIAL_NAME_LEN);
+    }
 
-	void AddTexture(const std::string& keyName, const std::string& filename)
-	{
-		NMeshFile::STextureKey textureID;
-		strncpy(textureID.keyName, keyName.c_str(), NMeshFile::MATERIAL_NAME_LEN);
-		strncpy(textureID.fileName, filename.c_str(), NMeshFile::MATERIAL_NAME_LEN);
-		textureKeys.push_back(textureID);
-		materialHeader.numTextureKeys++;
-	}
+    void AddTexture(const std::string& keyName, const std::string& filename)
+    {
+        NMeshFile::STextureKey textureID;
+        strncpy(textureID.keyName, keyName.c_str(), NMeshFile::MATERIAL_NAME_LEN);
+        strncpy(textureID.fileName, filename.c_str(), NMeshFile::MATERIAL_NAME_LEN);
+        textureKeys.push_back(textureID);
+        materialHeader.numTextureKeys++;
+    }
 
-	std::string GetMaterialKey() const
-	{
-		return materialHeader.materialName;
-	}
+    std::string GetMaterialKey() const
+    {
+        return materialHeader.materialName;
+    }
 
-	NMeshFile::SMaterialHeader* GetHeaderPtr()
-	{
-		return &materialHeader;
-	}
+    NMeshFile::SMaterialHeader* GetHeaderPtr()
+    {
+        return &materialHeader;
+    }
 
-	std::vector<NMeshFile::STextureKey> & GetTextureKeys()
-	{
-		return textureKeys;
-	}
+    std::vector<NMeshFile::STextureKey>& GetTextureKeys()
+    {
+        return textureKeys;
+    }
 
 protected:
-	NMeshFile::SMaterialHeader materialHeader{};
-	std::vector<NMeshFile::STextureKey> textureKeys;
+    NMeshFile::SMaterialHeader materialHeader{};
+    std::vector<NMeshFile::STextureKey> textureKeys;
 };
 
 class CLogicalLightmap
 {
 public:
-	CLogicalLightmap() = default;
+    CLogicalLightmap() = default;
 
-	~CLogicalLightmap() = default;
+    ~CLogicalLightmap() = default;
 
-	void AddLightmapData(const uint16_t width, const uint16_t height, unsigned char* dataPtr, const unsigned int dataSize)
-	{
-		lmHeader.width = width;
-		lmHeader.height = height;
-		lmHeader.dataSize = dataSize;
-		lmData.data = new unsigned char [width*height*4];
-		memset(lmData.data, 0, width*height*4);
-		memcpy(lmData.data, dataPtr, width*height*4);
-	}
+    void
+    AddLightmapData(const uint16_t width, const uint16_t height, unsigned char* dataPtr, const unsigned int dataSize)
+    {
+        lmHeader.width = width;
+        lmHeader.height = height;
+        lmHeader.dataSize = dataSize;
+        lmData.data = new unsigned char[width * height * 4];
+        memset(lmData.data, 0, width * height * 4);
+        memcpy(lmData.data, dataPtr, width * height * 4);
+    }
 
-	NMeshFile::SLightmapHeader* GetHeaderPtr()
-	{
-		return &lmHeader;
-	}
+    NMeshFile::SLightmapHeader* GetHeaderPtr()
+    {
+        return &lmHeader;
+    }
 
-	NMeshFile::SLightmap* GetLightmapData()
-	{
-		return &lmData;
-	}
+    NMeshFile::SLightmap* GetLightmapData()
+    {
+        return &lmData;
+    }
 
 protected:
-	NMeshFile::SLightmapHeader lmHeader{};
-	NMeshFile::SLightmap lmData{};
+    NMeshFile::SLightmapHeader lmHeader{};
+    NMeshFile::SLightmap lmData{};
 };
 
 class CMeshFile
 {
 public:
 
-	explicit CMeshFile(const std::vector<CPoly3D>& polylist)
-	{
-		LoadFromPolyList(polylist);
-	}
+    explicit CMeshFile(const std::vector<CPoly3D>& polylist)
+    {
+        LoadFromPolyList(polylist);
+    }
 
-	CMeshFile();
+    CMeshFile();
 
-	~CMeshFile();
+    ~CMeshFile();
 
-	bool LoadFromFile(const std::string& filename);
+    bool LoadFromFile(const std::string& filename);
 
-	void LoadFromPolyList(const std::vector<CPoly3D>& polylist);
+    void LoadFromPolyList(const std::vector<CPoly3D>& polylist);
 
-	bool WriteToFile(const std::string& filename);
+    bool WriteToFile(const std::string& filename);
 
-	void GetAsPolyList(std::vector<CPoly3D>& polyListOut);
+    void GetAsPolyList(std::vector<CPoly3D>& polyListOut);
 
-	void AddLightmapData(
-			const uint16_t width,
-			const uint16_t height,
-			unsigned char* dataPtr,
-			const unsigned int dataSize);
+    void AddLightmapData(
+            const uint16_t width,
+            const uint16_t height,
+            unsigned char* dataPtr,
+            const unsigned int dataSize);
 
-	std::vector<CLogicalLightmap>& GetLightMaps()
-	{
-		return m_lightmaps;
-	}
+    std::vector<CLogicalLightmap>& GetLightMaps()
+    {
+        return m_lightmaps;
+    }
 
-	size_t GetPolyCount()
-	{
-		return m_polygons.size();
-	}
+    size_t GetPolyCount()
+    {
+        return m_polygons.size();
+    }
 
-	void DeleteLightmapData();
+    void DeleteLightmapData();
 
 protected:
 
-	unsigned char* CreateCompressedBuffer(
-			unsigned char* pData,
-			unsigned long nDataSize,
-			unsigned long* nCompressedDataSize);
+    unsigned char* CreateCompressedBuffer(
+            unsigned char* pData,
+            unsigned long nDataSize,
+            unsigned long* nCompressedDataSize);
 
-	unsigned char* CreateUncompressedBuffer(unsigned char* pCompressedData,
-			unsigned long nCompressedDataSize,
-			unsigned long nOriginalDataSize);
+    unsigned char* CreateUncompressedBuffer(unsigned char* pCompressedData,
+            unsigned long nCompressedDataSize,
+            unsigned long nOriginalDataSize);
 
-	NMeshFile::SMeshHeader m_header{};
-	std::vector<CLogicalMaterial> m_materials;
-	std::vector<CLogicalPolygon> m_polygons;
-	std::vector<CLogicalLightmap> m_lightmaps;
+    NMeshFile::SMeshHeader m_header{};
+    std::vector<CLogicalMaterial> m_materials;
+    std::vector<CLogicalPolygon> m_polygons;
+    std::vector<CLogicalLightmap> m_lightmaps;
 
-	void FreeAll();
+    void FreeAll();
 
-	void Reset();
+    void Reset();
 
-	bool ValidateData();
+    bool ValidateData();
 
-	void AddPoly(const CPoly3D& poly);
+    void AddPoly(const CPoly3D& poly);
 
-	uint32_t AddDiffuseOnlyMaterial(const std::string& matkey, const std::string& diffuseName);
+    uint32_t AddDiffuseOnlyMaterial(const std::string& matkey, const std::string& diffuseName);
 
 };
 

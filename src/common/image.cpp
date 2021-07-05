@@ -92,7 +92,7 @@ bool CImage::LoadMem(void* buff, size_t size)
 
 bool CImage::SavePNG(const std::string& filePath)
 {
-	return stbi_write_png(filePath.c_str(), m_width, m_height, m_format, m_pixels, m_width*4);
+    return stbi_write_png(filePath.c_str(), m_width, m_height, m_format, m_pixels, m_width * 4);
 }
 
 unsigned int CImage::GetWidth() const

@@ -45,7 +45,7 @@ CUIDisplay::~CUIDisplay()
 void CUIDisplay::DrawStatsPanel()
 {
     ImGui::Begin("Stats");
-        ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
 }
 
@@ -54,19 +54,19 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
     ImGui::Begin("Lightmap Generator"); // Create a window called "Hello, world!" and append into it.
 
     ImGui::Text("Settings");
-        ImGui::Checkbox("Ambient Occlusion", &m_lampOptions.createAO);
-        ImGui::Checkbox("Shadows", &m_lampOptions.createShadows);
-        ImGui::SliderFloat("Texture Size", &m_lampOptions.lmDetail, 0.6, 1.8);
+    ImGui::Checkbox("Ambient Occlusion", &m_lampOptions.createAO);
+    ImGui::Checkbox("Shadows", &m_lampOptions.createShadows);
+    ImGui::SliderFloat("Texture Size", &m_lampOptions.lmDetail, 0.6, 1.8);
     ImGui::Separator();
 
     ImGui::Text("AO Settings");
-        ImGui::SliderInt("Sphere Rays", &m_lampOptions.numSphereRays, 20, 80);
-        ImGui::SliderFloat("Sphere Size", &m_lampOptions.sphereSize, 5, 100);
+    ImGui::SliderInt("Sphere Rays", &m_lampOptions.numSphereRays, 20, 80);
+    ImGui::SliderFloat("Sphere Size", &m_lampOptions.sphereSize, 5, 100);
     ImGui::Separator();
 
     ImGui::Text("Shadow Settings");
-        ImGui::SliderInt("Lit intensity", &m_lampOptions.shadowLit, 128, 255);
-        ImGui::SliderInt("Unlit intensity", &m_lampOptions.shadowUnlit, 0, 127);
+    ImGui::SliderInt("Lit intensity", &m_lampOptions.shadowLit, 128, 255);
+    ImGui::SliderInt("Unlit intensity", &m_lampOptions.shadowUnlit, 0, 127);
     ImGui::Separator();
 
     if (ImGui::Button("Generate"))
@@ -117,18 +117,18 @@ void CUIDisplay::DrawLightsPanel()
     if (ImGui::Button("Add"))
     {
         CLight newLight;
-        newLight.name = "light" + std::to_string(m_lights.size()+1);
+        newLight.name = "light" + std::to_string(m_lights.size() + 1);
         newLight.radius = 400;
         newLight.brightness = 0.1f;
         m_lights.push_back(newLight);
     }
 
-    if(m_selectedLightIndex!=-1)
+    if (m_selectedLightIndex != -1)
     {
         ImGui::SameLine();
         if (ImGui::Button("Delete"))
         {
-            m_lights.erase(m_lights.begin()+m_selectedLightIndex);
+            m_lights.erase(m_lights.begin() + m_selectedLightIndex);
             m_selectedLightIndex = -1;
         }
     }
@@ -189,7 +189,7 @@ void CUIDisplay::DrawMenuBar()
             {
                 //if (!m_proj->Save())
                 {
-                //    rade::os::Log("Error saving project.. is one open\n");
+                    //    rade::os::Log("Error saving project.. is one open\n");
                 }
             }
             if (ImGui::MenuItem("Save As..", "CTRL+S"))
@@ -251,7 +251,7 @@ void CUIDisplay::Draw()
     DrawStatsPanel();
     DrawLightmapGeneratorPanel();
 
-    if(m_showDemoPanel)
+    if (m_showDemoPanel)
         ImGui::ShowDemoWindow();
 
     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).

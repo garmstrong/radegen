@@ -53,6 +53,7 @@ protected:
     uint32_t m_meshID = 0;
 
     uint32_t LoadMesh(const std::string& meshFile);
+
     void UpdateTransformViaInputs(float deltaTime);
 
     CInputSystem m_inputs;

@@ -63,7 +63,7 @@ public:
 
     static void Warning(const char* pszFormat, ...);
 
-    uint32_t HashString(const char * s);
+    uint32_t HashString(const char* s);
 
 #ifdef __ANDROID__
     static long GetAssetData(const char* filename, void** outData);

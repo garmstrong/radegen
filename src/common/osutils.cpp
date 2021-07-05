@@ -114,7 +114,7 @@ bool OS::CreateDirectories(const std::string& path)
 
 bool OS::FileExists(const std::string& filename, int* size)
 {
-    struct stat st {};
+    struct stat st{};
     bool success = stat(filename.c_str(), &st) == 0;
     if (size != nullptr)
     {
@@ -126,7 +126,7 @@ bool OS::FileExists(const std::string& filename, int* size)
 bool OS::RemoveFile(const char* filename)
 {
     bool success;
-    if( remove( filename ) != 0 )
+    if (remove(filename) != 0)
     {
         success = false;
         Log("Failed to removed file %s\n", filename);
@@ -250,11 +250,11 @@ void OS::Warning(const char* pszFormat, ...)
     Log(pszFormat);
 }
 
-uint32_t OS::HashString(const char * s)
+uint32_t OS::HashString(const char* s)
 {
     uint32_t hash = 0;
 
-    for(; *s; ++s)
+    for (; *s; ++s)
     {
         hash += *s;
         hash += (hash << 10);
