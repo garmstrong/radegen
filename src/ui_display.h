@@ -11,7 +11,7 @@ public:
 
     ~CUIDisplay();
 
-    void SetPercentComplete(int pctComplete);
+    void SetPercentComplete(int pctComplete, bool complete);
 
 public:
     void Draw();

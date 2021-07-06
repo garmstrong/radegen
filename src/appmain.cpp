@@ -267,7 +267,7 @@ bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<
             [this](int pctComplete)
             {
                 OS::Log("Callback progress update %d\n", pctComplete);
-                m_uiDisplay.SetPercentComplete(pctComplete);
+                m_uiDisplay.SetPercentComplete(pctComplete, false);
             });
 
     lmGen.GenerateLightmaps(lampOptions, polyList, lights, &lightMapList);
@@ -300,7 +300,8 @@ bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<
     }
     lightMapList.clear();
 
-    m_uiDisplay.SetPercentComplete(1000);
+    // notify of completion (mesh is now written to file)
+    m_uiDisplay.SetPercentComplete(100, true);
 
     return true;
 }

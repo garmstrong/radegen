@@ -56,12 +56,6 @@ void CUIDisplay::DrawStatsPanel()
     {
         ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     }
-
-    if(m_pctComplete >= 100)
-    {
-        m_pctComplete = 0;
-    }
-    //ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
 }
 
@@ -87,9 +81,6 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
 
     if (ImGui::Button("Generate"))
     {
-        //m_appMain.ProcessLightmaps(m_lampOptions, m_lights);
-        //std::thread(&CAppMain::GenerateLightmaps, m_appMain).detach();
-        //std::thread(&CUIDisplay::GenerateLightmaps, this).detach();
         std::thread( [this] { this->GenerateLightmaps(); } ).detach();
     }
 
@@ -311,18 +302,19 @@ bool CUIDisplay::ReloadMesh()
 void CUIDisplay::GenerateLightmaps()
 {
     m_appMain.ProcessLightmaps(m_lampOptions, m_lights);
-    //std::thread(&CAppMain::ProcessLightmaps, m_appMain, m_lampOptions, m_lights).join();
-
 }
 
-void CUIDisplay::SetPercentComplete(int pctComplete)
+void CUIDisplay::SetPercentComplete(int pctComplete, bool complete)
 {
-    if(pctComplete == 1000)
+    if (!complete)
+    {
+        m_pctComplete = pctComplete;
+    }
+    else
     {
         m_pctComplete = 0;
+        // flag to reload back on main thread (which has video/GL context)
         m_doReload = true;
         return;
     }
-
-    m_pctComplete = pctComplete;
 }
