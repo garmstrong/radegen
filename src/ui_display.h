@@ -1,6 +1,8 @@
 #pragma once
 
+#include <meshfile.h>
 #include "lightmapgen.h"
+#include "ImGuiFileBrowser.h"
 
 class CAppMain;
 
@@ -49,10 +51,15 @@ private:
 
     bool m_showDemoPanel = false;
 
-    bool ReloadMesh();
+    //bool ReloadMesh();
 
     void GenerateLightmaps();
 
     bool m_doReload = false;
 
+    imgui_addons::ImGuiFileBrowser m_fileDialog;
+
+    std::string m_meshFilename = "meshes/default.rbmesh";
+
+    //bool LoadMesh();
 };

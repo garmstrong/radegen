@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstring>
+#include "lightmapimage.h"
 
 #include "polygon3d.h"
 
@@ -212,10 +213,12 @@ public:
             unsigned char* dataPtr,
             const unsigned int dataSize);
 
-    std::vector<CLogicalLightmap>& GetLightMaps()
+    std::vector<CLogicalLightmap>& LEGACY_GetLightMaps()
     {
         return m_lightmaps;
     }
+
+    void GetLightMaps(std::vector<CLightmapImg>& lmaps);
 
     size_t GetPolyCount()
     {

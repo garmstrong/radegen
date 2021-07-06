@@ -45,6 +45,8 @@ public:
 
     static char* ReadFile(const std::string& filename, long* size);
 
+    static bool GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles, bool returnDirectories);
+
     static char* ReadPlatformAssetFile(const char* filename, long* size);
 
     static void Log(const char* pszFormat, ...);

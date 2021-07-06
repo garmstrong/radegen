@@ -1,8 +1,10 @@
 #pragma once
 
 #include <map>
-#include <meshfile.h>
+
+#include "meshfile.h"
 #include "polygon3d.h"
+#include "lightmapimage.h"
 
 class CMaterialManager;
 
@@ -23,7 +25,9 @@ public:
 
     bool LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath = "");
 
-    void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLogicalLightmap>& lightmaps);
+    //void LEGACY_LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLogicalLightmap>& lightmaps);
+
+    void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps);
 
     bool HasLightmaps()
     {
@@ -37,8 +41,11 @@ public:
 
     void Clear();
 
+    void ClearLightmaps();
+
 private:
     std::vector<CPoly3D> m_polyList;
     std::vector<lightmapInfo_t> m_lightmaps;
     bool m_hasLightmaps = false;
+
 };

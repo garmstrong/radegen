@@ -66,6 +66,8 @@ bool CImage::LoadFile(const std::string& filePath, bool usePlatformAsset /*= fal
         return false;
     }
 
+    free(buff);
+
     // copy to local data and delete buffer
     SetFromPtr(width, height, (Format)channels, pixels);
 

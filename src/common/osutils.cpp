@@ -3,6 +3,7 @@
 #include <map>
 #include "osutils.h"
 #include <sys/stat.h>
+#include <dirent.h>
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -160,6 +161,34 @@ char* OS::ReadFile(const std::string& filename, long* size)
 
     *size = fileSize;
     return data;
+}
+
+bool OS::GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles, bool returnDirectories)
+{
+    bool retVal = true;
+    DIR* dir;
+    struct dirent* ent;
+    if ((dir = opendir(path.c_str())) != nullptr)
+    {
+        // print all the files and directories within directory
+        while ((ent = readdir(dir)) != nullptr)
+        {
+            std::string fileName(ent->d_name);
+
+            bool isFile = fileName != "." && fileName != ".." && ent->d_type == 8;
+            if (!isFile && returnDirectories || isFile && returnFiles)
+            {
+                files.push_back(fileName);
+            }
+        }
+        closedir(dir);
+    }
+    else
+    {
+        // could not open directory
+        retVal = false;
+    }
+    return retVal;
 }
 
 char* OS::ReadPlatformAssetFile(const char* filename, long* size)

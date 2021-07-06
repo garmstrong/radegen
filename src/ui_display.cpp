@@ -187,10 +187,10 @@ void CUIDisplay::DrawMenuBar()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Reload"))
-            {
-                ReloadMesh();
-            }
+//            if (ImGui::MenuItem("Reload"))
+//            {
+//                ReloadMesh();
+//            }
 
             if (ImGui::MenuItem("Open..", "CTRL+O"))
             {
@@ -233,21 +233,35 @@ void CUIDisplay::DrawMenuBar()
             ImGui::OpenPopup("Open Project");
         }
 
-//        if (file_dialog.showFileDialog("Save File As",
-//                imgui_addons::ImGuiFileBrowser::DialogMode::SAVE,
-//                ImVec2(700, 310),
-//                ".rproj"))
-//        {
-//            //m_appMain->SaveProject(m_proj, file_dialog.selected_path);
-//        }
-//
-//        if (file_dialog.showFileDialog("Open Project",
-//                imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
-//                ImVec2(700, 310),
-//                ".rproj"))
-//        {
-//            //m_appMain->OpenProject(m_proj, file_dialog.selected_path);
-//        }
+        if (m_fileDialog.showFileDialog("Save File As",
+                imgui_addons::ImGuiFileBrowser::DialogMode::SAVE,
+                ImVec2(700, 310),
+                ".rbmesh"))
+        {
+            //m_appMain->SaveProject(m_proj, file_dialog.selected_path);
+            if(m_appMain.OnUIMeshSave(m_fileDialog.selected_path))
+            {
+                m_meshFilename = m_fileDialog.selected_path;
+            }
+        }
+
+        if (m_fileDialog.showFileDialog("Open Project",
+                imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
+                ImVec2(700, 310),
+                ".rbmesh"))
+        {
+            if(OS::FileExists(m_fileDialog.selected_path))
+            {
+                m_meshFilename = m_fileDialog.selected_path;
+                m_appMain.OnUIMeshLoad(m_meshFilename);
+            }
+            else
+            {
+                OS::Log("No such mesh file %s\n", m_fileDialog.selected_path.c_str());
+            }
+
+            //m_appMain->OpenProject(m_proj, file_dialog.selected_path);
+        }
         ImGui::EndMainMenuBar();
     }
 }
@@ -278,7 +292,7 @@ void CUIDisplay::Draw()
     if(m_doReload)
     {
         m_doReload = false;
-        ReloadMesh();
+        m_appMain.OnUILightmapsComplete();
     }
 
     ImGui::Render();
@@ -289,15 +303,34 @@ bool CUIDisplay::IsAnyItemActive()
     return ImGui::IsAnyItemActive();
 }
 
-bool CUIDisplay::ReloadMesh()
-{
-    if(!m_appMain.LoadMesh(OS::ResourcePath("meshes/default.rbmesh")))
-    {
-        OS::Log("ReloadMesh failed\n");
-        return false;
-    }
-    return true;
-}
+//bool CUIDisplay::ReloadMesh()
+//{
+//    if(!m_appMain.LoadMesh(m_meshFilename))
+//    {
+//        OS::Log("ReloadMesh failed\n");
+//        return false;
+//    }
+//    return true;
+//}
+//
+//bool CUIDisplay::LoadMesh()
+//{
+//    CMeshFile tmpMesh;
+//    if(!tmpMesh.LoadFromFile(m_meshFilename))
+//    {
+//        OS::Log("Cant find default.rbmesh\n");
+//        return false;
+//    }
+//    else
+//    {
+//        if (!m_appMain.LoadMesh(tmpMesh))
+//        {
+//            OS::Log("LoadMesh failed\n");
+//            return false;
+//        }
+//    }
+//    return true;
+//}
 
 void CUIDisplay::GenerateLightmaps()
 {
@@ -318,3 +351,4 @@ void CUIDisplay::SetPercentComplete(int pctComplete, bool complete)
         return;
     }
 }
+

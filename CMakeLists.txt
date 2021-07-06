@@ -24,6 +24,7 @@ file(GLOB TEMPLATE_SRC
         "${PROJECT_SOURCE_DIR}/src/*.cpp"
         "${PROJECT_SOURCE_DIR}/src/display_gl/*.cpp"
         "${PROJECT_SOURCE_DIR}/src/ext/imgui/*.cpp"
+        "${PROJECT_SOURCE_DIR}/src/ext/imgui_addons/*.cpp"
         "${PROJECT_SOURCE_DIR}/src/common/*.cpp"
         )
 
@@ -32,6 +33,7 @@ include_directories(
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/src/display_gl"
         "${PROJECT_SOURCE_DIR}/src/ext/imgui"
+        "${PROJECT_SOURCE_DIR}/src/ext/imgui_addons"
         "${PROJECT_SOURCE_DIR}/src/ext"
         "${PROJECT_SOURCE_DIR}/src/common"
         "${PLATFORM_SRC_DIR}"

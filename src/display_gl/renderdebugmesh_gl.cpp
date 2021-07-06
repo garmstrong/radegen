@@ -343,7 +343,7 @@ void CRenderDebugMeshGL::InitFromPolyMesh(CPolyMesh& renderMesh)
 
     for (CPoly3D& poly : polyList)
     {
-        NRenderMeshGL::Face renderFace;
+        NRenderMeshGL::Face renderFace {};
         renderFace.glVBOId = 0;
         renderFace.lightmapID = poly.GetLightTexID();
 

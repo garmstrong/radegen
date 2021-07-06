@@ -379,3 +379,24 @@ void CMeshFile::AddLightmapData(
     m_lightmaps.push_back(lightmap);
     m_header.numLightmaps++;
 }
+
+void CMeshFile::GetLightMaps(std::vector<CLightmapImg>& lmaps)
+{
+    for (CLogicalLightmap& lm : m_lightmaps)
+    {
+        CLightmapImg newLM;
+        newLM.m_width = lm.GetHeaderPtr()->width;
+        newLM.m_height = lm.GetHeaderPtr()->height;
+
+        // = lm.GetLightmapData()->data;
+
+        newLM.Allocate(newLM.m_width, newLM.m_height);
+
+        int bufferSize = newLM.m_width * newLM.m_height * 4;
+        memcpy(newLM.m_data, lm.GetLightmapData()->data, bufferSize);
+
+        lmaps.push_back(newLM);
+    }
+}
+
+

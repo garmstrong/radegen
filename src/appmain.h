@@ -1,5 +1,6 @@
 #pragma once
 
+#include "polymesh.h"
 #include "camera.h"
 #include "display_gl.h"
 #include "ui_display.h"
@@ -42,7 +43,12 @@ public:
 
     bool ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights);
 
-    uint32_t LoadMesh(const std::string& meshFile);
+    //uint32_t LoadMesh(CMeshFile& meshFile);
+    uint32_t UploadNewMesh(CPolyMesh& polyMesh, std::vector<CLightmapImg>& lightmaps);
+
+    void OnUILightmapsComplete();
+    bool OnUIMeshSave(const std::string& filename);
+    bool OnUIMeshLoad(const std::string& filename);
 
 protected:
 
@@ -61,6 +67,9 @@ protected:
     bool m_isMouseDown = false;
 
     float m_lastDeltaTime = 0.033f;
+
+    CPolyMesh m_polyMesh;
+    std::vector<CLightmapImg> m_lightMapList;
 
 };
 

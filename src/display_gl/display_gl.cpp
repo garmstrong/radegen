@@ -185,8 +185,8 @@ uint32_t CDisplayGL::AddMesh(CPolyMesh& polyMesh)
     // see CRenderMeshGL
     CRenderDebugMeshGL renderMesh;
     renderMesh.InitFromPolyMesh(polyMesh);
-    bool loadTextures = true;
 
+    bool loadTextures = true;
     renderMesh.PrepareMesh(*this, loadTextures);
 
     //renderMesh.LoadMeshTexures(*this);
