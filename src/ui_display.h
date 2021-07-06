@@ -11,12 +11,17 @@ public:
 
     ~CUIDisplay();
 
+    void SetPercentComplete(int pctComplete);
+
 public:
     void Draw();
 
     bool IsAnyItemActive();
 
 private:
+
+    int m_pctComplete = 0;
+
     CAppMain& m_appMain;
     std::vector<CLight> m_lights;
 
@@ -43,4 +48,11 @@ private:
     void DrawLightmapGeneratorPanel();
 
     bool m_showDemoPanel = false;
+
+    bool ReloadMesh();
+
+    void GenerateLightmaps();
+
+    bool m_doReload = false;
+
 };

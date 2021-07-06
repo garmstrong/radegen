@@ -42,6 +42,8 @@ public:
 
     bool ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights);
 
+    uint32_t LoadMesh(const std::string& meshFile);
+
 protected:
 
     bool m_appDone{};
@@ -52,8 +54,6 @@ protected:
     CUIDisplay m_uiDisplay;
     uint32_t m_meshID = 0;
 
-    uint32_t LoadMesh(const std::string& meshFile);
-
     void UpdateTransformViaInputs(float deltaTime);
 
     CInputSystem m_inputs;
@@ -61,5 +61,6 @@ protected:
     bool m_isMouseDown = false;
 
     float m_lastDeltaTime = 0.033f;
+
 };
 

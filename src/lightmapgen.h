@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <vector>
+#include <functional>
 #include "polygon3d.h"
 #include "plane3d.h"
 #include "lightmapimage.h"
@@ -33,6 +34,7 @@ namespace NRadeLamp
     } lmOptions_t;
 };
 
+typedef std::function<void(int)> cb_t;
 
 class CLightmapGen
 {
@@ -45,8 +47,25 @@ public:
     {
     }
 
-protected:
+    // register a callback
+    void RegisterCallback(const cb_t &cb)
+    {
+        // add callback to end of callback list
+        m_callbacks.push_back(cb);
+    }
 
+protected:
+    std::vector<cb_t> m_callbacks;
+    int m_progress;
+
+    // call all the registered callbacks
+    void NotifyCallbacks() const
+    {
+        for (const auto &cb : m_callbacks)
+        {
+            cb(m_progress);
+        }
+    }
 
     NRadeLamp::lmOptions_t m_options = {
             40,        // numSphereRays

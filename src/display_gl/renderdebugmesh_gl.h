@@ -46,6 +46,8 @@ public:
 
     void LoadMeshTexures(CDisplayGL& displayGl);
 
+    void Reset();
+
 private:
     std::vector<NRenderMeshGL::Face> m_faces;
     unsigned int m_vaoId = 0;
@@ -62,4 +64,5 @@ private:
     glm::mat4 m_model = glm::mat4(1);
 
     bool m_hasLightmaps = false;
+
 };

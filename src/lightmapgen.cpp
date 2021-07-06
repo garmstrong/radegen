@@ -8,17 +8,17 @@
 #include "rmath.h"
 #include "osutils.h"
 
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
-
-void PrintProgress(double percentage)
-{
-    int val = (int)(percentage * 100);
-    int lpad = (int)(percentage * PBWIDTH);
-    int rpad = PBWIDTH - lpad;
-    OS::Log("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-    fflush(stdout);
-}
+//#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+//#define PBWIDTH 60
+//
+//void PrintProgress(double percentage)
+//{
+//    int val = (int)(percentage * 100);
+//    int lpad = (int)(percentage * PBWIDTH);
+//    int rpad = PBWIDTH - lpad;
+//    OS::Log("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+//    fflush(stdout);
+//}
 
 CLightmapGen::sphereMap_t* CLightmapGen::GetSphereRaysForNormal(const CPoint3D& normal)
 {
@@ -33,7 +33,7 @@ CLightmapGen::sphereMap_t* CLightmapGen::GetSphereRaysForNormal(const CPoint3D& 
     auto* newMap = new sphereMap_t;
     newMap->normal = normal;
 
-    for (uint16_t i = 0; i < m_options.numSphereRays; i++)
+    for (int i = 0; i < m_options.numSphereRays; i++)
     {
         CPoint3D rayPoint;
         GenerateHemisphereRay(normal, &rayPoint);
@@ -658,10 +658,10 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<CPoly3D>& polyList,
 
 
 
-        int hasAmbient = 0;
-        CLightmapImg lmAO;
-        hasAmbient = CalcPolyAmbientOcclusion(&poly, polyList, lmAO);
-        writeLM = true;
+          int hasAmbient = 0;
+//        CLightmapImg lmAO;
+//        hasAmbient = CalcPolyAmbientOcclusion(&poly, polyList, lmAO);
+//        writeLM = true;
 
         int hasShadows = 0;
         CLightmapImg lmShadow;
@@ -682,15 +682,16 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<CPoly3D>& polyList,
             }
         }
 
-        lmAO.Combine(lmShadow);
-        lmShadow.Free();
+        //lmAO.Combine(lmShadow);
+        //lmShadow.Free();
 
         if (writeLM)
         {
             // BEGIN LOCK
             m_lmMutex.lock();
             // copy the ptr to the shared list, get an index and quickly get out of here
-            m_lightMapList.push_back(lmAO);
+            //m_lightMapList.push_back(lmAO);
+            m_lightMapList.push_back(lmShadow);
             uint32_t lmIndex = m_lightMapList.size() - 1;
             m_lmMutex.unlock();
             // END LOCK
@@ -726,12 +727,17 @@ void CLightmapGen::ThreadStatusUpdate(threadData_t* threadData, uint16_t numThre
         }
 
         float pctComplete = float(totalDone) / float(totalItems);
-        PrintProgress(pctComplete);
+        //PrintProgress(pctComplete);
 
         if (totalDone >= totalItems)
             complete = true;
 
+        m_progress = static_cast<int>(pctComplete*100.0f);
+        NotifyCallbacks();
+
     } while (!complete);
+
+    m_progress = 0;
 }
 
 int CLightmapGen::GenerateLightmaps(

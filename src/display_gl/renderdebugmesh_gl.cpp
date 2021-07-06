@@ -21,6 +21,24 @@ CRenderDebugMeshGL::~CRenderDebugMeshGL()
     glDeleteVertexArrays(1, &m_vaoId);
 }
 
+void CRenderDebugMeshGL::Reset()
+{
+    for (NRenderMeshGL::Face& face : m_faces)
+    {
+        if (face.glVBOId != 0)
+        {
+            glDeleteBuffers(1, &face.glVBOId);
+        }
+    }
+    glDeleteVertexArrays(1, &m_vaoId);
+
+    m_faces.clear();
+    m_vaoId = 0;
+    m_renderMode = NRenderMeshGL::ERenderDefault;
+    m_model = glm::mat4(1);
+    m_hasLightmaps = false;
+}
+
 void CRenderDebugMeshGL::OnRenderStart()
 {
     glBindVertexArray(m_vaoId);

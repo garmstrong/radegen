@@ -202,3 +202,14 @@ void CDisplayGL::RenderMeshID(uint32_t id, Camera& cam)
 
     m_meshes.at(id - 1).RenderDiffuse(cam);
 }
+
+void CDisplayGL::DeleteMesh(uint32_t id)
+{
+    OS::Assert(m_activeCamera, "Call SetCamera before rendering\n");
+    if (m_meshes.size() < id)
+        return;
+
+    m_meshes.at(id - 1).Reset();
+
+    m_meshes.erase(m_meshes.begin()+id);
+}

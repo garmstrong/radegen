@@ -1,4 +1,5 @@
 #include <algorithm>    // std::max
+#include <functional>
 #include "appmain.h"
 #include "osutils.h"
 #include "polymesh.h"
@@ -23,7 +24,7 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     }
 
     // setup camera
-    m_camera.SetPosition(glm::vec3(10, 70, 20));
+    m_camera.SetPosition(glm::vec3(0, 0, 0));
     m_camera.SetViewportAspectRatio(static_cast<float>(videoWidth) / static_cast<float>(videoHeight));
     m_camera.SetFieldOfView(90);
     m_camera.SetNearAndFarPlanes(0.1f, 1500.0f);
@@ -34,7 +35,7 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     // set viewport and camera dimensions
     OnScreenResize(videoWidth, videoHeight);
 
-    m_meshID = LoadMesh(OS::ResourcePath("meshes/simple_out_new.rbmesh"));
+    m_meshID = LoadMesh(OS::ResourcePath("meshes/default.rbmesh"));
 
     return m_meshID > 0;
 }
@@ -50,7 +51,8 @@ void CAppMain::DrawTick(float deltaTime)
     m_lastDeltaTime = deltaTime;
     m_display.Draw(deltaTime);
 
-    m_display.RenderMeshID(m_meshID, m_camera);
+    if (m_meshID != 0)
+        m_display.RenderMeshID(m_meshID, m_camera);
 
     m_uiDisplay.Draw();
 }
@@ -107,7 +109,7 @@ void CAppMain::OnMouseMove(double xrel, double yrel)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    float delta = -10.0f * m_lastDeltaTime;
+    float delta = 10.0f * m_lastDeltaTime;
 
     if (m_isMouseDown)
     {
@@ -121,20 +123,23 @@ void CAppMain::OnMouseWheel(int y)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    if (y == 1)
+    float movementDelta = 500.0f * m_lastDeltaTime;
+    if (y == -1)
     {
-        m_camera.OffsetPosition(10.0f * m_camera.ForwardVector());
+        movementDelta = -movementDelta;
     }
-    else
-    {
-        m_camera.OffsetPosition(-10.0f * m_camera.ForwardVector());
-    }
-
+    m_camera.OffsetPosition(movementDelta * m_camera.ForwardVector());
 }
 
 // "meshes/simple.rbmesh"
 uint32_t CAppMain::LoadMesh(const std::string& meshFile)
 {
+    if (m_meshID != 0)
+    {
+        m_display.DeleteMesh(m_meshID);
+        m_meshID = 0;
+    }
+
     CMeshFile m_rbMeshFile;
 
     if (!m_rbMeshFile.LoadFromFile(meshFile))
@@ -151,7 +156,9 @@ uint32_t CAppMain::LoadMesh(const std::string& meshFile)
     mesh.LoadLightmaps(m_display.GetMaterialMgr(), m_rbMeshFile.GetLightMaps());
     //mesh.LoadMaterials(m_display.GetMaterialMgr());
 
-    return m_display.AddMesh(mesh);
+    m_meshID = m_display.AddMesh(mesh);
+
+    return m_meshID;
 }
 
 void CAppMain::UpdateTransformViaInputs(float deltaTime)
@@ -213,35 +220,17 @@ void CAppMain::UpdateTransformViaInputs(float deltaTime)
         m_camera.OffsetPosition(moveSpeed * -m_camera.UpVector());
         //transform.OffsetPosition(moveSpeed * -transform.UpVector());
     }
-
-//    if (m_captureMouse)
-//    {
-//        // small offset to keep the mouse pointer within the window so it doesnt interfere with other apps
-//        int offsetX = 100;
-//        int offsetY = 100;
-//
-//        //rotate camera based on mouse movement
-//        const float mouseSensitivity = 25.0f * deltaTime;
-//        int mouseX, mouseY;
-//        rade::os::GetPlatform()->GetMousePosition(&mouseX, &mouseY);
-//        mouseX -= offsetX;
-//        mouseY -= offsetY;
-//        m_editModeCamera.OffsetOrientation(mouseSensitivity * (float)mouseY,
-//                mouseSensitivity * (float)mouseX);
-//        rade::os::GetPlatform()->SetMousePosition(offsetX, offsetY);
-//    }
 }
-
 
 bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights)
 {
-    std::string outFile(OS::ResourcePath("meshes/simple_out_new.rbmesh"));
+    std::string outFile(OS::ResourcePath("meshes/default.rbmesh"));
 
-    // scale light colour values
+    // scale light colour values to RGB 0-255 instead of 0-1
     for (auto& light : lights)
     {
-        for (int i = 0; i < 3; i++)
-            light.color[i] = std::min<float>(light.color[i] * 255, 255);
+        for (float& i : light.color)
+            i = std::min<float>(i * 255, 255);
     }
 
     CMeshFile meshFile;
@@ -270,16 +259,24 @@ bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<
     CLightmapGen lmGen;
 
     // generate lightmap data for the polyset
-    printf("generating lightmap data..\n");
+    OS::Log("generating lightmap data..\n");
     std::vector<CLightmapImg> lightMapList;
     CTimer timer;
+
+    lmGen.RegisterCallback(
+            [this](int pctComplete)
+            {
+                OS::Log("Callback progress update %d\n", pctComplete);
+                m_uiDisplay.SetPercentComplete(pctComplete);
+            });
+
     lmGen.GenerateLightmaps(lampOptions, polyList, lights, &lightMapList);
 
     float elapsedTime = timer.ElapsedTime();
-    printf("lightmap generation took %.2f seconds\n", elapsedTime);
+    OS::Log("lightmap generation took %.2f seconds\n", elapsedTime);
 
     // store the new lightmap data to meshfile
-    printf("storing compressed lightmap data in meshfile..\n");
+    OS::Log("storing compressed lightmap data in meshfile..\n");
     CMeshFile outputMeshFile(polyList);
 
     // copy lightmap data to meshfile
@@ -296,12 +293,14 @@ bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<
     //DebugDumpMeshLightmapsToPNGs(outputMeshFile);
 
     // free allocated LM's, now they are on the meshfile
-    printf("freeing resources\n");
+    OS::Log("freeing resources\n");
     for (CLightmapImg& lm : lightMapList)
     {
         lm.Free();
     }
     lightMapList.clear();
+
+    m_uiDisplay.SetPercentComplete(1000);
 
     return true;
 }

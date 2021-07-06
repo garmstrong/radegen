@@ -55,6 +55,8 @@ public:
         return m_maxTextureSize;
     }
 
+    void DeleteMesh(uint32_t id);
+
 private:
     unsigned int m_videoWidth = 800;
     unsigned int m_videoHeight = 600;

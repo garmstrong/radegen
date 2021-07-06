@@ -3,6 +3,7 @@
 #include "ui_display.h"
 #include "imgui.h"
 #include "appmain.h"
+#include "osutils.h"
 
 CUIDisplay::CUIDisplay(CAppMain& appMain) :
         m_appMain(appMain)
@@ -36,7 +37,6 @@ CUIDisplay::CUIDisplay(CAppMain& appMain) :
     light3.brightness = 0.3f;
     light3.name = "light3";
     m_lights.push_back(light3);
-
 }
 
 CUIDisplay::~CUIDisplay()
@@ -45,13 +45,29 @@ CUIDisplay::~CUIDisplay()
 void CUIDisplay::DrawStatsPanel()
 {
     ImGui::Begin("Stats");
-    ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    if(m_pctComplete >0 || m_pctComplete >= 100)
+    {
+        ImGui::ProgressBar(m_pctComplete/100.0f, ImVec2(0.0f, 0.0f));
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::Text("Progress Bar");
+    }
+    else
+    {
+        ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    }
+
+    if(m_pctComplete >= 100)
+    {
+        m_pctComplete = 0;
+    }
+    //ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
 }
 
 void CUIDisplay::DrawLightmapGeneratorPanel()
 {
-    ImGui::Begin("Lightmap Generator"); // Create a window called "Hello, world!" and append into it.
+    ImGui::Begin("Lightmap Generator");
 
     ImGui::Text("Settings");
     ImGui::Checkbox("Ambient Occlusion", &m_lampOptions.createAO);
@@ -72,7 +88,9 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
     if (ImGui::Button("Generate"))
     {
         //m_appMain.ProcessLightmaps(m_lampOptions, m_lights);
-        std::thread(&CAppMain::ProcessLightmaps, m_appMain, m_lampOptions, m_lights).detach();
+        //std::thread(&CAppMain::GenerateLightmaps, m_appMain).detach();
+        //std::thread(&CUIDisplay::GenerateLightmaps, this).detach();
+        std::thread( [this] { this->GenerateLightmaps(); } ).detach();
     }
 
     ImGui::SameLine();
@@ -89,7 +107,6 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
                 true    // shadows
         };
     }
-
     ImGui::End();
 }
 
@@ -162,7 +179,9 @@ void CUIDisplay::DrawLightInspector()
                 light.orientation.Set(rot[0], rot[1], rot[2]);
             }
 
-            ImGui::ColorEdit3("color", light.color);
+            ImGui::ColorEdit3("Color", light.color);
+            ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
+            ImGui::SliderFloat("Radius", &light.radius, 5.0f, 500.0f);
         }
     }
     ImGui::End();
@@ -177,6 +196,11 @@ void CUIDisplay::DrawMenuBar()
     {
         if (ImGui::BeginMenu("File"))
         {
+            if (ImGui::MenuItem("Reload"))
+            {
+                ReloadMesh();
+            }
+
             if (ImGui::MenuItem("Open..", "CTRL+O"))
             {
                 open = true;
@@ -241,8 +265,6 @@ void CUIDisplay::Draw()
 {
     // Our state
     static bool show_demo_window = false;
-    static bool show_another_window = false;
-    static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImGui::NewFrame();
 
     DrawMenuBar();
@@ -252,25 +274,22 @@ void CUIDisplay::Draw()
     DrawLightmapGeneratorPanel();
 
     if (m_showDemoPanel)
+    {
         ImGui::ShowDemoWindow();
+    }
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     if (show_demo_window)
+    {
         ImGui::ShowDemoWindow(&show_demo_window);
+    }
 
+    // handle the mesh reload within main thread which has display context
+    if(m_doReload)
+    {
+        m_doReload = false;
+        ReloadMesh();
+    }
 
-//
-//    // 3. Show another simple window.
-//    if (show_another_window)
-//    {
-//        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-//        ImGui::Text("Hello from another window!");
-//        if (ImGui::Button("Close Me"))
-//            show_another_window = false;
-//        ImGui::End();
-//    }
-
-    // Rendering
     ImGui::Render();
 }
 
@@ -279,3 +298,31 @@ bool CUIDisplay::IsAnyItemActive()
     return ImGui::IsAnyItemActive();
 }
 
+bool CUIDisplay::ReloadMesh()
+{
+    if(!m_appMain.LoadMesh(OS::ResourcePath("meshes/default.rbmesh")))
+    {
+        OS::Log("ReloadMesh failed\n");
+        return false;
+    }
+    return true;
+}
+
+void CUIDisplay::GenerateLightmaps()
+{
+    m_appMain.ProcessLightmaps(m_lampOptions, m_lights);
+    //std::thread(&CAppMain::ProcessLightmaps, m_appMain, m_lampOptions, m_lights).join();
+
+}
+
+void CUIDisplay::SetPercentComplete(int pctComplete)
+{
+    if(pctComplete == 1000)
+    {
+        m_pctComplete = 0;
+        m_doReload = true;
+        return;
+    }
+
+    m_pctComplete = pctComplete;
+}
