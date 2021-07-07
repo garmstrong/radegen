@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <cstring>
+#include <algorithm>
+#include "lightmapgen.h"
 #include "lightmapimage.h"
 
 #include "polygon3d.h"
@@ -20,8 +22,19 @@ namespace NMeshFile
         uint32_t numFaces;
         uint32_t numMaterials;
         uint32_t numLightmaps;
+        uint32_t numLights;
         char name[16];
     } SMeshHeader;
+
+    typedef struct
+    {
+        char name[MATERIAL_NAME_LEN];
+        float pos[3];
+        float dir[3];
+        float radius;
+        float brightness;
+        float color[3];
+    } SLight;
 
     typedef struct
     {
@@ -167,7 +180,7 @@ public:
         lmHeader.height = height;
         lmHeader.dataSize = dataSize;
         lmData.data = new unsigned char[width * height * 4];
-        memset(lmData.data, 0, width * height * 4);
+        //memset(lmData.data, 0, width * height * 4);
         memcpy(lmData.data, dataPtr, width * height * 4);
     }
 
@@ -208,15 +221,10 @@ public:
     void GetAsPolyList(std::vector<CPoly3D>& polyListOut);
 
     void AddLightmapData(
-            const uint16_t width,
-            const uint16_t height,
+            uint16_t width,
+            uint16_t height,
             unsigned char* dataPtr,
-            const unsigned int dataSize);
-
-    std::vector<CLogicalLightmap>& LEGACY_GetLightMaps()
-    {
-        return m_lightmaps;
-    }
+            unsigned int dataSize);
 
     void GetLightMaps(std::vector<CLightmapImg>& lmaps);
 
@@ -226,6 +234,13 @@ public:
     }
 
     void DeleteLightmapData();
+
+    void AddLight(const CLight &light);
+
+    std::vector<NMeshFile::SLight>& GetLightsRef()
+    {
+        return m_lights;
+    }
 
 protected:
 
@@ -242,6 +257,8 @@ protected:
     std::vector<CLogicalMaterial> m_materials;
     std::vector<CLogicalPolygon> m_polygons;
     std::vector<CLogicalLightmap> m_lightmaps;
+
+    std::vector<NMeshFile::SLight> m_lights;
 
     void FreeAll();
 

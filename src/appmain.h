@@ -41,14 +41,29 @@ public:
 
     void OnUIButtonPressed();
 
-    bool ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights);
+    bool GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights);
 
     //uint32_t LoadMesh(CMeshFile& meshFile);
     uint32_t UploadNewMesh(CPolyMesh& polyMesh, std::vector<CLightmapImg>& lightmaps);
 
     void OnUILightmapsComplete();
+
     bool OnUIMeshSave(const std::string& filename);
+
     bool OnUIMeshLoad(const std::string& filename);
+
+    std::vector<CLight>& GetLightsRef();
+
+    bool AddLight(CLight& newLight);
+
+    bool RemoveLight(int index);
+
+    Camera& GetCamera()
+    {
+        return m_camera;
+    }
+
+    bool ChangeLightPos(CLight& light, CPoint3D& pos);
 
 protected:
 
@@ -71,7 +86,9 @@ protected:
     CPolyMesh m_polyMesh;
     std::vector<CLightmapImg> m_lightMapList;
 
-    CTextMesh m_txtCamPos;
+    //CTextMesh m_txtCamPos;
+
+    std::vector<CLight> m_lights;
+    //std::vector<CTextMesh*> m_lightLabels;
 
 };
-

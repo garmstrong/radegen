@@ -1,6 +1,7 @@
 #include <string>
 #include "shader_gl.h"
 #include "osutils.h"
+#include "point3d.h"
 
 #include <glad/glad.h>
 
@@ -155,6 +156,14 @@ void Shader::SetVec3(const std::string &name, const glm::vec3 &value)
 {
 	glUniform3fv(GetUniformLocation(name), 1, &value[0]);
 }
+
+void Shader::SetVec3(const std::string &name, const CPoint3D &value)
+{
+    float val[3];
+    value.ToFloat3(val);
+    glUniform3fv(GetUniformLocation(name), 1, val);
+}
+
 void Shader::SetVec3(const std::string &name, float x, float y, float z)
 {
 	glUniform3f(GetUniformLocation(name), x, y, z);

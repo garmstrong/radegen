@@ -16,7 +16,14 @@ public:
 
 	~CTextMesh();
 
-	bool Init(CDisplayGL* display, Camera* cam, const CPoint3D& pos, uint16_t size, const std::string& matKey, const uint16_t maxChars = 256 );
+	bool Init(const std::string& id,
+	        CDisplayGL* display,
+	        Camera* cam,
+	        const CPoint3D& pos,
+	        uint16_t size,
+	        const std::string& matKey,
+	        const uint16_t maxChars = 256 );
+    bool Reset();
 
 	void SetText(const std::string& label);
 
@@ -33,6 +40,11 @@ public:
 	void SetPos(const CPoint3D& pos);
 
 	void SetCamera(Camera* cam);
+
+	std::string GetDisplayID()
+    {
+	    return m_textHandleID;
+    }
 
 private:
 	std::string m_label;
@@ -52,7 +64,7 @@ private:
 
     CDisplayGL* m_display = nullptr;
 
-	uint32_t m_textHandleID = 0;
+	std::string m_textHandleID = "";
 
 	Camera *m_camera = nullptr;
 };

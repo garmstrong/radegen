@@ -11,18 +11,35 @@ CTextMesh::CTextMesh()
 CTextMesh::~CTextMesh()
 = default;
 
-bool CTextMesh::Init(CDisplayGL* display, Camera* cam, const CPoint3D& pos, const uint16_t size, const std::string& matKey, const uint16_t maxChars /*= 256*/ )
+bool CTextMesh::Init(const std::string& id,
+        CDisplayGL* display,
+        Camera* cam,
+        const CPoint3D& pos,
+        const uint16_t size,
+        const std::string& matKey,
+        const uint16_t maxChars /*= 256*/ )
 {
+    m_textHandleID = id;
 	m_matKey = matKey;
 	m_display = display;
 	OS::Assert(m_display, "CTextMesh::Init Display cannot be null\n");
 	m_label = "CTextMesh text";
 	m_maxChars = maxChars;
 	GenerateLabelGeometry(m_maxChars, size);
-	m_textHandleID = display->LoadTextMesh(this);
+	display->LoadTextMesh(this);
 	SetPos(pos);
 	SetCamera(cam);
 	return true;
+}
+
+bool CTextMesh::Reset()
+{
+    m_display->RemoveTextMesh(m_textHandleID);
+    m_matKey = "";
+    m_display = nullptr;
+    m_label = "CTextMesh text";
+    m_textHandleID = "";
+    return true;
 }
 
 void CTextMesh::SetText(const std::string& label)

@@ -8,41 +8,13 @@
 CUIDisplay::CUIDisplay(CAppMain& appMain) :
         m_appMain(appMain)
 {
-    CLight light;
-    light.pos = CPoint3D(-170, 80, -100);
-    light.color[0] = 1.0f;
-    light.color[1] = 1.0f;
-    light.color[2] = 1.0f;
-    light.radius = 400;
-    light.brightness = 0.1f;
-    light.name = "light1";
-    m_lights.push_back(light);
 
-    CLight light2;
-    light2.pos = CPoint3D(190, -30, 135);
-    light2.color[0] = 0;
-    light2.color[1] = 1.0f;
-    light2.color[2] = 0;
-    light2.radius = 400;
-    light2.brightness = 0.1f;
-    light2.name = "light2";
-    m_lights.push_back(light2);
-
-    CLight light3;
-    light3.pos = CPoint3D(-165, -12, 110);
-    light3.color[0] = 1.0f;
-    light3.color[1] = 0;
-    light3.color[2] = 0;
-    light3.radius = 400;
-    light3.brightness = 0.3f;
-    light3.name = "light3";
-    m_lights.push_back(light3);
 }
 
 CUIDisplay::~CUIDisplay()
 = default;
 
-void CUIDisplay::DrawStatsPanel()
+void CUIDisplay::DrawStatsPanel() const
 {
     ImGui::Begin("Stats");
 
@@ -105,12 +77,14 @@ void CUIDisplay::DrawLightsPanel()
 {
     ImGui::Begin("Lights");
 
+    std::vector<CLight>& lights = m_appMain.GetLightsRef();
+
     if (ImGui::BeginListBox(""))
     {
-        for (int n = 0; n < m_lights.size(); n++)
+        for (int n = 0; n < lights.size(); n++)
         {
             const bool is_selected = (m_selectedLightIndex == n);
-            if (ImGui::Selectable(m_lights.at(n).name.c_str(), is_selected))
+            if (ImGui::Selectable(lights.at(n).name.c_str(), is_selected))
             {
                 m_selectedLightIndex = n;
             }
@@ -124,11 +98,13 @@ void CUIDisplay::DrawLightsPanel()
 
     if (ImGui::Button("Add"))
     {
+        std::string lightName = GetNextLightName(lights);
+
         CLight newLight;
-        newLight.name = "light" + std::to_string(m_lights.size() + 1);
+        newLight.name = lightName;
         newLight.radius = 400;
         newLight.brightness = 0.1f;
-        m_lights.push_back(newLight);
+        m_appMain.AddLight(newLight);
     }
 
     if (m_selectedLightIndex != -1)
@@ -136,7 +112,8 @@ void CUIDisplay::DrawLightsPanel()
         ImGui::SameLine();
         if (ImGui::Button("Delete"))
         {
-            m_lights.erase(m_lights.begin() + m_selectedLightIndex);
+            m_appMain.RemoveLight(m_selectedLightIndex);
+            //lights.erase(lights.begin() + m_selectedLightIndex);
             m_selectedLightIndex = -1;
         }
     }
@@ -144,13 +121,45 @@ void CUIDisplay::DrawLightsPanel()
     ImGui::End();
 }
 
+std::string CUIDisplay::GetNextLightName(std::vector<CLight>& lights)
+{
+    std::string newName;
+    bool nameFound = false;
+    int counter = 1;
+    do
+    {
+        newName = "light" + std::to_string(counter);
+
+        bool alreadyUsed = false;
+        for(auto& light : lights)
+        {
+            if(light.name == newName)
+            {
+                alreadyUsed = true;
+                break;
+            }
+        }
+        if(!alreadyUsed)
+        {
+            nameFound = true;
+        }
+        else
+        {
+            counter++;
+        }
+    }while(!nameFound);
+    return newName;
+}
+
 void CUIDisplay::DrawLightInspector()
 {
+    std::vector<CLight>& lights = m_appMain.GetLightsRef();
+
     ImGui::Begin("Light Properties");
     {
         if (m_selectedLightIndex != -1)
         {
-            CLight& light = m_lights.at(m_selectedLightIndex);
+            CLight& light = lights.at(m_selectedLightIndex);
 
             ImGui::Text("Name: %s", light.name.c_str());
 
@@ -160,12 +169,19 @@ void CUIDisplay::DrawLightInspector()
             float rot[3];
             light.orientation.ToFloat3(rot);
 
-            if (ImGui::InputFloat3("Position", pos))
+            if (ImGui::DragFloat3("Position", pos))
             {
-                light.pos.Set(pos[0], pos[1], pos[2]);
+                CPoint3D newPos(pos);
+                m_appMain.ChangeLightPos(light, newPos);
             }
 
-            if (ImGui::InputFloat3("Rotation", rot))
+            if (ImGui::Button("Set from camera"))
+            {
+                CPoint3D camPos = m_appMain.GetCamera().GetPosition();
+                m_appMain.ChangeLightPos(light, camPos);
+            }
+
+            if (ImGui::DragFloat3("Rotation", rot))
             {
                 light.orientation.Set(rot[0], rot[1], rot[2]);
             }
@@ -187,25 +203,13 @@ void CUIDisplay::DrawMenuBar()
     {
         if (ImGui::BeginMenu("File"))
         {
-//            if (ImGui::MenuItem("Reload"))
-//            {
-//                ReloadMesh();
-//            }
-
             if (ImGui::MenuItem("Open..", "CTRL+O"))
             {
                 open = true;
             }
-            if (ImGui::MenuItem("Close"))
-            {
-                //m_appMain->CloseProject(m_proj);
-            }
             if (ImGui::MenuItem("Save", "CTRL+S"))
             {
-                //if (!m_proj->Save())
-                {
-                    //    rade::os::Log("Error saving project.. is one open\n");
-                }
+                m_appMain.OnUIMeshSave(m_meshFilename);
             }
             if (ImGui::MenuItem("Save As..", "CTRL+S"))
             {
@@ -238,7 +242,6 @@ void CUIDisplay::DrawMenuBar()
                 ImVec2(700, 310),
                 ".rbmesh"))
         {
-            //m_appMain->SaveProject(m_proj, file_dialog.selected_path);
             if(m_appMain.OnUIMeshSave(m_fileDialog.selected_path))
             {
                 m_meshFilename = m_fileDialog.selected_path;
@@ -259,8 +262,6 @@ void CUIDisplay::DrawMenuBar()
             {
                 OS::Log("No such mesh file %s\n", m_fileDialog.selected_path.c_str());
             }
-
-            //m_appMain->OpenProject(m_proj, file_dialog.selected_path);
         }
         ImGui::EndMainMenuBar();
     }
@@ -303,38 +304,11 @@ bool CUIDisplay::IsAnyItemActive()
     return ImGui::IsAnyItemActive();
 }
 
-//bool CUIDisplay::ReloadMesh()
-//{
-//    if(!m_appMain.LoadMesh(m_meshFilename))
-//    {
-//        OS::Log("ReloadMesh failed\n");
-//        return false;
-//    }
-//    return true;
-//}
-//
-//bool CUIDisplay::LoadMesh()
-//{
-//    CMeshFile tmpMesh;
-//    if(!tmpMesh.LoadFromFile(m_meshFilename))
-//    {
-//        OS::Log("Cant find default.rbmesh\n");
-//        return false;
-//    }
-//    else
-//    {
-//        if (!m_appMain.LoadMesh(tmpMesh))
-//        {
-//            OS::Log("LoadMesh failed\n");
-//            return false;
-//        }
-//    }
-//    return true;
-//}
 
 void CUIDisplay::GenerateLightmaps()
 {
-    m_appMain.ProcessLightmaps(m_lampOptions, m_lights);
+    // copy the lights and options into the function
+    m_appMain.GenerateLightmaps(m_lampOptions, m_appMain.GetLightsRef());
 }
 
 void CUIDisplay::SetPercentComplete(int pctComplete, bool complete)

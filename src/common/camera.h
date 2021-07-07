@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "point3d.h"
 
 //class CPoint3D;
 
@@ -87,8 +88,9 @@ public:
 
     //glm::vec3 GetPosition() const;
 
-    glm::vec3 GetPosition() const;
+    glm::vec3 GetPositionGLM() const;
 
+    CPoint3D GetPosition() const;
 
     /**
      The farthest visible distance from the camera.

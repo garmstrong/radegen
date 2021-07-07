@@ -138,6 +138,13 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
         m_lightmaps.push_back(newLightmap);
     }
 
+    for (int i = 0; i < m_header.numLights; i++)
+    {
+        NMeshFile::SLight light;
+        fread((NMeshFile::SLight*)&light, sizeof(NMeshFile::SLight), 1, fp);
+        m_lights.push_back(light);
+    }
+
     ValidateData();
 
     fclose(fp);
@@ -147,12 +154,10 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
 void CMeshFile::LoadFromPolyList(const std::vector<CPoly3D>& polylist)
 {
     Reset();
-
     for (const CPoly3D& poly : polylist)
     {
         AddPoly(poly);
     }
-
     ValidateData();
 }
 
@@ -166,9 +171,8 @@ void CMeshFile::AddPoly(const CPoly3D& poly)
     newPoly.SetLightmapDataIndex(poly.GetLightmapDataIndex());
 
     const std::vector<CPoint3D>& pointsRef = poly.GetPointListRefConst();
-    for (size_t i = 0; i < pointsRef.size(); i++)
+    for (const auto & p : pointsRef)
     {
-        const CPoint3D& p = pointsRef.at(i);
         NMeshFile::SPolyPoint newPoint{};
         // pos
         newPoint.point[0] = p.x;
@@ -271,6 +275,11 @@ bool CMeshFile::WriteToFile(const std::string& filename)
         fwrite(compressedBuffer, compressedLen, 1, fp);
 
         delete[] compressedBuffer;
+    }
+
+    for (NMeshFile::SLight & light : m_lights)
+    {
+        fwrite((NMeshFile::SLight*)&light, sizeof(NMeshFile::SLight), 1, fp);
     }
 
     fflush(fp);
@@ -399,4 +408,17 @@ void CMeshFile::GetLightMaps(std::vector<CLightmapImg>& lmaps)
     }
 }
 
-
+void CMeshFile::AddLight(const CLight &light)
+{
+    NMeshFile::SLight newLight;
+    memcpy(newLight.name, light.name.c_str(), std::max((int)light.name.length(), NMeshFile::MATERIAL_NAME_LEN));
+    light.pos.ToFloat3(newLight.pos);
+    light.orientation.ToFloat3(newLight.dir);
+    newLight.color[0] = light.color[0];
+    newLight.color[1] = light.color[1];
+    newLight.color[2] = light.color[2];
+    newLight.radius = light.radius;
+    newLight.brightness = light.brightness;
+    m_lights.push_back(newLight);
+    m_header.numLights = m_lights.size();
+}

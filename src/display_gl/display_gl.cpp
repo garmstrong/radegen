@@ -11,7 +11,13 @@ CDisplayGL::CDisplayGL() :
 }
 
 CDisplayGL::~CDisplayGL()
-= default;
+{
+    for (auto& textMesh : m_textMeshes)
+    {
+        delete textMesh.second;
+    }
+    m_textMeshes.clear();
+}
 
 bool CDisplayGL::Init(int screenWidth, int screenHeight)
 {
@@ -98,7 +104,7 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
         uint32_t* id)
 {
     // map RMaterials to GL
-    int GL_minMagFilter = GL_NEAREST_MIPMAP_LINEAR;
+    int GL_minMagFilter = GL_NEAREST_MIPMAP_NEAREST;
     int GL_clampMode = GL_REPEAT;
 
     if(minMagFiler == RMaterials::TEXTURE_FILTER_LINEAR)
@@ -142,7 +148,7 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
             GL_UNSIGNED_BYTE,
             data);
 
-    if (genMipMaps || GL_minMagFilter == GL_NEAREST_MIPMAP_LINEAR)
+    if (genMipMaps || GL_minMagFilter == GL_NEAREST_MIPMAP_LINEAR || GL_minMagFilter == GL_NEAREST_MIPMAP_NEAREST)
     {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -237,40 +243,48 @@ void CDisplayGL::RenderAllTextObjects()
     m_fontShader.Use();
     for (auto& textMesh : m_textMeshes)
     {
-        m_fontShader.SetMat4("projection", textMesh.GetCamera()->GetProjection());
-        m_fontShader.SetMat4("view", textMesh.GetCamera()->GetView());
+        CRenderTextGL *txtGL = textMesh.second;
+        m_fontShader.SetMat4("projection", txtGL->GetCamera()->GetProjection());
+        m_fontShader.SetMat4("view", txtGL->GetCamera()->GetView());
         //m_fontShader.SetMat4("model", glm::mat4(1.0f));
-        glm::vec3 pos(textMesh.GetPos().x, textMesh.GetPos().y, textMesh.GetPos().z);
+        glm::vec3 pos(txtGL->GetPos().x, txtGL->GetPos().y, txtGL->GetPos().z);
         m_fontShader.SetMat4("model", glm::translate(glm::mat4(), pos));
-        Camera* cam = textMesh.GetCamera();
+        Camera* cam = txtGL->GetCamera();
         OS::Assert(cam, "textmesh camera was null\n");
-        textMesh.RenderAllFaces(&m_fontShader);
+        txtGL->RenderAllFaces(&m_fontShader);
     }
 }
 
-uint32_t CDisplayGL::LoadTextMesh(CTextMesh* textMesh)
+void CDisplayGL::RemoveTextMesh(const std::string& name)
 {
-    CRenderTextGL newMesh(this, &textMesh->GetPolyMesh());
+    CRenderTextGL* textGL = m_textMeshes[name];
+    textGL->Reset();
+    delete textGL;
+    m_textMeshes.erase(name);
+}
+
+void CDisplayGL::LoadTextMesh(CTextMesh* textMesh)
+{
+    CRenderTextGL *newMesh = new CRenderTextGL(this, &textMesh->GetPolyMesh());
     // return index so can be rendered later
-    m_textMeshes.push_back(newMesh);
-    return m_textMeshes.size() - 1;
+    m_textMeshes[textMesh->GetDisplayID()] = newMesh;
 }
 
-void CDisplayGL::UpdateTextMesh(uint32_t handleID, const std::string& newString)
+void CDisplayGL::UpdateTextMesh(const std::string& name, const std::string& newString)
 {
-    CRenderTextGL& textGL = m_textMeshes.at(handleID);
-    textGL.UpdateText(newString);
+    CRenderTextGL* textGL = m_textMeshes[name];
+    textGL->UpdateText(newString);
 }
 
-void CDisplayGL::UpdateTextMeshPos(uint32_t handleID, const CPoint3D& pos)
+void CDisplayGL::UpdateTextMeshPos(const std::string& name, const CPoint3D& pos)
 {
-    CRenderTextGL& textGL = m_textMeshes.at(handleID);
-    textGL.SetPos(pos);
+    CRenderTextGL* textGL = m_textMeshes[name];
+    textGL->SetPos(pos);
 }
 
-void CDisplayGL::UpdateTextMeshCamera(uint32_t handleID, Camera *camera)
+void CDisplayGL::UpdateTextMeshCamera(const std::string& name, Camera *camera)
 {
-    CRenderTextGL& textGL = m_textMeshes.at(handleID);
-    textGL.SetCamera(camera);
+    CRenderTextGL* textGL = m_textMeshes[name];
+    textGL->SetCamera(camera);
 }
 

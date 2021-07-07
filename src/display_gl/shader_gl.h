@@ -15,6 +15,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+class CPoint3D;
+
 typedef struct
 {
     unsigned int prgID;
@@ -52,6 +54,8 @@ public:
     void SetVec2(const std::string& name, float x, float y);
 
     void SetVec3(const std::string& name, const glm::vec3& value);
+
+    void SetVec3(const std::string &name, const CPoint3D &value);
 
     void SetVec3(const std::string& name, float x, float y, float z);
 

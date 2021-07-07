@@ -47,13 +47,6 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
         return false;
     }
 
-    if(!m_txtCamPos.Init(&m_display, &m_camera, CPoint3D(0, 0, 0), 2, "system/font"))
-    {
-        return false;
-    }
-
-    m_txtCamPos.SetText("0, 0, 0");
-
     return true;
 }
 
@@ -149,31 +142,6 @@ void CAppMain::OnMouseWheel(int y)
     m_camera.OffsetPosition(movementDelta * m_camera.ForwardVector());
 }
 
-// "meshes/simple.rbmesh"
-//uint32_t CAppMain::LoadMesh(CMeshFile& meshFile)
-//{
-//    // remove if loaded already
-//    if (m_meshID != 0)
-//    {
-//        m_display.DeleteMesh(m_meshID);
-//        m_meshID = 0;
-//    }
-//
-//    std::vector<CPoly3D> polyList;
-//    meshFile.GetAsPolyList(polyList);
-//
-//    m_polyMesh.Clear();
-//    m_polyMesh.AddPolyList(polyList);
-//
-//    // load any current lightmaps in the file (if any)
-//    m_polyMesh.LoadLightmaps(m_display.GetMaterialMgr(), meshFile.GetLightMaps());
-//    //mesh.LoadMaterials(m_display.GetMaterialMgr());
-//
-//    // add this to the renderer
-//    m_meshID = m_display.AddMesh(m_polyMesh);
-//    return m_meshID;
-//}
-
 uint32_t CAppMain::UploadNewMesh(CPolyMesh& polyMesh, std::vector<CLightmapImg>& lightmaps)
 {
     // remove if loaded already
@@ -191,36 +159,6 @@ uint32_t CAppMain::UploadNewMesh(CPolyMesh& polyMesh, std::vector<CLightmapImg>&
     m_meshID = m_display.AddMesh(m_polyMesh);
     return m_meshID;
 }
-
-//// "meshes/simple.rbmesh"
-//uint32_t CAppMain::LoadMesh(const std::string& meshFile)
-//{
-//    if (m_meshID != 0)
-//    {
-//        m_display.DeleteMesh(m_meshID);
-//        m_meshID = 0;
-//    }
-//
-//    CMeshFile m_rbMeshFile;
-//
-//    if (!m_rbMeshFile.LoadFromFile(meshFile))
-//    {
-//        OS::Abort("Mesh LoadFromFile() failed\n");
-//        return 0;
-//    }
-//
-//    std::vector<CPoly3D> polyList;
-//    m_rbMeshFile.GetAsPolyList(polyList);
-//
-//    CPolyMesh mesh;
-//    mesh.AddPolyList(polyList);
-//    mesh.LoadLightmaps(m_display.GetMaterialMgr(), m_rbMeshFile.GetLightMaps());
-//    //mesh.LoadMaterials(m_display.GetMaterialMgr());
-//
-//    m_meshID = m_display.AddMesh(mesh);
-//
-//    return m_meshID;
-//}
 
 void CAppMain::UpdateTransformViaInputs(float deltaTime)
 {
@@ -283,7 +221,7 @@ void CAppMain::UpdateTransformViaInputs(float deltaTime)
     }
 }
 
-bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights)
+bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights)
 {
     std::string outFile(OS::ResourcePath("meshes/default.rbmesh"));
 
@@ -343,6 +281,30 @@ bool CAppMain::OnUIMeshLoad(const std::string& filename)
         m_polyMesh.LoadLightmaps(m_display.GetMaterialMgr(), m_lightMapList);
 
         m_meshID = UploadNewMesh(m_polyMesh, m_lightMapList);
+//        typedef struct
+//        {
+//            char name[MATERIAL_NAME_LEN];
+//            float pos[3];
+//            float dir[3];
+//            float radius;
+//            float brightness;
+//            float color[3];
+//        } SLight;
+        // import mesh lights
+        std::vector<NMeshFile::SLight>& meshLights = tmpMesh.GetLightsRef();
+        for(auto& light : meshLights)
+        {
+            CLight newLight{};
+            newLight.name = std::string(light.name);
+            newLight.pos = CPoint3D(light.pos);
+            newLight.orientation = CPoint3D(light.dir);
+            newLight.brightness = light.brightness;
+            newLight.radius = light.radius;
+            newLight.color[0] = light.color[0];
+            newLight.color[1] = light.color[1];
+            newLight.color[2] = light.color[2];
+            AddLight(newLight);
+        }
 
         return m_meshID>0;
     }
@@ -355,12 +317,8 @@ bool CAppMain::OnUIMeshLoad(const std::string& filename)
 
 void CAppMain::OnUILightmapsComplete()
 {
-    // m_polyMesh is ready
-    // m_lightMapList is ready
-    // UI system is ready
-
+    // m_lightmaps is now ready to use
     m_polyMesh.ClearLightmaps();
-
     UploadNewMesh(m_polyMesh, m_lightMapList);
 }
 
@@ -375,19 +333,52 @@ bool CAppMain::OnUIMeshSave(const std::string& filename)
         outputMeshFile.AddLightmapData(lm.m_width, lm.m_height, lm.m_data, lm.m_width * lm.m_height * 4);
     }
 
+    for(auto& light : m_lights)
+    {
+        outputMeshFile.AddLight(light);
+    }
+
     if(!outputMeshFile.WriteToFile(filename))
     {
         OS::Log("Failed to save %s\n", filename.c_str());
         return false;
     }
+    return true;
+}
 
-    // Keep if we save again
-//    // these have been saved to disk, also the uplaoded lms are on the display now
-//    for (CLightmapImg& lm : m_lightMapList)
-//    {
-//        lm.Free();
-//    }
-//    m_lightMapList.clear();
+std::vector<CLight>& CAppMain::GetLightsRef()
+{
+    return m_lights;
+}
 
+bool CAppMain::RemoveLight(int index)
+{
+    m_lights.at(index).label->Reset();
+    delete m_lights.at(index).label;
+    m_lights.erase(m_lights.begin() + index);
+    return true;
+}
+
+bool CAppMain::AddLight(CLight& newLight)
+{
+    CTextMesh *newLabel = new CTextMesh();
+    if(!newLabel->Init(newLight.name, &m_display, &m_camera, newLight.pos, 4, "system/font"))
+    {
+        return false;
+    }
+
+    newLabel->SetText(newLight.name);
+    newLight.label = newLabel;
+    m_lights.emplace_back(newLight);
+    return true;
+}
+
+bool CAppMain::ChangeLightPos(CLight& light, CPoint3D& pos)
+{
+    light.pos = pos;
+    if(light.label)
+    {
+        light.label->SetPos(pos);
+    }
     return true;
 }

@@ -25,7 +25,7 @@ private:
     int m_pctComplete = 0;
 
     CAppMain& m_appMain;
-    std::vector<CLight> m_lights;
+
 
     NRadeLamp::lmOptions_t m_lampOptions = {
             40,     // numSphereRays for AO
@@ -45,7 +45,7 @@ private:
 
     void DrawLightsPanel();
 
-    void DrawStatsPanel();
+    void DrawStatsPanel() const;
 
     void DrawLightmapGeneratorPanel();
 
@@ -59,7 +59,8 @@ private:
 
     imgui_addons::ImGuiFileBrowser m_fileDialog;
 
-    std::string m_meshFilename = "meshes/default.rbmesh";
+    std::string m_meshFilename = "data/meshes/default.rbmesh";
 
     //bool LoadMesh();
+    std::string GetNextLightName(std::vector<CLight>& lights);
 };

@@ -113,6 +113,7 @@ public:
 		return m_camera;
 	}
 
+    void Reset();
 
 private:
 	CPoint2D GetGlyphPosition(char glyphChar);

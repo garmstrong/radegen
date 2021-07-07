@@ -175,3 +175,23 @@ CPoint2D CRenderTextGL::GetGlyphPosition(char glyphChar)
 	uvOffset.y = static_cast<float>(glyphChar / cFontHeight) * scaley;
 	return uvOffset;
 }
+
+void CRenderTextGL::Reset()
+{
+    for (NRenderTextGL::Face& face : m_faces)
+    {
+        if (face.glVBOId != 0)
+        {
+            glDeleteBuffers(1, &face.glVBOId);
+        }
+    }
+    glDeleteVertexArrays(1, &m_vaoId);
+
+    m_texid = 0;
+    m_text.clear();
+    m_display = nullptr;
+    m_camera = nullptr;
+    m_faces.clear();
+    m_vaoId = 0;
+    m_mat = nullptr; // TODO: delete?
+}

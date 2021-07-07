@@ -61,14 +61,15 @@ public:
 
     void RenderAllTextObjects();
 
+    void LoadTextMesh(CTextMesh* textMesh);
 
-    uint32_t LoadTextMesh(CTextMesh* textMesh);
+    void UpdateTextMesh(const std::string& name, const std::string& newString);
 
-    void UpdateTextMesh(uint32_t handleID, const std::string& newString);
+    void UpdateTextMeshPos(const std::string& name, const CPoint3D& pos);
 
-    void UpdateTextMeshPos(uint32_t handleID, const CPoint3D& pos);
+    void UpdateTextMeshCamera(const std::string& name, Camera* camera);
 
-    void UpdateTextMeshCamera(uint32_t handleID, Camera* camera);
+    void RemoveTextMesh(const std::string& name);
 
 private:
     unsigned int m_videoWidth = 800;
@@ -80,7 +81,7 @@ private:
     Camera* m_activeCamera = nullptr;
 
     std::vector<CRenderDebugMeshGL> m_meshes;
-    std::vector<CRenderTextGL> m_textMeshes;
+    std::map<std::string, CRenderTextGL*> m_textMeshes;
 
     CMaterialManager m_materialMgr;
 

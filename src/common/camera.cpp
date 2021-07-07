@@ -4,6 +4,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "camera.h"
 
+
 static const float MaxVerticalAngle = 88.0f; //must be less than 90 to avoid gimbal lock
 
 //void CFrustrum::UpdateFrustrumPlanes(const glm::mat4& mat)
@@ -145,9 +146,14 @@ float Camera::GetNearPlane() const
     return m_nearPlane;
 }
 
-glm::vec3 Camera::GetPosition() const
+glm::vec3 Camera::GetPositionGLM() const
 {
     return glm::vec3(m_position.x, m_position.y, m_position.z);
+}
+
+CPoint3D Camera::GetPosition() const
+{
+    return CPoint3D(m_position.x, m_position.y, m_position.z);
 }
 
 float Camera::GetFarPlane() const
