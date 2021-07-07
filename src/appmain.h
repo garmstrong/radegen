@@ -71,5 +71,7 @@ protected:
     CPolyMesh m_polyMesh;
     std::vector<CLightmapImg> m_lightMapList;
 
+    CTextMesh m_txtCamPos;
+
 };
 

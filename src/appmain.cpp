@@ -1,4 +1,3 @@
-#include <algorithm>    // std::max
 #include <functional>
 #include "appmain.h"
 #include "osutils.h"
@@ -42,19 +41,20 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     // set viewport and camera dimensions
     OnScreenResize(videoWidth, videoHeight);
 
-    OnUIMeshLoad(OS::ResourcePath("meshes/default.rbmesh"));
+    // use same UI path to load a default mesh at startup
+    if(!OnUIMeshLoad(OS::ResourcePath("meshes/default.rbmesh")))
+    {
+        return false;
+    }
 
-//    CMeshFile tmpMesh;
-//    if(tmpMesh.LoadFromFile(OS::ResourcePath("meshes/default.rbmesh")))
-//    {
-//        m_meshID = LoadMesh(tmpMesh);
-//    }
-//    else
-//    {
-//        OS::Log("Cant find default.rbmesh\n");
-//    }
+    if(!m_txtCamPos.Init(&m_display, &m_camera, CPoint3D(0, 0, 0), 2, "system/font"))
+    {
+        return false;
+    }
 
-    return true; //m_meshID > 0;
+    m_txtCamPos.SetText("0, 0, 0");
+
+    return true;
 }
 
 int CAppMain::UpdateTick(float deltaTime)
@@ -71,6 +71,7 @@ void CAppMain::DrawTick(float deltaTime)
     if (m_meshID != 0)
         m_display.RenderMeshID(m_meshID, m_camera);
 
+    m_display.RenderAllTextObjects();
     m_uiDisplay.Draw();
 }
 
@@ -308,7 +309,6 @@ bool CAppMain::ProcessLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<
     lmGen.RegisterCallback(
             [this](int pctComplete)
             {
-                OS::Log("Callback progress update %d\n", pctComplete);
                 m_uiDisplay.SetPercentComplete(pctComplete, false);
             });
 

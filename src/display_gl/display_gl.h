@@ -6,8 +6,10 @@
 #include "shader_gl.h"
 #include "renderdebugmesh_gl.h"
 //#include "rendermesh_gl.h"
+#include "rendertext_gl.h"
 #include "camera.h"
 #include "materialmanager.h"
+#include "textmesh.h"
 
 class OS;
 
@@ -57,6 +59,17 @@ public:
 
     void DeleteMesh(uint32_t id);
 
+    void RenderAllTextObjects();
+
+
+    uint32_t LoadTextMesh(CTextMesh* textMesh);
+
+    void UpdateTextMesh(uint32_t handleID, const std::string& newString);
+
+    void UpdateTextMeshPos(uint32_t handleID, const CPoint3D& pos);
+
+    void UpdateTextMeshCamera(uint32_t handleID, Camera* camera);
+
 private:
     unsigned int m_videoWidth = 800;
     unsigned int m_videoHeight = 600;
@@ -67,6 +80,7 @@ private:
     Camera* m_activeCamera = nullptr;
 
     std::vector<CRenderDebugMeshGL> m_meshes;
+    std::vector<CRenderTextGL> m_textMeshes;
 
     CMaterialManager m_materialMgr;
 
@@ -76,5 +90,7 @@ private:
 
     int m_maxTextureSize = 1024;
     int m_maxTextureUnits = 16;
+
+    Shader m_fontShader;
 
 };

@@ -41,6 +41,17 @@ bool CDisplayGL::Init(int screenWidth, int screenHeight)
         OS::Abort("Failed to load notexture, check working directory\n");
         success = false;
     }
+
+
+
+    // font shader
+    if (!m_fontShader.CreateShader(
+            "data/shaders/font_vert.shader",
+            "data/shaders/font_frag.shader"))
+    {
+        OS::Abort("Failed to create shader\n");
+    }
+
     return success;
 }
 
@@ -213,3 +224,53 @@ void CDisplayGL::DeleteMesh(uint32_t id)
 
     m_meshes.erase(m_meshes.begin()+id);
 }
+
+void CDisplayGL::RenderAllTextObjects()
+{
+    //
+    // TEXT MESHES
+    //
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    m_fontShader.Use();
+    for (auto& textMesh : m_textMeshes)
+    {
+        m_fontShader.SetMat4("projection", textMesh.GetCamera()->GetProjection());
+        m_fontShader.SetMat4("view", textMesh.GetCamera()->GetView());
+        //m_fontShader.SetMat4("model", glm::mat4(1.0f));
+        glm::vec3 pos(textMesh.GetPos().x, textMesh.GetPos().y, textMesh.GetPos().z);
+        m_fontShader.SetMat4("model", glm::translate(glm::mat4(), pos));
+        Camera* cam = textMesh.GetCamera();
+        OS::Assert(cam, "textmesh camera was null\n");
+        textMesh.RenderAllFaces(&m_fontShader);
+    }
+}
+
+uint32_t CDisplayGL::LoadTextMesh(CTextMesh* textMesh)
+{
+    CRenderTextGL newMesh(this, &textMesh->GetPolyMesh());
+    // return index so can be rendered later
+    m_textMeshes.push_back(newMesh);
+    return m_textMeshes.size() - 1;
+}
+
+void CDisplayGL::UpdateTextMesh(uint32_t handleID, const std::string& newString)
+{
+    CRenderTextGL& textGL = m_textMeshes.at(handleID);
+    textGL.UpdateText(newString);
+}
+
+void CDisplayGL::UpdateTextMeshPos(uint32_t handleID, const CPoint3D& pos)
+{
+    CRenderTextGL& textGL = m_textMeshes.at(handleID);
+    textGL.SetPos(pos);
+}
+
+void CDisplayGL::UpdateTextMeshCamera(uint32_t handleID, Camera *camera)
+{
+    CRenderTextGL& textGL = m_textMeshes.at(handleID);
+    textGL.SetCamera(camera);
+}
+
