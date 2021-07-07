@@ -108,7 +108,7 @@ void CRenderTextGL::RenderAllFaces(Shader *shader)
 
 		glBindTexture(GL_TEXTURE_2D, m_texid);
 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, face.verts.size());
+		glDrawArrays(GL_TRIANGLE_FAN, 0, (GLsizei)face.verts.size());
 	}
 	OnRenderFinish();
 }

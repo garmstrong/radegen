@@ -3,7 +3,7 @@
 #include <map>
 #include "osutils.h"
 #include <sys/stat.h>
-#include <dirent.h>
+
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -87,7 +87,7 @@ bool OS::CreateDirectories(const std::string& path)
     case ENOENT:
         // parent didn't exist, try to create it
     {
-        int pos = path.find_last_of('/');
+        size_t pos = path.find_last_of('/');
         if (pos == std::string::npos)
 #if defined(_WIN32)
             pos = path.find_last_of('\\');
@@ -142,7 +142,7 @@ bool OS::RemoveFile(const char* filename)
 
 char* OS::ReadFile(const std::string& filename, long* size)
 {
-    FILE* fp = fopen(filename.c_str(), "r");
+    FILE* fp = fopen(filename.c_str(), "rb");
     if (fp == nullptr)
     {
         Log("Could not open file: %s\n", filename.c_str());
@@ -154,9 +154,10 @@ char* OS::ReadFile(const std::string& filename, long* size)
     long fileSize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    char* data = (char*)malloc(fileSize + 1);
-    memset(data, '\0', fileSize + 1);
+    char* data = (char*)malloc(fileSize);
+    memset(data, '\0', fileSize);
     fread(data, 1, fileSize, fp);
+    //data[fileSize + 1] = '\0';
     fclose(fp);
 
     *size = fileSize;
@@ -166,6 +167,7 @@ char* OS::ReadFile(const std::string& filename, long* size)
 bool OS::GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles, bool returnDirectories)
 {
     bool retVal = true;
+    /*
     DIR* dir;
     struct dirent* ent;
     if ((dir = opendir(path.c_str())) != nullptr)
@@ -187,7 +189,7 @@ bool OS::GetFilesInDir(const std::string& path, std::vector<std::string>& files,
     {
         // could not open directory
         retVal = false;
-    }
+    }*/
     return retVal;
 }
 

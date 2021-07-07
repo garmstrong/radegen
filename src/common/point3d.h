@@ -40,6 +40,14 @@ public:
         z = c;
     }
 
+    CPoint3D(int a, int b, int c)
+    {
+        Zero();
+        x = static_cast<float>(a);
+        y = static_cast<float>(b);
+        z = static_cast<float>(c);
+    }
+
     CPoint3D(const float* vec)
     {
         Zero();

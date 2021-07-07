@@ -75,5 +75,5 @@ public:
 private:
     CPoint3D m_pointOnPlane;
     CPoint3D m_normal;
-    float m_dist;
+    float m_dist = 0.0f;
 };

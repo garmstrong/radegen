@@ -59,7 +59,7 @@ public:
         return m_shaderInfo;
     }
 
-    RMaterials::CTextureProperties* GetTextureProps(RMaterials::ETextureSlots slot)
+    RMaterials::CTextureProperties* GetTextureProps(enum RMaterials::ETextureSlots slot)
     {
         return &m_textures[slot];
     }

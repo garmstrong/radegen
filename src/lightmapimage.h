@@ -46,16 +46,25 @@ public:
         m_data[offset + 0] = rgba[0];
         m_data[offset + 1] = rgba[1];
         m_data[offset + 2] = rgba[2];
-        m_data[offset + 3] = 254;
+        m_data[offset + 3] = 255;
     }
 
     void SetPixel(int x, int y, const CPoint3D& p)
     {
         size_t offset = index(x, y);
-        m_data[offset + 0] = p.x;
-        m_data[offset + 1] = p.y;
-        m_data[offset + 2] = p.z;
-        m_data[offset + 3] = 254;
+        m_data[offset + 0] = static_cast<unsigned char>(p.x);
+        m_data[offset + 1] = static_cast<unsigned char>(p.y);
+        m_data[offset + 2] = static_cast<unsigned char>(p.z);
+        m_data[offset + 3] = 255;
+    }
+
+    void SetPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b)
+    {
+        size_t offset = index(x, y);
+        m_data[offset + 0] = r;
+        m_data[offset + 1] = g;
+        m_data[offset + 2] = b;
+        m_data[offset + 3] = 255;
     }
 
     void Allocate(uint16_t width, uint16_t height)

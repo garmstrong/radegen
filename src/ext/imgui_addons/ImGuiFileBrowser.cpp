@@ -1,8 +1,6 @@
-#include "ImGuiFileBrowser.h"
-#ifndef IMGUI_DEFINE_MATH_OPERATORS
-#define IMGUI_DEFINE_MATH_OPERATORS
+#ifdef _WIN32
+//#include <Windows.h>
 #endif
-#include "imgui/imgui_internal.h"
 
 #include <functional>
 #include <cstring>
@@ -11,8 +9,14 @@
 #include <cctype>
 #include <algorithm>
 #include <cmath>
-
 #include <sys/stat.h>
+
+
+#include "ImGuiFileBrowser.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui/imgui_internal.h"
 
 #include "osutils.h"
 
@@ -44,7 +48,7 @@ namespace imgui_addons
         selected_path = "";
         input_fn[0] = '\0';
 
-        #ifdef __WIN32__
+        #ifdef _WIN32
         current_path = "./";
         #else
         initCurrentPath();
@@ -107,7 +111,7 @@ namespace imgui_addons
         max_size.y = io.DisplaySize.y;
         ImGui::SetNextWindowSizeConstraints(min_size, max_size);
         ImGui::SetNextWindowPos(io.DisplaySize * 0.5f, ImGuiCond_Appearing, ImVec2(0.5f,0.5f));
-        ImGui::SetNextWindowSize(ImVec2(std::max(sz_xy.x, min_size.x), std::max(sz_xy.y, min_size.y)), ImGuiCond_Appearing);
+        //ImGui::SetNextWindowSize(ImVec2(std::max(sz_xy.x, min_size.x), std::max(sz_xy.y, min_size.y)), ImGuiCond_Appearing);
 
         //Set Proper Filter Mode.
         if(mode == DialogMode::SELECT)
@@ -135,7 +139,7 @@ namespace imgui_addons
                  */
                 if(current_path.empty())
                 {
-                    #ifdef __WIN32__
+                    #ifdef _WIN32
                     show_error |= !(loadWindowsDrives());
                     #else
                     initCurrentPath();
@@ -432,7 +436,8 @@ namespace imgui_addons
             {
                 struct stat s;
                 stat( input_fn, &s );
-                if ( S_ISDIR( s.st_mode ) )
+                //if ( S_ISDIR( s.st_mode ) )
+                if( (s.st_mode & S_IFMT) == S_IFDIR)
                 {
                     //If input is a directory...
                     current_path = input_fn;
@@ -514,8 +519,8 @@ namespace imgui_addons
         bool show_error = false;
         float frame_height = ImGui::GetFrameHeight();
         float frame_height_spacing = ImGui::GetFrameHeightWithSpacing();
-        float button_width = (ext_box_width - style.ItemSpacing.x) / 2.0;
-        float buttons_xpos =  pw_size.x - button_width * 2.0 - style.ItemSpacing.x - style.WindowPadding.x;
+        float button_width = (ext_box_width - style.ItemSpacing.x) / 2.0f;
+        float buttons_xpos =  pw_size.x - button_width * 2.0f - style.ItemSpacing.x - style.WindowPadding.x;
 
         ImGui::SetCursorPosY(pw_size.y - frame_height_spacing - style.WindowPadding.y);
 
@@ -1119,36 +1124,36 @@ namespace imgui_addons
     }
 
     //Windows Exclusive function
-    #ifdef __WIN32__
+    #ifdef _WIN32
     bool ImGuiFileBrowser::loadWindowsDrives()
     {
-        DWORD len = GetLogicalDriveStringsA(0,nullptr);
-        char* drives = new char[len];
-        if(!GetLogicalDriveStringsA(len,drives))
-        {
-            delete[] drives;
-            return false;
-        }
+        //DWORD len = GetLogicalDriveStringsA(0,nullptr);
+        //char* drives = new char[len];
+        //if(!GetLogicalDriveStringsA(len,drives))
+        //{
+        //    delete[] drives;
+        //    return false;
+        //}
 
-        clearFileList();
-        char* temp = drives;
-        for(char *drv = nullptr; *temp != '\0'; temp++)
-        {
-            drv = temp;
-            if(DRIVE_REMOVABLE == GetDriveTypeA(drv))
-                subdirs.push_back({"Removable Disk: " + std::string(1,drv[0]), false});
-            else if(DRIVE_FIXED == GetDriveTypeA(drv))
-                subdirs.push_back({"Local Disk: " + std::string(1,drv[0]), false});
-            //Go to nullptr character
-            while(*(++temp));
-        }
-        delete[] drives;
+        //clearFileList();
+        //char* temp = drives;
+        //for(char *drv = nullptr; *temp != '\0'; temp++)
+        //{
+        //    drv = temp;
+        //    if(DRIVE_REMOVABLE == GetDriveTypeA(drv))
+        //        subdirs.push_back({"Removable Disk: " + std::string(1,drv[0]), false});
+        //    else if(DRIVE_FIXED == GetDriveTypeA(drv))
+        //        subdirs.push_back({"Local Disk: " + std::string(1,drv[0]), false});
+        //    //Go to nullptr character
+        //    while(*(++temp));
+        //}
+        //delete[] drives;
         return true;
     }
     #endif
 
     //Unix only
-    #ifndef PLAT_WINDOWS
+#if defined(unix) || defined(__unix__) || defined(__unix) || defined(__APPLE__)
     void ImGuiFileBrowser::initCurrentPath()
     {
         current_path = OS::GetWorkingDir();

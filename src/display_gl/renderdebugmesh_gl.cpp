@@ -150,7 +150,7 @@ void CRenderDebugMeshGL::RenderAllFacesShadowMapped(Camera& cam)
             glBindTexture(GL_TEXTURE_2D, face.lightmapID);
         }
 
-        glDrawArrays(GL_TRIANGLE_FAN, 0, face.verts.size());
+        glDrawArrays(GL_TRIANGLE_FAN, 0, (GLsizei)face.verts.size());
     }
     OnRenderFinish();
 }
@@ -236,7 +236,7 @@ void CRenderDebugMeshGL::RenderDiffuse(Camera& cam)
             glBindTexture(GL_TEXTURE_2D, face.lightmapID);
         }
 
-        glDrawArrays(GL_TRIANGLE_FAN, 0, face.verts.size());
+        glDrawArrays(GL_TRIANGLE_FAN, 0, (GLsizei)face.verts.size());
     }
     OnRenderFinish();
 }
@@ -283,7 +283,7 @@ void CRenderDebugMeshGL::RenderDepthOnly(Camera& cam)
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, face.verts.size());
+        glDrawArrays(GL_TRIANGLE_FAN, 0, (GLsizei)face.verts.size());
     }
     OnRenderFinish();
 }
@@ -318,7 +318,7 @@ void CRenderDebugMeshGL::RenderAllFacesW(Camera& cam)
                 &vert->position);   // pointer
 
         //glLineWidth(1.0f);
-        glDrawArrays(GL_LINE_LOOP, 0, face.verts.size());
+        glDrawArrays(GL_LINE_LOOP, 0, (GLsizei)face.verts.size());
     }
     OnRenderFinish();
 }

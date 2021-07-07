@@ -314,7 +314,7 @@ int CLightmapGen::CalcShadowLightmap(CPoly3D* poly, std::vector<CPoly3D>& polyLi
             newedge2 = edge2 * vfactor;
             lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
 
-            CPoint3D color(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+            CPoint3D color((float)m_options.shadowUnlit, (float)m_options.shadowUnlit, (float)m_options.shadowUnlit);
 
             for (auto& light :lights)
             {
@@ -382,7 +382,7 @@ int CLightmapGen::CalcShadowLightmap(CPoly3D* poly, std::vector<CPoly3D>& polyLi
         {
             for (int iY = 0; iY < lightmapHeight; iY++)
             {
-                CPoint3D p(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
+                CPoint3D p((float)m_options.shadowUnlit, (float)m_options.shadowUnlit, (float)m_options.shadowUnlit);
                 lightmap.SetPixel(iX, iY, p);
             }
         }
@@ -692,7 +692,7 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<CPoly3D>& polyList,
             // copy the ptr to the shared list, get an index and quickly get out of here
             //m_lightMapList.push_back(lmAO);
             m_lightMapList.push_back(lmShadow);
-            uint32_t lmIndex = m_lightMapList.size() - 1;
+            uint32_t lmIndex = static_cast<uint32_t>(m_lightMapList.size()) - 1;
             m_lmMutex.unlock();
             // END LOCK
             poly.SetLightmapDataIndex(lmIndex);
@@ -758,8 +758,8 @@ int CLightmapGen::GenerateLightmaps(
     threadData_t threadData[/*processor_count*/ 128];
     printf("spawning %i threads\n", processor_count);
 
-    size_t polyCount = polyList.size();
-    size_t range = polyCount / processor_count;
+    unsigned int polyCount = static_cast<unsigned int>(polyList.size());
+    unsigned int range = polyCount / processor_count;
 
     // generate simple black lightmap to use for all polys that have no lights affecting them
     CLightmapImg lmBlack;

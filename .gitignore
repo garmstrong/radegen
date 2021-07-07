@@ -1,5 +1,12 @@
 radegen
 
+# visual studio
+CMakeSettings.json
+*.obj
+*.ilk
+*.pdb
+.vs/
+
 # Node artifact files
 node_modules/
 dist/

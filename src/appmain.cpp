@@ -96,7 +96,7 @@ void CAppMain::OnKeyUp(int keycode)
 void CAppMain::OnScreenResize(int width, int height)
 {
     m_display.SetViewport(width, height);
-    m_camera.SetViewport(width, height);
+    m_camera.SetViewport( static_cast<float>(width), static_cast<float>(height));
 }
 
 void CAppMain::OnMouseDown(int buttonId, double x, double y)
@@ -115,7 +115,7 @@ void CAppMain::OnMouseUp(int buttonId, double x, double y)
     m_isMouseDown = false;
 }
 
-void CAppMain::OnMouseMove(double xrel, double yrel)
+void CAppMain::OnMouseMove(float xrel, float yrel)
 {
     if (m_uiDisplay.IsAnyItemActive())
         return;

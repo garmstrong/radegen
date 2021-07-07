@@ -14,7 +14,7 @@ bool isMouseDown = false;
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    appMain.OnMouseWheel(yoffset);
+    appMain.OnMouseWheel( static_cast<int>(yoffset));
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -52,7 +52,9 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
     static double last_y = ypos;
     if (isMouseDown)
     {
-        appMain.OnMouseMove(xpos - last_x, ypos - last_y);
+        float x = static_cast<float>(xpos - last_x);
+        float y = static_cast<float>(ypos - last_y);
+        appMain.OnMouseMove(x, y);
     }
     last_x = xpos;
     last_y = ypos;

@@ -133,7 +133,7 @@ void CRenderMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool u
     // make 1 big vert buffer
     for(NRenderMeshGL::Face& face : m_tmpFaces)
     {
-        m_vertBuffers[face.materialKey].numVerts += face.verts.size();
+        m_vertBuffers[face.materialKey].numVerts += static_cast<uint16_t>(face.verts.size());
     }
 
     // allocate mem for each new buffer

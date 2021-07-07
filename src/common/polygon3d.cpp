@@ -23,7 +23,7 @@ void CPoly3D::SortWindingOrder()
         CPoint3D vec1 = center - m_points.at(i);
         vec1.Normalize();
 
-        for (unsigned int j = i + 1; j < NumPoints(); j++)
+        for (size_t j = i + 1; j < m_points.size(); j++)
         {
             CPoint3D vec2 = center - m_points.at(j);
             vec2.Normalize();

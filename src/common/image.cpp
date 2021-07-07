@@ -77,7 +77,7 @@ bool CImage::LoadFile(const std::string& filePath, bool usePlatformAsset /*= fal
 bool CImage::LoadMem(void* buff, size_t size)
 {
     int width, height, channels;
-    unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buff), size, &width, &height,
+    unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buff), static_cast<int>(size), &width, &height,
             &channels, 0);
     if (!pixels)
     {
@@ -213,11 +213,12 @@ void CImage::Blur()
             { 0,  -1, 1 / 4 },  // TM
             { 1,  1,  1 / 4 },  // TR
             { -1, 0,  1 / 4 },  // CL
-            { 0,  0,  1 },  // C
+            { 0,  0,  1 },      // C
             { 1,  0,  1 / 4 },  // CR
             { -1, 1,  1 / 4 },  // BL
             { 0,  1,  1 / 4 },  // BM
-            { 1,  1,  1 / 4 }};// BR
+            { 1,  1,  1 / 4 }   // BR
+    };
 
     auto newPixels = (unsigned char*)malloc(m_format * m_width * m_height);
 
@@ -226,14 +227,14 @@ void CImage::Blur()
         for (unsigned iY = 0; iY < m_height; ++iY)
         {
             float totalWeight = 0;
-            unsigned long avg_rgba[4] = { 0, 0, 0, 0 };
+            uint32_t avg_rgba[4] = { 0, 0, 0, 0 }; // allow over "saturation" and divide later
             for (size_t i = 0; i < blurKernel.size(); i++)
             {
                 unsigned char rgba[4];
-                int xoff = iX + blurKernel.at(i).xOffset;
+                unsigned int xoff = iX + blurKernel.at(i).xOffset;
                 if (xoff < 0) xoff = 1;
                 if (xoff >= m_width) xoff = m_width - 2;
-                int yoff = iY + blurKernel.at(i).yOffset;
+                unsigned  int yoff = iY + blurKernel.at(i).yOffset;
                 if (yoff < 0) yoff = 1;
                 if (yoff >= m_height) yoff = m_height - 2;
                 GetRGBAArray(xoff, yoff, rgba);
@@ -245,11 +246,11 @@ void CImage::Blur()
                 avg_rgba[3] += rgba[3];// * weight;
                 //totalWeight += weight;
             }
-            totalWeight = blurKernel.size();
-            avg_rgba[0] /= totalWeight;
-            avg_rgba[1] /= totalWeight;
-            avg_rgba[2] /= totalWeight;
-            avg_rgba[3] /= totalWeight;
+            totalWeight = static_cast<float>(blurKernel.size());
+            avg_rgba[0] /= static_cast<uint32_t>(totalWeight);
+            avg_rgba[1] /= static_cast<uint32_t>(totalWeight);
+            avg_rgba[2] /= static_cast<uint32_t>(totalWeight);
+            avg_rgba[3] /= static_cast<uint32_t>(totalWeight);
 
             unsigned char final_rgba[4];
             final_rgba[0] = avg_rgba[0];

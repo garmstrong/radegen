@@ -208,7 +208,7 @@ uint32_t CDisplayGL::AddMesh(CPolyMesh& polyMesh)
 
     //renderMesh.LoadMeshTexures(*this);
     m_meshes.push_back(renderMesh);
-    return m_meshes.size(); // 0 = invalid
+    return static_cast<uint32_t>(m_meshes.size()); // 0 = invalid
 }
 
 void CDisplayGL::RenderMeshID(uint32_t id, Camera& cam)
@@ -228,7 +228,7 @@ void CDisplayGL::DeleteMesh(uint32_t id)
 
     m_meshes.at(id - 1).Reset();
 
-    m_meshes.erase(m_meshes.begin()+id);
+    m_meshes.erase(m_meshes.begin()+ id - 1);
 }
 
 void CDisplayGL::RenderAllTextObjects()

@@ -47,7 +47,7 @@ public:
 
 protected:
     std::vector<cb_t> m_callbacks;
-    int m_progress;
+    int m_progress = 0;
 
     // call all the registered callbacks
     void NotifyCallbacks() const
@@ -59,22 +59,21 @@ protected:
     }
 
     NRadeLamp::lmOptions_t m_options = {
-            40,        // numSphereRays
-            15,        // spheresize
+            40,     // numSphereRays
+            15.0f,  // spheresize
             200,    // lit
             120,    // unlit
-            0.6,    // lmDetail
-            true,    // AO
+            0.6f,   // lmDetail
+            true,   // AO
             true    // shadows
-
     };
 
     std::mutex m_lmMutex;
 
     typedef struct
     {
-        int startIndex;
-        int endIndex;
+        unsigned int startIndex;
+        unsigned int endIndex;
         uint16_t completedItems;
     } threadData_t;
 

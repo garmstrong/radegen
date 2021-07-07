@@ -3,6 +3,7 @@
 
 #include "meshfile.h"
 #include "miniz.h"
+#include "osutils.h"
 
 CMeshFile::CMeshFile()
 {
@@ -79,7 +80,7 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
     fread((NMeshFile::SMeshHeader*)&m_header, sizeof(NMeshFile::SMeshHeader), 1, fp);
 
     // materials
-    for (int i = 0; i < m_header.numMaterials; i++)
+    for (uint32_t i = 0; i < m_header.numMaterials; i++)
     {
         CLogicalMaterial mat;
 
@@ -97,7 +98,7 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
     }
 
     // polys
-    for (int i = 0; i < m_header.numFaces; i++)
+    for (uint32_t i = 0; i < m_header.numFaces; i++)
     {
         CLogicalPolygon poly;
 
@@ -106,7 +107,7 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
         poly.SetMaterialIndex(polyHeader.matIndex);
         poly.SetLightmapDataIndex(polyHeader.lmIndex);
 
-        for (int j = 0; j < polyHeader.numPoints; j++)
+        for (uint32_t j = 0; j < polyHeader.numPoints; j++)
         {
             NMeshFile::SPolyPoint point;
             fread((NMeshFile::SPolyPoint*)&point, sizeof(NMeshFile::SPolyPoint), 1, fp);
@@ -116,7 +117,7 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
     }
 
     // lightmaps
-    for (int i = 0; i < m_header.numLightmaps; i++)
+    for (uint32_t i = 0; i < m_header.numLightmaps; i++)
     {
         CLogicalLightmap newLightmap;
 
@@ -138,7 +139,7 @@ bool CMeshFile::LoadFromFile(const std::string& filename)
         m_lightmaps.push_back(newLightmap);
     }
 
-    for (int i = 0; i < m_header.numLights; i++)
+    for (uint32_t i = 0; i < m_header.numLights; i++)
     {
         NMeshFile::SLight light;
         fread((NMeshFile::SLight*)&light, sizeof(NMeshFile::SLight), 1, fp);
@@ -196,7 +197,7 @@ void CMeshFile::AddPoly(const CPoly3D& poly)
 
     m_polygons.push_back(newPoly);
     // update header info
-    m_header.numFaces = m_polygons.size();
+    m_header.numFaces = static_cast<uint32_t>(m_polygons.size());
 }
 
 uint32_t CMeshFile::AddDiffuseOnlyMaterial(const std::string& matkey, const std::string& diffuseName)
@@ -205,7 +206,7 @@ uint32_t CMeshFile::AddDiffuseOnlyMaterial(const std::string& matkey, const std:
     {
         if (m_materials.at(i).GetMaterialKey() == matkey)
         {
-            return i; // already loaded
+            return static_cast<uint32_t>(i); // already loaded
         }
     }
 
@@ -215,7 +216,7 @@ uint32_t CMeshFile::AddDiffuseOnlyMaterial(const std::string& matkey, const std:
     m_materials.push_back(newMat);
 
     // update header info
-    m_header.numMaterials = m_materials.size();
+    m_header.numMaterials = static_cast<uint32_t>(m_materials.size());
     return m_header.numMaterials - 1;
 }
 
@@ -294,14 +295,14 @@ bool CMeshFile::ValidateData()
     // header
     if (m_header.numMaterials != m_materials.size())
     {
-        printf("m_header.numMaterials != m_materials.size()\n",
+        OS::Log("m_header.numMaterials %d != m_materials.size() %d\n",
                 m_header.numMaterials,
                 m_materials.size());
         valid = false;
     }
     if (m_header.numFaces != m_polygons.size())
     {
-        printf("m_header.numFaces %d != m_polygons.size() %d\n",
+        OS::Log("m_header.numFaces %d != m_polygons.size() %d\n",
                 m_header.numFaces,
                 m_polygons.size());
         valid = false;
@@ -312,7 +313,7 @@ bool CMeshFile::ValidateData()
     {
         if (mat.GetTextureKeys().size() != mat.GetHeaderPtr()->numTextureKeys)
         {
-            printf("mat.textureKeys.size() %d != mat.materialHeader.numTextureKeys %d\n",
+            OS::Log("mat.textureKeys.size() %d != mat.materialHeader.numTextureKeys %d\n",
                     mat.GetTextureKeys().size(),
                     mat.GetHeaderPtr()->numTextureKeys);
             valid = false;
@@ -324,7 +325,7 @@ bool CMeshFile::ValidateData()
     {
         if (poly.GetPoints().size() != poly.GetHeaderPtr()->numPoints)
         {
-            printf("poly.points.size() %d != poly.polyHeader.numPoints %d !!\n",
+            OS::Log("poly.points.size() %d != poly.polyHeader.numPoints %d !!\n",
                     poly.GetPoints().size(),
                     poly.GetHeaderPtr()->numPoints);
             valid = false;
@@ -420,5 +421,5 @@ void CMeshFile::AddLight(const CLight &light)
     newLight.radius = light.radius;
     newLight.brightness = light.brightness;
     m_lights.push_back(newLight);
-    m_header.numLights = m_lights.size();
+    m_header.numLights = static_cast<uint32_t>(m_lights.size());
 }

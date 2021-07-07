@@ -35,7 +35,7 @@ public:
 
     void OnMouseUp(int buttonId, double x, double y);
 
-    void OnMouseMove(double xrel, double yrel);
+    void OnMouseMove(float xrel, float yrel);
 
     void OnMouseWheel(int y);
 
