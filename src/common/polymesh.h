@@ -25,8 +25,6 @@ public:
 
     bool LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath = "");
 
-    //void LEGACY_LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLogicalLightmap>& lightmaps);
-
     void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps);
 
     bool HasLightmaps()

@@ -5,7 +5,7 @@
 
 class CMaterial;
 
-namespace NRenderMeshGL
+namespace NRenderTypes
 {
 	typedef struct
 	{
@@ -44,6 +44,16 @@ namespace NRenderMeshGL
 		CMaterial *material;
 		std::vector<Vert> verts;
 	} Face;
+
+	typedef struct
+    {
+        //unsigned int glVBOId; // VBOID
+        std::string materialKey;
+        uint32_t lightmapID;
+        //CGLTexture *texture;
+        CMaterial *material;
+        Vert verts[3];
+    } Tri;
 
 	enum ERenderMode
 	{

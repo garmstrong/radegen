@@ -1,3 +1,5 @@
+#include <glad/glad.h>
+
 #include "rendermesh_gl.h"
 #include "osutils.h"
 #include "display_gl.h"
@@ -5,9 +7,7 @@
 #include "polymesh.h"
 #include "camera.h"
 
-#include <glad/glad.h>
-
-using namespace NRenderMeshGL;
+using namespace NRenderTypes;
 
 void CRenderMeshGL::OnRenderStart()
 {
@@ -43,7 +43,7 @@ void CRenderMeshGL::Reset()
 
     m_tmpFaces.clear();
     m_vaoId = 0;
-    m_renderMode = NRenderMeshGL::ERenderDefault;
+    m_renderMode = NRenderTypes::ERenderDefault;
 }
 
 void CRenderMeshGL::RenderAllFaces(const Camera& cam)
@@ -131,7 +131,7 @@ void CRenderMeshGL::AddFace(Face& face)
 void CRenderMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlatformAssets /*= false*/)
 {
     // make 1 big vert buffer
-    for(NRenderMeshGL::Face& face : m_tmpFaces)
+    for(Face& face : m_tmpFaces)
     {
         m_vertBuffers[face.materialKey].numVerts += static_cast<uint16_t>(face.verts.size());
     }
@@ -139,19 +139,19 @@ void CRenderMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool u
     // allocate mem for each new buffer
     for (auto & x : m_vertBuffers)
     {
-        x.second.vertBuffer = new NRenderMeshGL::Vert[x.second.numVerts];
+        x.second.vertBuffer = new Vert[x.second.numVerts];
         x.second.copiedSoFar = 0;
         x.second.mat = nullptr;
     }
 
     // copy the vert info into the buffer structure
-    for(NRenderMeshGL::Face& face : m_tmpFaces)
+    for(Face& face : m_tmpFaces)
     {
         uint16_t copyIndex = 0;
         for(const auto& v : face.verts)
         {
             m_vertBuffers[face.materialKey].vertBuffer[m_vertBuffers[face.materialKey].copiedSoFar] =
-                    face.verts[copyIndex];
+                    v;
             m_vertBuffers[face.materialKey].copiedSoFar++;
             copyIndex++;
         }
@@ -217,13 +217,13 @@ void CRenderMeshGL::InitFromPolyMesh(CPolyMesh& polyMesh)
 
     for (CPoly3D& poly : polyList)
     {
-        NRenderMeshGL::Face renderFace;
+        Face renderFace;
         renderFace.glVBOId = 0;
         renderFace.lightmapID = poly.GetLightTexID();
 
         for (auto& point : poly.GetPointListRef())
         {
-            NRenderMeshGL::Vert vert;
+            Vert vert;
 
             // normal
             vert.normal.x = poly.GetNormal().x;

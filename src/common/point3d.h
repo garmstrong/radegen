@@ -3,6 +3,7 @@
 #include <cmath>
 #include <string>
 #include "rmath.h"
+#include "rendertypes.h"
 
 class CPoint3D
 {
@@ -23,9 +24,6 @@ public:
 
     float lmU;
     float lmV;
-
-//	float lmu;
-//	float lmv;
 
     CPoint3D()
     {
@@ -135,5 +133,18 @@ public:
 
     std::string ToString() const;
 
+    void ToRenderVert(NRenderTypes::Vert *rVert)
+    {
+        rVert->position.x = x;
+        rVert->position.y = y;
+        rVert->position.z = z;
+        rVert->normal.x = nx;
+        rVert->normal.y = ny;
+        rVert->normal.z = nz;
+        rVert->texCoord.x = u;
+        rVert->texCoord.y = v;
+        rVert->texCoordLM.x = lmU;
+        rVert->texCoordLM.y = lmV;
+    }
 };
 

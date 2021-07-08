@@ -30,6 +30,8 @@ public:
 
     ~Shader();
 
+    bool CreateShaderFromString(const std::string& vs, const std::string& fs);
+
     bool CreateShader(const char* vs, const char* fs);
 
     int GetAttribLoc(const char* name) const;

@@ -16,7 +16,7 @@ class CPolyMesh;
 
 class Camera;
 
-class CRenderMeshGL
+class CMeshGL
 {
 public:
 
@@ -24,15 +24,17 @@ public:
     {
         NRenderTypes::Vert* vertBuffer;
         uint16_t numVerts;
+        unsigned int glVAOId;
         unsigned int glVBOId;
         std::string materialName;
         CMaterial *mat;
         uint16_t copiedSoFar;
+        unsigned int lightmapID;
     };
 
     void InitFromPolyMesh(CPolyMesh& renderMesh);
 
-    void AddFace(NRenderTypes::Face& face);
+    void AddFace(NRenderTypes::Tri& face);
 
     void RenderAllFaces(const Camera& cam);
 
@@ -54,16 +56,11 @@ public:
 
 private:
 
-    unsigned int m_vaoId;
-
     NRenderTypes::ERenderMode m_renderMode = NRenderTypes::ERenderDefault;
 
-    std::vector<NRenderTypes::Face> m_tmpFaces;
+    std::vector<NRenderTypes::Tri> m_tmpFaces;
     std::map<std::string, vertBuffer_t> m_vertBuffers;
 
-    void OnRenderStart();
-
-    void OnRenderFinish();
 
     Shader m_meshShader;
 

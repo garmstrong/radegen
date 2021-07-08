@@ -8,7 +8,7 @@
 
 #include <glad/glad.h>
 
-using namespace NRenderMeshGL;
+using namespace NRenderTypes;
 
 CRenderDebugMeshGL::CRenderDebugMeshGL()
 {
@@ -23,7 +23,7 @@ CRenderDebugMeshGL::~CRenderDebugMeshGL()
 
 void CRenderDebugMeshGL::Reset()
 {
-    for (NRenderMeshGL::Face& face : m_faces)
+    for (Face& face : m_faces)
     {
         if (face.glVBOId != 0)
         {
@@ -34,7 +34,7 @@ void CRenderDebugMeshGL::Reset()
 
     m_faces.clear();
     m_vaoId = 0;
-    m_renderMode = NRenderMeshGL::ERenderDefault;
+    m_renderMode = ERenderDefault;
     m_model = glm::mat4(1);
     m_hasLightmaps = false;
 }
@@ -84,7 +84,7 @@ void CRenderDebugMeshGL::RenderAllFacesShadowMapped(Camera& cam)
     OnRenderStart();
 
     glBindVertexArray(m_vaoId);
-    for (NRenderMeshGL::Face& face : m_faces)
+    for (Face& face : m_faces)
     {
         if (face.glVBOId == 0)
         {
@@ -169,7 +169,7 @@ void CRenderDebugMeshGL::RenderDiffuse(Camera& cam)
     OnRenderStart();
 
     glBindVertexArray(m_vaoId);
-    for (NRenderMeshGL::Face& face : m_faces)
+    for (Face& face : m_faces)
     {
         if (face.glVBOId == 0)
         {
@@ -246,7 +246,7 @@ void CRenderDebugMeshGL::RenderDepthOnly(Camera& cam)
     OnRenderStart();
 
     glBindVertexArray(m_vaoId);
-    for (NRenderMeshGL::Face& face : m_faces)
+    for (Face& face : m_faces)
     {
         if (face.glVBOId == 0)
         {
@@ -298,7 +298,7 @@ void CRenderDebugMeshGL::RenderAllFacesW(Camera& cam)
     m_meshShader.SetMat4("model", m_model);
 
     glBindVertexArray(m_vaoId);
-    for (NRenderMeshGL::Face& face : m_faces)
+    for (Face& face : m_faces)
     {
         if (face.glVBOId == 0)
         {
@@ -343,13 +343,13 @@ void CRenderDebugMeshGL::InitFromPolyMesh(CPolyMesh& renderMesh)
 
     for (CPoly3D& poly : polyList)
     {
-        NRenderMeshGL::Face renderFace {};
+        Face renderFace {};
         renderFace.glVBOId = 0;
         renderFace.lightmapID = poly.GetLightTexID();
 
         for (auto& point : poly.GetPointListRef())
         {
-            NRenderMeshGL::Vert vert;
+            Vert vert;
 
             // normal
             vert.normal.x = poly.GetNormal().x;
@@ -392,7 +392,7 @@ void CRenderDebugMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures)
 
 void CRenderDebugMeshGL::LoadMeshTexures(CDisplayGL& displayGl)
 {
-    for (NRenderMeshGL::Face& face : m_faces)
+    for (Face& face : m_faces)
     {
         if (!face.materialKey.empty())
         {

@@ -84,10 +84,10 @@ Camera::Camera() :
 {
 }
 
-const glm::vec3& Camera::position() const
-{
-    return m_position;
-}
+//const glm::vec3& Camera::GetPosition() const
+//{
+//    return m_position;
+//}
 
 void Camera::SetPosition(const glm::vec3& position)
 {

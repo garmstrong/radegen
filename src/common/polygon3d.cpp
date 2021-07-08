@@ -112,7 +112,7 @@ std::vector<CPoly3D> CPoly3D::ToTriangles() const
     {
         for (unsigned int i = 0; i < NumPoints() - 2; i++)
         {
-            CPoly3D triangle;// = *this;
+            CPoly3D triangle = *this;
             triangle.ClearPoints();
             triangle.AddPoint(GetPoint(0));
             triangle.AddPoint(GetPoint(i + 1));

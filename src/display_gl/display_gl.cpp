@@ -104,7 +104,7 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
         uint32_t* id)
 {
     // map RMaterials to GL
-    int GL_minMagFilter = GL_NEAREST_MIPMAP_NEAREST;
+    int GL_minMagFilter = GL_LINEAR_MIPMAP_LINEAR;
     int GL_clampMode = GL_REPEAT;
 
     if(minMagFiler == RMaterials::TEXTURE_FILTER_LINEAR)
@@ -134,7 +134,7 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
     glGenTextures(1, &texid);
     glBindTexture(GL_TEXTURE_2D, texid);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_minMagFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_minMagFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_clampMode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_clampMode);
 
@@ -148,7 +148,7 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
             GL_UNSIGNED_BYTE,
             data);
 
-    if (genMipMaps || GL_minMagFilter == GL_NEAREST_MIPMAP_LINEAR || GL_minMagFilter == GL_NEAREST_MIPMAP_NEAREST)
+    //if (genMipMaps || GL_minMagFilter == GL_NEAREST_MIPMAP_LINEAR || GL_minMagFilter == GL_NEAREST_MIPMAP_NEAREST)
     {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -200,7 +200,7 @@ uint32_t CDisplayGL::AddMesh(CPolyMesh& polyMesh)
     // CRenderDebugMeshGL is for debugging / editor modes only
     // this class does not group meshes by material, and renders each seperatly!
     // see CRenderMeshGL
-    CRenderDebugMeshGL renderMesh;
+    CMeshGL renderMesh;
     renderMesh.InitFromPolyMesh(polyMesh);
 
     bool loadTextures = true;
@@ -217,7 +217,7 @@ void CDisplayGL::RenderMeshID(uint32_t id, Camera& cam)
     if (m_meshes.size() < id)
         return;
 
-    m_meshes.at(id - 1).RenderDiffuse(cam);
+    m_meshes.at(id - 1).RenderAllFaces(cam);
 }
 
 void CDisplayGL::DeleteMesh(uint32_t id)
@@ -233,6 +233,10 @@ void CDisplayGL::DeleteMesh(uint32_t id)
 
 void CDisplayGL::RenderAllTextObjects()
 {
+
+
+
+
     //
     // TEXT MESHES
     //

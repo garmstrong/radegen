@@ -4,7 +4,7 @@
 #include <map>
 #include "glm/glm.hpp"
 #include "shader_gl.h"
-#include "renderdebugmesh_gl.h"
+#include "mesh_gl.h"
 //#include "rendermesh_gl.h"
 #include "rendertext_gl.h"
 #include "camera.h"
@@ -80,7 +80,7 @@ private:
     CMaterial* m_noTexture = nullptr;
     Camera* m_activeCamera = nullptr;
 
-    std::vector<CRenderDebugMeshGL> m_meshes;
+    std::vector<CMeshGL> m_meshes;
     std::map<std::string, CRenderTextGL*> m_textMeshes;
 
     CMaterialManager m_materialMgr;

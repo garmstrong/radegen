@@ -22,7 +22,7 @@ public:
 
     ~CRenderDebugMeshGL();
 
-    void AddFace(NRenderMeshGL::Face& face);
+    void AddFace(NRenderTypes::Face& face);
 
     //void RenderAllFaces();
     void RenderDepthOnly(Camera& cam);
@@ -34,12 +34,12 @@ public:
 
     void PrepareMesh(CDisplayGL& displayGl, bool loadTextures);
 
-    void SetRenderMode(NRenderMeshGL::ERenderMode renderMode)
+    void SetRenderMode(NRenderTypes::ERenderMode renderMode)
     {
         m_renderMode = renderMode;
     }
 
-    NRenderMeshGL::ERenderMode GetRenderMode()
+    NRenderTypes::ERenderMode GetRenderMode()
     {
         return m_renderMode;
     }
@@ -49,9 +49,9 @@ public:
     void Reset();
 
 private:
-    std::vector<NRenderMeshGL::Face> m_faces;
+    std::vector<NRenderTypes::Face> m_faces;
     unsigned int m_vaoId = 0;
-    NRenderMeshGL::ERenderMode m_renderMode = NRenderMeshGL::ERenderDefault;
+    NRenderTypes::ERenderMode m_renderMode = NRenderTypes::ERenderDefault;
 
     void OnRenderStart();
 
