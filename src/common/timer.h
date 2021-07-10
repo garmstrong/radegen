@@ -1,16 +1,18 @@
 #pragma once
 
 #include <chrono>
-
-class CTimer
+namespace rade
 {
-public:
-    CTimer();
+    class Timer
+    {
+    public:
+        Timer();
 
-    void Start();
+        void Start();
 
-    float ElapsedTime() const;
+        float ElapsedTime() const;
 
-private:
-    std::chrono::high_resolution_clock::time_point startTime;
-};
+    private:
+        std::chrono::high_resolution_clock::time_point startTime;
+    };
+}

@@ -247,7 +247,7 @@ int main(int, char**)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
-        static CTimer updateTimer;
+        static rade::Timer updateTimer;
 
         static float deltaTime = 0.0f;
         updateTimer.Start();

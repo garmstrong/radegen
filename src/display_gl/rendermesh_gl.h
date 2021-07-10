@@ -12,9 +12,12 @@ class CDisplayGL;
 
 class CMaterial;
 
-class CPolyMesh;
+namespace rade
+{
+    class CPolyMesh;
 
-class Camera;
+    class Camera;
+};
 
 class CRenderMeshGL
 {
@@ -30,11 +33,11 @@ public:
         uint16_t copiedSoFar;
     };
 
-    void InitFromPolyMesh(CPolyMesh& renderMesh);
+    void InitFromPolyMesh(rade::CPolyMesh& renderMesh);
 
     void AddFace(NRenderTypes::Face& face);
 
-    void RenderAllFaces(const Camera& cam);
+    void RenderAllFaces(const rade::Camera& cam);
 
     void Reset();
 

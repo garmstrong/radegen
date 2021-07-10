@@ -11,8 +11,6 @@
 #include "materialmanager.h"
 #include "textmesh.h"
 
-class OS;
-
 class CDisplayGL
 {
 public:
@@ -24,7 +22,7 @@ public:
 
     void Shutdown();
 
-    void SetActiveCamera(Camera* camera);
+    void SetActiveCamera(rade::Camera* camera);
 
     void Draw(float deltaTime);
 
@@ -48,9 +46,11 @@ public:
         return m_materialMgr;
     }
 
-    void RenderMeshID(uint32_t id, Camera& cam);
+    void RenderMeshID(uint32_t id, rade::Camera& cam);
 
-    uint32_t AddMesh(CPolyMesh& polyMesh);
+    void RenderMeshes(rade::Camera& cam);
+
+    uint32_t AddMesh(rade::CPolyMesh& polyMesh);
 
     int GetMaxTextureSize()
     {
@@ -59,17 +59,21 @@ public:
 
     void DeleteMesh(uint32_t id);
 
-    void RenderAllTextObjects();
+    void RenderTextObjects();
 
-    void LoadTextMesh(CTextMesh* textMesh);
+    void LoadTextMesh(rade::CTextMesh* textMesh);
 
     void UpdateTextMesh(const std::string& name, const std::string& newString);
 
-    void UpdateTextMeshPos(const std::string& name, const CPoint3D& pos);
+    void UpdateTextMeshPos(const std::string& name, const rade::vector3& pos);
 
-    void UpdateTextMeshCamera(const std::string& name, Camera* camera);
+    void UpdateTextMeshCamera(const std::string& name, rade::Camera* camera);
 
     void RemoveTextMesh(const std::string& name);
+
+    static bool DeleteTextureID(uint32_t texID);
+
+    void RenderDebugQuad(rade::Camera& cam);
 
 private:
     unsigned int m_videoWidth = 800;
@@ -78,7 +82,7 @@ private:
     unsigned int m_quadVAO = 0;
     unsigned int m_quadVBO = 0;
     CMaterial* m_noTexture = nullptr;
-    Camera* m_activeCamera = nullptr;
+    rade::Camera* m_activeCamera = nullptr;
 
     std::vector<CMeshGL> m_meshes;
     std::map<std::string, CRenderTextGL*> m_textMeshes;
@@ -87,11 +91,12 @@ private:
 
     void DrawDebug();
 
-    void RenderDebugQuad();
 
     int m_maxTextureSize = 1024;
     int m_maxTextureUnits = 16;
 
     Shader m_fontShader;
+
+    Shader m_spriteShader;
 
 };

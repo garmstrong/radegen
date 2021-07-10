@@ -10,15 +10,19 @@
 
 class CDisplayGL;
 
-class CGLTexture;
-
-class CPolyMesh;
-
-class GLMaterial;
+namespace rade
+{
+    class CPolyMesh;
+};
 
 class Shader;
 
 class CMaterial;
+
+namespace rade
+{
+    class Camera;
+}
 
 namespace NRenderTextGL
 {
@@ -67,7 +71,7 @@ namespace NRenderTextGL
 class CRenderTextGL
 {
 public:
-	CRenderTextGL(CDisplayGL* display, CPolyMesh* renderMesh);
+	CRenderTextGL(CDisplayGL* display, rade::CPolyMesh* renderMesh);
 
 	~CRenderTextGL();
 
@@ -75,11 +79,8 @@ public:
 
 	void RenderAllFaces(Shader *shader);
 
-	void AllocateFromMesh(CPolyMesh* renderMesh);
+	void AllocateFromMesh(rade::CPolyMesh* renderMesh);
 
-	void Init(CDisplayGL* display);
-
-	bool InitFromPolyList(std::vector<CPoly3D>& polyList);
 
 	void SetRenderMode(NRenderTextGL::ERenderMode renderMode)
 	{
@@ -93,22 +94,22 @@ public:
 
 	void UpdateText(const std::string& newText);
 
-	CPoint3D GetPos() const
+	rade::vector3 GetPos() const
 	{
 		return m_pos;
 	}
 
-	void SetPos(const CPoint3D& pos)
+	void SetPos(const rade::vector3& pos)
 	{
 		m_pos = pos;
 	}
 
-	void SetCamera(Camera *camera)
+	void SetCamera(rade::Camera *camera)
 	{
 		m_camera = camera;
 	}
 
-	Camera* GetCamera()
+	rade::Camera* GetCamera()
 	{
 		return m_camera;
 	}
@@ -116,7 +117,7 @@ public:
     void Reset();
 
 private:
-	CPoint2D GetGlyphPosition(char glyphChar);
+    rade::vector2 GetGlyphPosition(char glyphChar);
 
 	std::vector<NRenderTextGL::Face> m_faces;
 	unsigned int m_vaoId = 0;
@@ -128,9 +129,9 @@ private:
 
 	CDisplayGL* m_display{};
 
-	CPoint3D m_pos;
+    rade::vector3 m_pos;
 
-	Camera *m_camera = nullptr;
+	rade::Camera *m_camera = nullptr;
 
 	std::string m_text;
 

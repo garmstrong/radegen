@@ -5812,7 +5812,7 @@ static void *stbi__psd_load(stbi__context *s, int *x, int *y, int *comp, int req
 
 	// Make sure the color mode is RGB.
 	// Valid options are:
-	//   0: CImage
+	//   0: Image
 	//   1: Grayscale
 	//   2: Indexed color
 	//   3: RGB color

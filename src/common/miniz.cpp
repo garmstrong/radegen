@@ -5883,7 +5883,7 @@ mz_bool mz_zip_writer_init_from_reader_v2(mz_zip_archive *pZip, const char *pFil
     pZip->m_archive_size = pZip->m_central_directory_file_ofs;
     pZip->m_central_directory_file_ofs = 0;
 
-    /* Clear the sorted central dir offsets, they aren't useful or maintained now. */
+    /* Reset the sorted central dir offsets, they aren't useful or maintained now. */
     /* Even though we're now in write mode, files can still be extracted and verified, but file locates will be slow. */
     /* TODO: We could easily maintain the sorted central directory offsets. */
     mz_zip_array_clear(pZip, &pZip->m_pState->m_sorted_central_dir_offsets);

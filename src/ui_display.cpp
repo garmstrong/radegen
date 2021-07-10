@@ -73,11 +73,30 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
     ImGui::End();
 }
 
+void CUIDisplay::DrawLMTexturePanel(std::vector<rade::CPolyMesh::lightmapInfo_t>& lmaps)
+{
+    ImGui::Begin("Textures");
+    for(auto& lmInfo : lmaps)
+    {
+        float my_tex_w = (float)lmInfo.width;
+        float my_tex_h = (float)lmInfo.height;
+        {
+            ImGui::Text("%.0fx%.0f", my_tex_w, my_tex_h);
+            ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
+            ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
+            ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+            ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
+            ImGui::Image(reinterpret_cast<void*>(lmInfo.texID), ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+        }
+    }
+    ImGui::End();
+}
+
 void CUIDisplay::DrawLightsPanel()
 {
     ImGui::Begin("Lights");
 
-    std::vector<CLight>& lights = m_appMain.GetLightsRef();
+    std::vector<rade::Light>& lights = m_appMain.GetLightsRef();
 
     if (ImGui::BeginListBox(""))
     {
@@ -100,7 +119,7 @@ void CUIDisplay::DrawLightsPanel()
     {
         std::string lightName = GetNextLightName(lights);
 
-        CLight newLight;
+        rade::Light newLight;
         newLight.name = lightName;
         newLight.radius = 400;
         newLight.brightness = 0.1f;
@@ -121,7 +140,7 @@ void CUIDisplay::DrawLightsPanel()
     ImGui::End();
 }
 
-std::string CUIDisplay::GetNextLightName(std::vector<CLight>& lights)
+std::string CUIDisplay::GetNextLightName(std::vector<rade::Light>& lights)
 {
     std::string newName;
     bool nameFound = false;
@@ -153,13 +172,13 @@ std::string CUIDisplay::GetNextLightName(std::vector<CLight>& lights)
 
 void CUIDisplay::DrawLightInspector()
 {
-    std::vector<CLight>& lights = m_appMain.GetLightsRef();
+    std::vector<rade::Light>& lights = m_appMain.GetLightsRef();
 
     ImGui::Begin("Light Properties");
     {
         if (m_selectedLightIndex != -1)
         {
-            CLight& light = lights.at(m_selectedLightIndex);
+            rade::Light& light = lights.at(m_selectedLightIndex);
 
             ImGui::Text("Name: %s", light.name.c_str());
 
@@ -171,13 +190,13 @@ void CUIDisplay::DrawLightInspector()
 
             if (ImGui::DragFloat3("Position", pos))
             {
-                CPoint3D newPos(pos);
+                rade::vector3 newPos(pos);
                 m_appMain.ChangeLightPos(light, newPos);
             }
 
             if (ImGui::Button("Set from camera"))
             {
-                CPoint3D camPos = m_appMain.GetCamera().GetPosition();
+                rade::vector3 camPos = m_appMain.GetCamera().GetPosition();
                 m_appMain.ChangeLightPos(light, camPos);
             }
 
@@ -191,6 +210,9 @@ void CUIDisplay::DrawLightInspector()
             ImGui::SliderFloat("Radius", &light.radius, 5.0f, 500.0f);
         }
     }
+
+
+
     ImGui::End();
 }
 
@@ -253,14 +275,15 @@ void CUIDisplay::DrawMenuBar()
                 ImVec2(700, 310),
                 ".rbmesh"))
         {
-            if(OS::FileExists(m_fileDialog.selected_path))
+            if(rade::FileExists(m_fileDialog.selected_path))
             {
                 m_meshFilename = m_fileDialog.selected_path;
+                m_selectedLightIndex = -1;
                 m_appMain.OnUIMeshLoad(m_meshFilename);
             }
             else
             {
-                OS::Log("No such mesh file %s\n", m_fileDialog.selected_path.c_str());
+                rade::Log("No such mesh file %s\n", m_fileDialog.selected_path.c_str());
             }
         }
         ImGui::EndMainMenuBar();
@@ -289,6 +312,8 @@ void CUIDisplay::Draw()
         ImGui::ShowDemoWindow(&show_demo_window);
     }
 
+    DrawLMTexturePanel(m_appMain.GetLoadedLightmapInfoRef());
+
     // handle the mesh reload within main thread which has display context
     if(m_doReload)
     {
@@ -303,7 +328,6 @@ bool CUIDisplay::IsAnyItemActive()
 {
     return ImGui::IsAnyItemActive();
 }
-
 
 void CUIDisplay::GenerateLightmaps()
 {

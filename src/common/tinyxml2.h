@@ -1902,7 +1902,7 @@ public:
         return _errorLineNum;
     }
 
-    /// Clear the document, resetting it to the initial state.
+    /// Reset the document, resetting it to the initial state.
     void Clear();
 
 	/**

@@ -2,48 +2,68 @@
 
 #include <map>
 
-#include "meshfile.h"
 #include "polygon3d.h"
 #include "lightmapimage.h"
 
 class CMaterialManager;
 
-struct lightmapInfo_t
+class CDisplayGL;
+
+namespace rade
 {
-    uint32_t texID;
-    unsigned int width;
-    unsigned int height;
-    unsigned int channels;
-};
+    class Camera;
 
-class CPolyMesh
-{
-public:
-    void AddPoly(const CPoly3D& poly);
-
-    void AddPolyList(std::vector<CPoly3D>& polyList);
-
-    bool LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath = "");
-
-    void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps);
-
-    bool HasLightmaps()
+    class CPolyMesh
     {
-        return m_hasLightmaps;
-    }
+    public:
 
-    std::vector<CPoly3D>& GetPolyListRef()
-    {
-        return m_polyList;
-    }
+        struct lightmapInfo_t
+        {
+            unsigned int texID;
+            unsigned int width;
+            unsigned int height;
+            unsigned int channels;
+        };
 
-    void Clear();
+        bool Init(CDisplayGL& display, Camera* camera);
 
-    void ClearLightmaps();
+        void AddPoly(const rade::CPoly3D& poly);
 
-private:
-    std::vector<CPoly3D> m_polyList;
-    std::vector<lightmapInfo_t> m_lightmaps;
-    bool m_hasLightmaps = false;
+        void AddPolyList(std::vector<rade::CPoly3D>& polyList);
+
+        bool LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath = "");
+
+        void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps);
+
+        bool HasLightmaps() const
+        {
+            return m_hasLightmaps;
+        }
+
+        std::vector<rade::CPoly3D>& GetPolyListRef()
+        {
+            return m_polyList;
+        }
+
+        void Reset();
+
+        void ClearLightmaps();
+
+        std::vector<lightmapInfo_t>& GetLoadedLightmapInfoRef()
+        {
+            return m_lightmaps;
+        }
+
+        Camera* m_camera = nullptr;
+
+    private:
+        std::vector<rade::CPoly3D> m_polyList;
+        std::vector<lightmapInfo_t> m_lightmaps;
+        bool m_hasLightmaps = false;
+
+        uint32_t m_meshID = 0;
+        CDisplayGL* m_display = nullptr;
+
+    };
 
 };

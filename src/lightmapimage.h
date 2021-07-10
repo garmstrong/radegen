@@ -49,7 +49,7 @@ public:
         m_data[offset + 3] = 255;
     }
 
-    void SetPixel(int x, int y, const CPoint3D& p)
+    void SetPixel(int x, int y, const rade::vector3& p)
     {
         size_t offset = index(x, y);
         m_data[offset + 0] = static_cast<unsigned char>(p.x);

@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "point3d.h"
 
-//class CPoint3D;
+//class vector3;
 
 //class CFrustrum
 //{
@@ -14,15 +14,15 @@
 //
 //	void UpdateFrustrumPlanes(const glm::mat4& mat);
 //
-//	bool IsInside(const CPoint3D& point);
+//	bool IsInside(const vector3& point);
 //
 // private:
-//	CPlane3D m_plane_left;
-//	CPlane3D m_plane_right;
-//	CPlane3D m_plane_bottom;
-//	CPlane3D m_plane_top;
-//	CPlane3D m_plane_near;
-//	CPlane3D m_plane_far;
+//	plane3d m_plane_left;
+//	plane3d m_plane_right;
+//	plane3d m_plane_bottom;
+//	plane3d m_plane_top;
+//	plane3d m_plane_near;
+//	plane3d m_plane_far;
 //};
 
 /**
@@ -33,172 +33,173 @@
 
     Includes the perspective projection matrix.
     */
-class Camera
+
+namespace rade
 {
-public:
-
-
-    Camera();
-
-    //const glm::vec3& position() const;
-
-    void SetPosition(const glm::vec3& position);
-
-    void OffsetPosition(const glm::vec3& offset);
-
-    void SetHorizontalAngle(float horizontalAngle);
-
-    void SetVerticalAngle(float verticalAngle);
-
-    void SetRotation(const glm::vec3& rotation);
-
-    float GetHorizontalAngle() const;
-
-    float GetVerticalAngle() const;
-
-    void SetOrtho(bool ortho)
+    class Camera
     {
-        m_isOrtho = ortho;
-    }
+    public:
 
-    /**
-     The vertical viewing angle of the camera, in degrees.
+        Camera();
 
-        Determines how "wide" the view of the camera is. Large angles appear to be zoomed out,
-        as the camera has a wide view. Small values appear to be zoomed in, as the camera has a
-        very narrow view.
+        void SetPosition(const glm::vec3& position);
 
-        The value must be between 0 and 180.
-        */
-    float GetFieldOfView() const;
+        void OffsetPosition(const glm::vec3& offset);
 
-    void SetFieldOfView(float fieldOfView);
+        void SetHorizontalAngle(float horizontalAngle);
 
-    /**
-     The closest visible distance from the camera.
+        void SetVerticalAngle(float verticalAngle);
 
-        Objects that are closer to the camera than the near plane distance will not be visible.
+        void SetRotation(const glm::vec3& rotation);
 
-        Value must be greater than 0.
-        */
-    float GetNearPlane() const;
+        float GetHorizontalAngle() const;
 
-    //glm::vec3 GetPosition() const;
+        float GetVerticalAngle() const;
 
-    glm::vec3 GetPositionGLM() const;
+        void SetOrtho(bool ortho)
+        {
+            m_isOrtho = ortho;
+        }
 
-    CPoint3D GetPosition() const;
+        /**
+         The vertical viewing angle of the camera, in degrees.
 
-    /**
-     The farthest visible distance from the camera.
+            Determines how "wide" the view of the camera is. Large angles appear to be zoomed out,
+            as the camera has a wide view. Small values appear to be zoomed in, as the camera has a
+            very narrow view.
 
-        Objects that are further away from the than the far plane distance will not be visible.
+            The value must be between 0 and 180.
+            */
+        float GetFieldOfView() const;
 
-        Value must be greater than the near plane
-        */
-    float GetFarPlane() const;
+        void SetFieldOfView(float fieldOfView);
 
-    /**
-     Sets the near and far plane distances.
+        /**
+         The closest visible distance from the camera.
 
-        Everything between the near plane and the var plane will be visible. Everything closer
-        than the near plane, or farther than the far plane, will not be visible.
+            Objects that are closer to the camera than the near plane distance will not be visible.
 
-        @param nearPlane  Minimum visible distance from camera. Must be > 0
-        @param farPlane   Maximum visible distance from camera. Must be > nearPlane
-        */
-    void SetNearAndFarPlanes(float nearPlane, float farPlane);
+            Value must be greater than 0.
+            */
+        float GetNearPlane() const;
 
-    /**
-     A rotation matrix that determines the direction the camera is looking.
+        //glm::vec3 GetPosition() const;
 
-        Does not include translation (the camera's position).
-        */
-    glm::mat4 GetOrientation() const;
+        glm::vec3 GetPositionGLM() const;
 
-    /**
-     Offsets the cameras orientation.
+        rade::vector3 GetPosition() const;
 
-        The verticle angle is constrained between 85deg and -85deg to avoid gimbal lock.
+        /**
+         The farthest visible distance from the camera.
 
-        @param upAngle     the angle (in degrees) to offset upwards. Negative values are downwards.
-        @param rightAngle  the angle (in degrees) to offset rightwards. Negative values are leftwards.
-        */
-    void OffsetOrientation(float upAngle, float rightAngle);
+            Objects that are further away from the than the far plane distance will not be visible.
 
-    /**
-     Orients the camera so that is it directly facing `position`
+            Value must be greater than the near plane
+            */
+        float GetFarPlane() const;
 
-        @param position  the position to look at
-        */
-    void LookAt(glm::vec3 position);
+        /**
+         Sets the near and far plane distances.
 
-    /**
-     The GetWidth divided by the GetHeight of the screen/window/viewport
+            Everything between the near plane and the var plane will be visible. Everything closer
+            than the near plane, or farther than the far plane, will not be visible.
 
-        Incorrect values will make the 3D scene look stretched.
-        */
-    float GetViewportAspectRatio() const;
+            @param nearPlane  Minimum visible distance from camera. Must be > 0
+            @param farPlane   Maximum visible distance from camera. Must be > nearPlane
+            */
+        void SetNearAndFarPlanes(float nearPlane, float farPlane);
 
-    void SetViewportAspectRatio(float viewportAspectRatio);
+        /**
+         A rotation matrix that determines the direction the camera is looking.
 
-    /** A unit vector representing the direction the camera is facing */
-    glm::vec3 ForwardVector() const;
+            Does not include translation (the camera's position).
+            */
+        glm::mat4 GetOrientation() const;
 
-    /** A unit vector representing the direction to the right of the camera*/
-    glm::vec3 RightVector() const;
+        /**
+         Offsets the cameras orientation.
 
-    /** A unit vector representing the direction out of the top of the camera*/
-    glm::vec3 UpVector() const;
+            The verticle angle is constrained between 85deg and -85deg to avoid gimbal lock.
 
-    /**
-     The combined camera transformation matrix, including perspective projection.
+            @param upAngle     the angle (in degrees) to offset upwards. Negative values are downwards.
+            @param rightAngle  the angle (in degrees) to offset rightwards. Negative values are leftwards.
+            */
+        void OffsetOrientation(float upAngle, float rightAngle);
 
-        This is the complete matrix to use in the vertex shader.
-        */
-    glm::mat4 GetMatrix() const;
+        /**
+         Orients the camera so that is it directly facing `position`
 
-    /**
-     The perspective projection transformation matrix
-        */
-    glm::mat4 GetProjection() const;
+            @param position  the position to look at
+            */
+        void LookAt(glm::vec3 position);
 
-    /**
-     The translation and rotation matrix of the camera.
+        /**
+         The GetWidth divided by the GetHeight of the screen/window/viewport
 
-        Same as the `matrix` method, except the return value does not include the projection
-        transformation.
-        */
-    glm::mat4 GetView() const;
+            Incorrect values will make the 3D scene look stretched.
+            */
+        float GetViewportAspectRatio() const;
 
-    bool m_isOrtho = false;
+        void SetViewportAspectRatio(float viewportAspectRatio);
+
+        /** A unit vector representing the direction the camera is facing */
+        glm::vec3 ForwardVector() const;
+
+        /** A unit vector representing the direction to the right of the camera*/
+        glm::vec3 RightVector() const;
+
+        /** A unit vector representing the direction out of the top of the camera*/
+        glm::vec3 UpVector() const;
+
+        /**
+         The combined camera transformation matrix, including perspective projection.
+
+            This is the complete matrix to use in the vertex shader.
+            */
+        glm::mat4 GetMatrix() const;
+
+        /**
+         The perspective projection transformation matrix
+            */
+        glm::mat4 GetProjection() const;
+
+        /**
+         The translation and rotation matrix of the camera.
+
+            Same as the `matrix` method, except the return value does not include the projection
+            transformation.
+            */
+        glm::mat4 GetView() const;
+
+        bool m_isOrtho = false;
 
 //	void Update();
-//	bool IsInView(const CPoint3D& point);
+//	bool IsInView(const vector3& point);
 
-    void SetViewport(float width, float height)
-    {
-        m_videoWidth = width;
-        m_videoHeight = height;
-        m_viewportAspectRatio = m_videoWidth / m_videoHeight;
-    }
+        void SetViewport(float width, float height)
+        {
+            m_videoWidth = width;
+            m_videoHeight = height;
+            m_viewportAspectRatio = m_videoWidth / m_videoHeight;
+        }
 
-private:
+    private:
 
 //	CFrustrum m_frustrum;
 
-    glm::vec3 m_position;
-    float m_horizontalAngle;
-    float m_verticalAngle;
+        glm::vec3 m_position;
+        float m_horizontalAngle;
+        float m_verticalAngle;
 
-    float m_fieldOfView;
-    float m_nearPlane;
-    float m_farPlane;
-    float m_viewportAspectRatio;
-    float m_videoWidth = 0.0f;
-    float m_videoHeight = 0.0f;
+        float m_fieldOfView;
+        float m_nearPlane;
+        float m_farPlane;
+        float m_viewportAspectRatio;
+        float m_videoWidth = 0.0f;
+        float m_videoHeight = 0.0f;
 
-    void NormalizeAngles();
+        void NormalizeAngles();
 
 
+    };
 };

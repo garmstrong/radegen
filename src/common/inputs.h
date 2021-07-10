@@ -1,22 +1,18 @@
 #pragma once
 
-#include <vector>
-
-class CInputSystem
+namespace rade
 {
-private:
-    const int m_cNumKeys = 512;
+    class InputSystem
+    {
+    public:
+        bool IsPressed(int keyCode);
 
-    bool m_keystates[512]{};
-public:
+        void Press(int keyCode);
 
-    CInputSystem();
+        void Release(int keyCode);
 
-    ~CInputSystem();
-
-    bool IsPressed(int keyCode);
-
-    void Press(int keyCode);
-
-    void Release(int keyCode);
+    private:
+        const int m_cNumKeys = 512;
+        bool m_keystates[512]{};
+    };
 };

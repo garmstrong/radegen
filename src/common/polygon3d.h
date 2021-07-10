@@ -7,143 +7,145 @@
 
 #include "rmath.h"
 
-class CPlane3D;
-
-class CPoly3D
+namespace rade
 {
-public:
+    class plane3d;
 
-    CPoly3D();
-
-    ~CPoly3D();
-
-    void AddPoint(const CPoint3D& p);
-
-    inline size_t NumPoints() const
+    class CPoly3D
     {
-        return m_points.size();
-    }
+    public:
 
-    CPoint3D GetPoint(unsigned int index) const
-    {
-        return m_points[index];
-    }
+        CPoly3D();
 
-    CPoint3D& GetPointRef(unsigned int index)
-    {
-        return m_points[index];
-    }
+        ~CPoly3D();
 
-    const std::vector<CPoint3D>& GetPointListRefConst() const
-    {
-        return m_points;
-    }
+        void AddPoint(const vector3& p);
 
-    std::vector<CPoint3D>& GetPointListRef()
-    {
-        return m_points;
-    }
+        inline size_t NumPoints() const
+        {
+            return m_points.size();
+        }
 
-    void SetPoint(unsigned int index, CPoint3D& newPoint)
-    {
-        m_points[index] = newPoint;
-    }
+        vector3 GetPoint(unsigned int index) const
+        {
+            return m_points[index];
+        }
 
-    inline void ClearPoints()
-    {
-        m_points.clear();
-    }
+        vector3& GetPointRef(unsigned int index)
+        {
+            return m_points[index];
+        }
 
-    void CalcNormal()
-    {
-        //CPoint3D veca = m_points[1] - m_points[2];
-        //CPoint3D vecb = m_points[1] - m_points[0];
-        CPoint3D veca = m_points[1] - m_points[0];
-        CPoint3D vecb = m_points[2] - m_points[0];
-        CPoint3D cross = veca.CrossProduct(vecb);
-        cross.Normalize();
-        m_normal.Set(cross);
-    }
+        const std::vector<rade::vector3>& GetPointListRefConst() const
+        {
+            return m_points;
+        }
 
-    inline void SetNormal(const CPoint3D& normal)
-    {
-        m_normal = normal;
-    }
+        std::vector<rade::vector3>& GetPointListRef()
+        {
+            return m_points;
+        }
 
-    double GetDistance() const
-    {
-        return m_distance;
-    }
+        void SetPoint(unsigned int index, rade::vector3& newPoint)
+        {
+            m_points[index] = newPoint;
+        }
 
-    void SetDistance(double distance)
-    {
-        m_distance = distance;
-    }
+        inline void ClearPoints()
+        {
+            m_points.clear();
+        }
 
-    CPoint3D GetCenter() const;
+        void CalcNormal()
+        {
+            //vector3 veca = m_points[1] - m_points[2];
+            //vector3 vecb = m_points[1] - m_points[0];
+            rade::vector3 veca = m_points[1] - m_points[0];
+            rade::vector3 vecb = m_points[2] - m_points[0];
+            rade::vector3 cross = veca.CrossProduct(vecb);
+            cross.Normalize();
+            m_normal.Set(cross);
+        }
 
-    int PointInPoly(const CPoint3D& p) const;
+        inline void SetNormal(const rade::vector3& normal)
+        {
+            m_normal = normal;
+        }
 
-    void SortWindingOrder();
+        double GetDistance() const
+        {
+            return m_distance;
+        }
 
-    const CPoint3D& GetNormal() const
-    {
-        return m_normal;
-    }
+        void SetDistance(double distance)
+        {
+            m_distance = distance;
+        }
 
-    std::vector<CPoly3D> ToTriangles() const;
+        rade::vector3 GetCenter() const;
 
-    RMATH::ESide Split(const CPlane3D& plane, CPoly3D& front, CPoly3D& back) const;
+        int PointInPoly(const rade::vector3& p) const;
 
-    void TextureFromPlane(uint16_t texWidth, uint16_t texHeight,
-            float scalex = 1.0f, float scaley = 1.0f,
-            float shiftx = 0.0f, float shifty = 0.0f);
+        void SortWindingOrder();
 
-    RMATH::ESide ClassifyPolygon(const CPoly3D& poly);
+        const rade::vector3& GetNormal() const
+        {
+            return m_normal;
+        }
 
-    std::string GetMaterialKey() const
-    {
-        return m_materialKey;
-    }
+        std::vector<CPoly3D> ToTriangles() const;
 
-    void SetMaterialKey(const std::string& materialKey)
-    {
-        m_materialKey = materialKey;
-    }
+        rade::math::ESide Split(const rade::plane3d& plane, CPoly3D& front, CPoly3D& back) const;
 
-    void SetLightmapDataIndex(uint32_t id)
-    {
-        m_lightmapDataIndex = id;
-    }
+        void TextureFromPlane(uint16_t texWidth, uint16_t texHeight,
+                float scalex = 1.0f, float scaley = 1.0f,
+                float shiftx = 0.0f, float shifty = 0.0f);
 
-    uint32_t GetLightmapDataIndex() const
-    {
-        return m_lightmapDataIndex;
-    }
+        rade::math::ESide ClassifyPolygon(const CPoly3D& poly);
 
-    void SetLightTexID(uint32_t id)
-    {
-        m_lightmapTextureID = id;
-    }
+        std::string GetMaterialKey() const
+        {
+            return m_materialKey;
+        }
 
-    uint32_t GetLightTexID() const
-    {
-        return m_lightmapTextureID;
-    }
+        void SetMaterialKey(const std::string& materialKey)
+        {
+            m_materialKey = materialKey;
+        }
 
-private:
-    std::vector<CPoint3D> m_points;
-    CPoint3D m_normal;
-    double m_distance = 0;
-    unsigned int m_flags = 0;
+        void SetLightmapDataIndex(uint32_t id)
+        {
+            m_lightmapDataIndex = id;
+        }
 
-    // material key is path "base/door1" to texture (.png .jpg etc.. ) or a .json material file
-    std::string m_materialKey;
+        uint32_t GetLightmapDataIndex() const
+        {
+            return m_lightmapDataIndex;
+        }
 
-    // id of material once loaded to display
-    uint32_t m_materialIndex = 0;
+        void SetLightTexID(uint32_t id)
+        {
+            m_lightmapTextureID = id;
+        }
 
-    // special lightmap id index into data from file
-    uint32_t m_lightmapDataIndex = 0;
-    uint32_t m_lightmapTextureID = 0;
+        uint32_t GetLightTexID() const
+        {
+            return m_lightmapTextureID;
+        }
+
+        plane3d GetPlane() const;
+
+    private:
+        std::vector<rade::vector3> m_points;
+        rade::vector3 m_normal;
+        double m_distance = 0;
+        unsigned int m_flags = 0;
+        // material key is path "base/door1" to texture (.png .jpg etc.. ) or a .json material file
+        std::string m_materialKey;
+        // id of material once loaded to display
+        uint32_t m_materialIndex = 0;
+        // special lightmap id index into data from file
+        uint32_t m_lightmapDataIndex = 0;
+        uint32_t m_lightmapTextureID = 0;
+    };
 };

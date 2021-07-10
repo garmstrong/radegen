@@ -12,9 +12,12 @@ class CDisplayGL;
 
 class CMaterial;
 
-class CPolyMesh;
+namespace rade
+{
+    class CPolyMesh;
 
-class Camera;
+    class Camera;
+};
 
 class CMeshGL
 {
@@ -27,16 +30,16 @@ public:
         unsigned int glVAOId;
         unsigned int glVBOId;
         std::string materialName;
-        CMaterial *mat;
+        CMaterial* mat;
         uint16_t copiedSoFar;
         unsigned int lightmapID;
     };
 
-    void InitFromPolyMesh(CPolyMesh& renderMesh);
+    void InitFromPolyMesh(rade::CPolyMesh& renderMesh);
 
     void AddFace(NRenderTypes::Tri& face);
 
-    void RenderAllFaces(const Camera& cam);
+    void RenderAllFaces();
 
     void Reset();
 
@@ -55,6 +58,8 @@ public:
     void PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlatformAssets = false);
 
 private:
+
+    rade::Camera* m_camera;
 
     NRenderTypes::ERenderMode m_renderMode = NRenderTypes::ERenderDefault;
 

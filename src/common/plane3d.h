@@ -5,75 +5,67 @@
 
 class CPoly3D;
 
-class CPlane3D
+namespace rade
 {
-public:
-
-    CPlane3D()
+    class plane3d
     {
+    public:
 
-    }
+        // from 3 points
+        plane3d(const vector3& p1, const vector3& p2, const vector3& p3);
 
-    // from 3 points
-    CPlane3D(CPoint3D& p1, CPoint3D& p2, CPoint3D& p3);
+        plane3d(float a, float b, float c, float d);
 
-    CPlane3D(const CPoly3D& poly);
+        enum EPlaneAxis
+        {
+            EPlaneAxis_YZ,
+            EPlaneAxis_XZ,
+            EPlaneAxis_XY
+        };
 
-    CPlane3D(CPoly3D* poly);
+        void InitFromPoints(const vector3& p1, const vector3& p2, const vector3& p3);
 
-    CPlane3D(const float a, const float b, const float c, const float d);
+        void InitFromPlane(float a, float b, float c, float d, bool normalize);
 
-    ~CPlane3D()
-    {
-    }
+        rade::vector3 GetNormal() const
+        {
+            return m_normal;
+        }
 
-    enum EPlaneAxis
-    {
-        EPlaneAxis_YZ,
-        EPlaneAxis_XZ,
-        EPlaneAxis_XY
+        float GetDistance() const
+        {
+            return m_dist;
+        }
+
+        void Normalize();
+
+        rade::math::ESide ClassifyPoint(const vector3& point) const;
+
+        rade::math::ESide ClassifyPoint(const vector3& point, float sphere_radius) const;
+
+        // returns closest axial plane (based on normal)
+        EPlaneAxis GetPlaneAxis() const;
+
+        float Distance(vector3& point)
+        {
+            vector3 diff = point - m_pointOnPlane;
+            return std::fabs(diff.Dot(m_normal));
+        }
+
+        // intersection
+        bool GetRayIntersect(const vector3& p1, const vector3& p2, vector3* intersect) const;
+
+        bool GetLineSegmentIntersect(vector3& p1, vector3& p2, vector3& intersect,
+                bool recalcUV = true) const;
+
+        bool Get3PlaneIntersection(plane3d& plane1, plane3d& plane2, vector3* p) const;
+
+        static void GetClosestAxialPlane(const vector3& pNormal, vector3* xv, vector3* yv);
+
+    private:
+        vector3 m_pointOnPlane;
+        vector3 m_normal;
+        float m_dist = 0.0f;
     };
 
-    void InitFromPoints(const CPoint3D& p1, const CPoint3D& p2, const CPoint3D& p3);
-
-    void InitFromPlane(float a, float b, float c, float d, bool normalize);
-
-    CPoint3D GetNormal() const
-    {
-        return m_normal;
-    }
-
-    float GetDistance() const
-    {
-        return m_dist;
-    }
-
-    void Normalize();
-
-    RMATH::ESide ClassifyPoint(const CPoint3D& point) const;
-
-    RMATH::ESide ClassifyPoint(const CPoint3D& point, float sphere_radius) const;
-
-    // returns closest axial plane (based on normal)
-    EPlaneAxis GetPlaneAxis() const;
-
-    float Distance(CPoint3D& point)
-    {
-        CPoint3D diff = point - m_pointOnPlane;
-        return std::fabs(diff.Dot(m_normal));
-    }
-
-    // intersection
-    bool GetRayIntersect(const CPoint3D& p1, const CPoint3D& p2, CPoint3D* intersect) const;
-
-    bool GetLineSegmentIntersect(CPoint3D& p1, CPoint3D& p2, CPoint3D& intersect, bool recalcUV = true) const;
-
-    bool Get3PlaneIntersection(CPlane3D& plane1, CPlane3D& plane2, CPoint3D* p) const;
-
-    static void GetClosestAxialPlane(const CPoint3D& pNormal, CPoint3D* xv, CPoint3D* yv);
-
-private:
-    CPoint3D m_pointOnPlane;
-    CPoint3D m_normal;
-    float m_dist = 0.0f;
 };

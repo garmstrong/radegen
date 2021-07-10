@@ -39,12 +39,7 @@ public:
 
     void OnMouseWheel(int y);
 
-    void OnUIButtonPressed();
-
-    bool GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights);
-
-    //uint32_t LoadMesh(CMeshFile& meshFile);
-    uint32_t UploadNewMesh(CPolyMesh& polyMesh, std::vector<CLightmapImg>& lightmaps);
+    bool GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<rade::Light> lights);
 
     void OnUILightmapsComplete();
 
@@ -52,43 +47,40 @@ public:
 
     bool OnUIMeshLoad(const std::string& filename);
 
-    std::vector<CLight>& GetLightsRef();
+    std::vector<rade::Light>& GetLightsRef();
 
-    bool AddLight(CLight& newLight);
+    bool AddLight(rade::Light& newLight);
 
     bool RemoveLight(int index);
 
-    Camera& GetCamera()
+    rade::Camera& GetCamera()
     {
         return m_camera;
     }
 
-    bool ChangeLightPos(CLight& light, CPoint3D& pos);
+    bool ChangeLightPos(rade::Light& light, rade::vector3& pos);
+
+    std::vector<rade::CPolyMesh::lightmapInfo_t>& GetLoadedLightmapInfoRef()
+    {
+        return m_polyMesh.GetLoadedLightmapInfoRef();
+    }
 
 protected:
 
-    bool m_appDone{};
-    bool m_captureMouse{};
-
-    CDisplayGL m_display;
-    Camera m_camera;
-    CUIDisplay m_uiDisplay;
-    uint32_t m_meshID = 0;
-
     void UpdateTransformViaInputs(float deltaTime);
 
-    CInputSystem m_inputs;
+    bool m_appDone = false;
+    CDisplayGL m_display;
+    rade::Camera m_camera;
+    rade::Camera m_cameraUI;
+    CUIDisplay m_uiDisplay;
 
+    rade::InputSystem m_inputs;
     bool m_isMouseDown = false;
-
     float m_lastDeltaTime = 0.033f;
-
-    CPolyMesh m_polyMesh;
+    rade::CPolyMesh m_polyMesh;
     std::vector<CLightmapImg> m_lightMapList;
+    std::vector<rade::Light> m_lights;
 
-    //CTextMesh m_txtCamPos;
-
-    std::vector<CLight> m_lights;
-    //std::vector<CTextMesh*> m_lightLabels;
-
+    rade::CPolyMesh m_logomesh;
 };

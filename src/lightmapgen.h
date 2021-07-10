@@ -9,7 +9,10 @@
 #include "lumeldata.h"
 #include "light3d.h"
 
-class CTextMesh;
+namespace rade
+{
+    class CTextMesh;
+};
 
 namespace NRadeLamp
 {
@@ -81,8 +84,8 @@ protected:
 
     typedef struct
     {
-        CPoint3D normal;
-        std::vector<CPoint3D> rays;
+        rade::vector3 normal;
+        std::vector<rade::vector3> rays;
     } sphereMap_t;
 
     std::vector<sphereMap_t*> m_spheres;
@@ -91,43 +94,43 @@ protected:
 
     //float RandomFloat(float a, float b);
 
-    sphereMap_t* GetSphereRaysForNormal(const CPoint3D& normal);
+    sphereMap_t* GetSphereRaysForNormal(const rade::vector3& normal);
 
-    static void GenerateHemisphereRay(const CPoint3D& normal, CPoint3D* ret);
+    static void GenerateHemisphereRay(const rade::vector3& normal, rade::vector3* ret);
 
-    static bool DoesLineIntersectWithPolyList(const CPoint3D& lightPos, const CPoint3D& lumelPos,
-            const std::vector<CPoly3D>& polyList);
+    static bool DoesLineIntersectWithPolyList(const rade::vector3& lightPos, const rade::vector3& lumelPos,
+            const std::vector<rade::CPoly3D>& polyList);
 
-    static bool DoesLineIntersectWithPolyList(const CPoint3D& lightPos, const CPoint3D& lumelPos,
-            const std::vector<CPoly3D>& polyList, float* distance);
-
-    static void
-    CalcEdgeVectors(const CPlane3D& plane, const float* uvMin, const float* uvMax, CPoint3D& edge1, CPoint3D& edge2,
-            CPoint3D& UVVector);
+    static bool DoesLineIntersectWithPolyList(const rade::vector3& lightPos, const rade::vector3& lumelPos,
+            const std::vector<rade::CPoly3D>& polyList, float* distance);
 
     static void
-    NormalizeLightmapUVs(std::vector<CPoint3D>& polyPoints, float* minimums, float* maximums, uint16_t* polyUWidth,
+    CalcEdgeVectors(const rade::plane3d& plane, const float* uvMin, const float* uvMax, rade::vector3& edge1, rade::vector3& edge2,
+            rade::vector3& UVVector);
+
+    static void
+    NormalizeLightmapUVs(std::vector<rade::vector3>& polyPoints, float* minimums, float* maximums, uint16_t* polyUWidth,
             uint16_t* polyVHeight);
 
-    static void CalcLightmapUV(std::vector<CPoint3D>& polyPoints, CPlane3D::EPlaneAxis bestAxis);
+    static void CalcLightmapUV(std::vector<rade::vector3>& polyPoints, rade::plane3d::EPlaneAxis bestAxis);
 
-    int CalcShadowLightmap(CPoly3D* poly, std::vector<CPoly3D>& polyList, const std::vector<CLight>& lights,
+    int CalcShadowLightmap(rade::CPoly3D* poly, std::vector<rade::CPoly3D>& polyList, const std::vector<rade::Light>& lights,
             CLightmapImg& lightmap) const;
 
-    int CalcSunLightmap(CPoly3D* poly, std::vector<CPoly3D>& polyList, const CPoint3D& sunDir,
-            const CPoint3D& sunColor,
+    int CalcSunLightmap(rade::CPoly3D* poly, std::vector<rade::CPoly3D>& polyList, const rade::vector3& sunDir,
+            const rade::vector3& sunColor,
             CLightmapImg& lightmap) const;
 
-    int CalcPolyAmbientOcclusion(CPoly3D* poly, std::vector<CPoly3D>& polyList, CLightmapImg& lightmap);
+    int CalcPolyAmbientOcclusion(rade::CPoly3D* poly, std::vector<rade::CPoly3D>& polyList, CLightmapImg& lightmap);
 
     void GenerateLMData(unsigned char val, CLightmapImg& lm);
 
-    int GenerateLightMapDataRange(std::vector<CPoly3D>& polyList,
-            const std::vector<CLight>& lights,
+    int GenerateLightMapDataRange(std::vector<rade::CPoly3D>& polyList,
+            const std::vector<rade::Light>& lights,
             threadData_t* threadData);
 
-    void ThreadWorkerLightmapRange(std::vector<CPoly3D>* polyList,
-            const std::vector<CLight>* lights,
+    void ThreadWorkerLightmapRange(std::vector<rade::CPoly3D>* polyList,
+            const std::vector<rade::Light>* lights,
             threadData_t* threadData,
             int threadID);
 
@@ -136,8 +139,8 @@ protected:
 public:
     int GenerateLightmaps(
             NRadeLamp::lmOptions_t lampOptions,
-            std::vector<CPoly3D>& polyList,
-            const std::vector<CLight>& lights,
+            std::vector<rade::CPoly3D>& polyList,
+            const std::vector<rade::Light>& lights,
             std::vector<CLightmapImg>* lightMapList);
 
 };

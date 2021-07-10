@@ -46,7 +46,7 @@ void CRenderMeshGL::Reset()
     m_renderMode = NRenderTypes::ERenderDefault;
 }
 
-void CRenderMeshGL::RenderAllFaces(const Camera& cam)
+void CRenderMeshGL::RenderAllFaces(const rade::Camera& cam)
 {
     OnRenderStart();
 
@@ -162,7 +162,7 @@ void CRenderMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool u
             "data/shaders/vs.glsl",
             "data/shaders/fs.glsl"))
     {
-        OS::Abort("Failed to create shader\n");
+        rade::Abort("Failed to create shader\n");
     }
 
     // generate vertex array id
@@ -203,19 +203,19 @@ void CRenderMeshGL::LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAsset
             }
             else
             {
-                OS::Log("Failed to load material %s\n", x.second.materialName.c_str());
+                rade::Log("Failed to load material %s\n", x.second.materialName.c_str());
             }
         }
     }
 }
 
-void CRenderMeshGL::InitFromPolyMesh(CPolyMesh& polyMesh)
+void CRenderMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
 {
-    std::vector<CPoly3D>& polyList = polyMesh.GetPolyListRef();
+    std::vector<rade::CPoly3D>& polyList = polyMesh.GetPolyListRef();
 
     m_hasLightmaps = polyMesh.HasLightmaps();
 
-    for (CPoly3D& poly : polyList)
+    for (rade::CPoly3D& poly : polyList)
     {
         Face renderFace;
         renderFace.glVBOId = 0;

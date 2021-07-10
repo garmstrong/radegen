@@ -15,8 +15,8 @@ public:
         Free();
     }
 
-    CPoint3D* m_color;
-    CPoint3D* m_pos;
+    rade::vector3* m_color;
+    rade::vector3* m_pos;
     int m_width;
     int m_height;
 
@@ -25,22 +25,22 @@ public:
         return x + m_width * y;
     }
 
-    void SetPosition(int x, int y, const CPoint3D& pos)
+    void SetPosition(int x, int y, const rade::vector3& pos)
     {
         m_pos[index(x, y)] = pos;
     }
 
-    CPoint3D* GetPosition(uint16_t x, uint16_t y)
+    rade::vector3* GetPosition(uint16_t x, uint16_t y)
     {
         return &m_pos[index(x, y)];
     }
 
-    CPoint3D* GetColor(uint16_t x, uint16_t y)
+    rade::vector3* GetColor(uint16_t x, uint16_t y)
     {
         return &m_color[index(x, y)];
     }
 
-    void SetColor(uint16_t x, uint16_t y, const CPoint3D& color)
+    void SetColor(uint16_t x, uint16_t y, const rade::vector3& color)
     {
         m_color[index(x, y)] = color;
     }
@@ -50,8 +50,8 @@ public:
         m_width = width;
         m_height = height;
 
-        m_color = new CPoint3D[width * height]{};
-        m_pos = new CPoint3D[width * height]{};
+        m_color = new rade::vector3[width * height]{};
+        m_pos = new rade::vector3[width * height]{};
     }
 
     void Free()

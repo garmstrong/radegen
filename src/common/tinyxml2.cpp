@@ -2403,7 +2403,7 @@ XMLError XMLDocument::SaveFile( const char* filename, bool compact )
 
 XMLError XMLDocument::SaveFile( FILE* fp, bool compact )
 {
-    // Clear any error from the last save, otherwise it will get reported
+    // Reset any error from the last save, otherwise it will get reported
     // for *this* call.
     ClearError();
     XMLPrinter stream( fp, compact );
@@ -2516,7 +2516,7 @@ const char* XMLDocument::ErrorName() const
 
 void XMLDocument::Parse()
 {
-    TIXMLASSERT( NoChildren() ); // Clear() must have been called previously
+    TIXMLASSERT( NoChildren() ); // Reset() must have been called previously
     TIXMLASSERT( _charBuffer );
     _parseCurLineNum = 1;
     _parseLineNum = 1;

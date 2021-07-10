@@ -3,6 +3,7 @@
 #include <meshfile.h>
 #include "lightmapgen.h"
 #include "ImGuiFileBrowser.h"
+#include "polymesh.h"
 
 class CAppMain;
 
@@ -62,5 +63,7 @@ private:
     std::string m_meshFilename = "data/meshes/default.rbmesh";
 
     //bool LoadMesh();
-    std::string GetNextLightName(std::vector<CLight>& lights);
+    std::string GetNextLightName(std::vector<rade::Light>& lights);
+
+    void DrawLMTexturePanel(std::vector<rade::CPolyMesh::lightmapInfo_t>& lmaps);
 };

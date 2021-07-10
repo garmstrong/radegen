@@ -9,11 +9,14 @@
 #include "rendertypes.h"
 #include "shader_gl.h"
 
-class Camera;
+namespace rade
+{
+    class Camera;
+
+    class CPolyMesh;
+};
 
 class CDisplayGL;
-
-class CPolyMesh;
 
 class CRenderDebugMeshGL
 {
@@ -25,12 +28,12 @@ public:
     void AddFace(NRenderTypes::Face& face);
 
     //void RenderAllFaces();
-    void RenderDepthOnly(Camera& cam);
-    void RenderAllFacesShadowMapped(Camera& cam);
-    void RenderDiffuse(Camera& cam);
-    void RenderAllFacesW(Camera& cam);
+    void RenderDepthOnly(rade::Camera& cam);
+    void RenderAllFacesShadowMapped(rade::Camera& cam);
+    void RenderDiffuse(rade::Camera& cam);
+    void RenderAllFacesW(rade::Camera& cam);
 
-    void InitFromPolyMesh(CPolyMesh& renderMesh);
+    void InitFromPolyMesh(rade::CPolyMesh& renderMesh);
 
     void PrepareMesh(CDisplayGL& displayGl, bool loadTextures);
 

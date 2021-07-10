@@ -254,8 +254,8 @@
 //   Sample code                        140 LOC  /
 //   Truetype parsing                   620 LOC  ---- 620 LOC TrueType
 //   Software rasterization             240 LOC  \.
-//   Curve tessellation                 120 LOC   \__ 550 LOC CImage creation
-//   CImage management                  100 LOC   /
+//   Curve tessellation                 120 LOC   \__ 550 LOC Image creation
+//   Image management                  100 LOC   /
 //   Baked bitmap interface              70 LOC  /
 //   Font name matching & access        150 LOC  ---- 150 
 //   C runtime library abstraction       60 LOC  ----  60

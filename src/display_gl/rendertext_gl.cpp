@@ -7,9 +7,11 @@
 #include "display_gl.h"
 #include "material.h"
 
+using namespace rade;
+
 using namespace NRenderTextGL;
 
-CRenderTextGL::CRenderTextGL(CDisplayGL* display, CPolyMesh* polyMesh)
+CRenderTextGL::CRenderTextGL(CDisplayGL* display, rade::CPolyMesh* polyMesh)
 {
 	// generate vertex array id for this mesh
 	glGenVertexArrays(1, &m_vaoId);
@@ -19,10 +21,10 @@ CRenderTextGL::CRenderTextGL(CDisplayGL* display, CPolyMesh* polyMesh)
 	std::string matKey ="system/font";
 
     CMaterial *m_mat = display->GetMaterialMgr().LoadFromKey(matKey);
-    OS::Assert(m_mat, "Could not load font texture from key %s\n", matKey.c_str());
+    Assert(m_mat, "Could not load font texture from key %s\n", matKey.c_str());
 
     m_texid = m_mat->GetTextureProps(RMaterials::TEXTURE_SLOT_DIFFUSE)->loadedTextureID;
-	OS::Assert(m_texid>0, "CRenderTextGL() Loaded texture ID was invalid\n");
+	Assert(m_texid>0, "CRenderTextGL() Loaded texture ID was invalid\n");
 }
 
 CRenderTextGL::~CRenderTextGL()
@@ -55,7 +57,7 @@ void CRenderTextGL::OnRenderFinish()
 
 void CRenderTextGL::RenderAllFaces(Shader *shader)
 {
-	OS::Assert(m_display != nullptr, "m_display cannot be null");
+	Assert(m_display != nullptr, "m_display cannot be null");
 	OnRenderStart();
 	glBindVertexArray(m_vaoId);
 
@@ -103,7 +105,7 @@ void CRenderTextGL::RenderAllFaces(Shader *shader)
 
 		glActiveTexture(GL_TEXTURE0);
 
-		CPoint2D uvOffset = GetGlyphPosition(glyphChar);
+        rade::vector2 uvOffset = GetGlyphPosition(glyphChar);
 		shader->SetVec2("glyphOffset", uvOffset.x, uvOffset.y);
 
 		glBindTexture(GL_TEXTURE_2D, m_texid);
@@ -126,7 +128,7 @@ void CRenderTextGL::AddFace(Face& face)
 	m_faces.emplace_back(face);
 }
 
-void CRenderTextGL::AllocateFromMesh(CPolyMesh* renderMesh)
+void CRenderTextGL::AllocateFromMesh(rade::CPolyMesh* renderMesh)
 {
 	std::vector<CPoly3D> polyList = renderMesh->GetPolyListRef();
 
@@ -164,9 +166,9 @@ void CRenderTextGL::UpdateText(const std::string& newText)
 	m_text = newText;
 }
 
-CPoint2D CRenderTextGL::GetGlyphPosition(char glyphChar)
+rade::vector2 CRenderTextGL::GetGlyphPosition(char glyphChar)
 {
-	CPoint2D uvOffset;
+    rade::vector2 uvOffset;
 	const int cFontWidth = 16;
 	const int cFontHeight = 16;
 	const float scalex = ((float)cFontWidth / (float)256);

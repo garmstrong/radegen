@@ -62,7 +62,7 @@ namespace imgui_addons
 
     void ImGuiFileBrowser::clearFileList()
     {
-        //Clear pointer references to subdirs and subfiles
+        //Reset pointer references to subdirs and subfiles
         filtered_dirs.clear();
         filtered_files.clear();
         inputcb_filter_files.clear();
@@ -82,7 +82,7 @@ namespace imgui_addons
         selected_idx = -1;
 
         input_fn[0] = '\0';  //Hide any text in Input bar for the next time save dialog is opened.
-        filter.Clear();     //Clear Filter for the next time open dialog is called.
+        filter.Clear();     //Reset Filter for the next time open dialog is called.
 
         show_inputbar_combobox = false;
         validate_file = false;
@@ -91,7 +91,7 @@ namespace imgui_addons
         filter_dirty = true;
         is_appearing = true;
 
-        //Clear pointer references to subdirs and subfiles
+        //Reset pointer references to subdirs and subfiles
         filtered_dirs.clear();
         filtered_files.clear();
         inputcb_filter_files.clear();
@@ -793,9 +793,11 @@ namespace imgui_addons
 
     bool ImGuiFileBrowser::readDIR(std::string pathdir)
     {
-        //IPlatform *plat = rade::os::GetPlatform();
+        using namespace rade;
+
+        //IPlatform *plat = rade::GetPlatform();
         std::vector<std::string> files;
-        bool dirValid = OS::GetFilesInDir(pathdir, files, true, false);
+        bool dirValid = GetFilesInDir(pathdir, files, true, false);
 
         /* If the current directory doesn't exist, and we are opening the dialog for the first time, reset to defaults to avoid looping of showing error modal.
          * An example case is when user closes the dialog in a folder. Then deletes the folder outside. On reopening the dialog the current path (previous) would be invalid.
@@ -803,14 +805,14 @@ namespace imgui_addons
         if(!dirValid && is_appearing)
         {
             current_dirlist.clear();
-            current_path = pathdir = OS::GetWorkingDir();
-            dirValid = OS::GetFilesInDir(pathdir, files, true, false);
+            current_path = pathdir = GetWorkingDir();
+            dirValid = GetFilesInDir(pathdir, files, true, false);
         }
 
         if (dirValid)
         {
             std::vector<std::string> directories;
-            dirValid = OS::GetFilesInDir(pathdir, directories, false, true);
+            dirValid = GetFilesInDir(pathdir, directories, false, true);
 
             clearFileList();
 
@@ -1156,7 +1158,7 @@ namespace imgui_addons
 #if defined(unix) || defined(__unix__) || defined(__unix) || defined(__APPLE__)
     void ImGuiFileBrowser::initCurrentPath()
     {
-        current_path = OS::GetWorkingDir();
+        current_path = rade::GetWorkingDir();
         current_path += "/";
         parsePathTabs(current_path);
 

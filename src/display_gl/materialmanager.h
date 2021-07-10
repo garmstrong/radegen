@@ -28,6 +28,8 @@ public:
             RMaterials::ETextureClampMode clampMode,
             uint32_t* id);
 
+    bool DeleteTextureID(uint16_t texID);
+
 private:
 
     std::string KeyToFilename(const std::string& key);

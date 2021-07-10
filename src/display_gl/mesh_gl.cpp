@@ -25,16 +25,16 @@ void CMeshGL::Reset()
     m_renderMode = NRenderTypes::ERenderDefault;
 }
 
-void CMeshGL::RenderAllFaces(const Camera& cam)
+void CMeshGL::RenderAllFaces()
 {
     // generate VBO's for each section
     for (auto & vbuff : m_vertBuffers)
     {
         m_meshShader.Use();
-        m_meshShader.SetMat4("projection", cam.GetProjection());
-        m_meshShader.SetMat4("view", cam.GetView());
+        m_meshShader.SetMat4("projection", m_camera->GetProjection());
+        m_meshShader.SetMat4("view", m_camera->GetView());
         m_meshShader.SetMat4("model", glm::mat4(1.0f));
-        m_meshShader.SetVec3("viewPos", cam.GetPosition());
+        m_meshShader.SetVec3("viewPos", m_camera->GetPosition());
         m_meshShader.SetVec3("lightPos", glm::vec3(0, 0, 0));
         m_meshShader.SetVec3("lightColor", glm::vec3(1, 1, 1));
         m_meshShader.SetInt("lightmapTexture", 1);
@@ -45,6 +45,8 @@ void CMeshGL::RenderAllFaces(const Camera& cam)
             using namespace RMaterials;
             texID = vbuff.second.mat->GetTextureProps(TEXTURE_SLOT_DIFFUSE)->loadedTextureID;
         }
+        glEnable(GL_TEXTURE_2D);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texID);
 
@@ -54,7 +56,7 @@ void CMeshGL::RenderAllFaces(const Camera& cam)
             glBindTexture(GL_TEXTURE_2D, vbuff.second.lightmapID);
         }
 
-        glBindVertexArray(vbuff.second.glVAOId); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        glBindVertexArray(vbuff.second.glVAOId);
         glDrawArrays(GL_TRIANGLES, 0, vbuff.second.numVerts);
     }
 }
@@ -89,14 +91,12 @@ void CMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlat
         for(const auto& v : face.verts)
         {
             std::string matKey = face.materialKey + "_" + std::to_string(face.lightmapID);
-
-            m_vertBuffers[matKey].vertBuffer[m_vertBuffers[matKey].copiedSoFar] =
-                    face.verts[copyIndex];
-            m_vertBuffers[matKey].copiedSoFar++;
-
-            m_vertBuffers[matKey].materialName = face.materialKey;
-            m_vertBuffers[matKey].mat = face.material;
-            m_vertBuffers[matKey].lightmapID = face.lightmapID;
+            vertBuffer_t* vb = &m_vertBuffers[matKey];
+            vb->vertBuffer[vb->copiedSoFar] = face.verts[copyIndex];
+            vb->copiedSoFar++;
+            vb->materialName = face.materialKey;
+            vb->mat = face.material;
+            vb->lightmapID = face.lightmapID;
             copyIndex++;
         }
     }
@@ -131,18 +131,22 @@ void CMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlat
         x.second.copiedSoFar = 0;
     }
 
+
+    // TODO: can this be deleted now (uploaded to card via VAO?)
     // allocate mem for each new buffer
-    for (auto & x : m_vertBuffers)
-    {
-        delete [] x.second.vertBuffer;
-    }
+//    for (auto & x : m_vertBuffers)
+//    {
+//        delete [] x.second.vertBuffer;
+//    }
 
     // diffuse shader
     if (!m_meshShader.CreateShader(
-            "data/shaders/diffuse_spec_vert.shader",
-            "data/shaders/diffuse_spec_frag.shader"))
+            "data/shaders/vs.glsl",
+            "data/shaders/fs.glsl"))
+//            "data/shaders/diffuse_spec_vert.shader",
+//            "data/shaders/diffuse_spec_frag.shader"))
     {
-        OS::Abort("Failed to create shader\n");
+        rade::Abort("Failed to create shader\n");
     }
 
     if(loadTextures)
@@ -159,27 +163,30 @@ void CMeshGL::LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAssets /*= 
         if (x.second.mat == nullptr)
         {
             std::string materialKey = x.second.materialName;
-
             CMaterial* newMaterial = displayGl.GetMaterialMgr().LoadFromKey(materialKey);
-            if(newMaterial)
+            if(!newMaterial)
             {
-                x.second.mat = newMaterial;
+                rade::Log("Failed to load material %s\n", x.second.materialName.c_str());
+                x.second.mat = nullptr;
             }
             else
             {
-                OS::Log("Failed to load material %s\n", x.second.materialName.c_str());
+                x.second.mat = newMaterial;
             }
         }
     }
 }
 
-void CMeshGL::InitFromPolyMesh(CPolyMesh& polyMesh)
+void CMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
 {
-    std::vector<CPoly3D>& polyList = polyMesh.GetPolyListRef();
+    rade::Assert(polyMesh.m_camera, "camera cant be null\n");
+    m_camera = polyMesh.m_camera;
+
+    std::vector<rade::CPoly3D>& polyList = polyMesh.GetPolyListRef();
     m_hasLightmaps = polyMesh.HasLightmaps();
-    for (CPoly3D& poly : polyList)
+    for (rade::CPoly3D& poly : polyList)
     {
-        std::vector<CPoly3D> polyTriangles = poly.ToTriangles();
+        std::vector<rade::CPoly3D> polyTriangles = poly.ToTriangles();
         for(auto& polyTri : polyTriangles)
         {
             Tri renderTri {};

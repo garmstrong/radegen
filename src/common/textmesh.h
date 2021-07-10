@@ -6,65 +6,62 @@
 #include "polymesh.h"
 
 class CMaterial;
-class Camera;
 class CDisplayGL;
 
-class CTextMesh
+namespace rade
 {
-public:
-	CTextMesh();
+    class Camera;
 
-	~CTextMesh();
-
-	bool Init(const std::string& id,
-	        CDisplayGL* display,
-	        Camera* cam,
-	        const CPoint3D& pos,
-	        uint16_t size,
-	        const std::string& matKey,
-	        const uint16_t maxChars = 256 );
-    bool Reset();
-
-	void SetText(const std::string& label);
-
-	CPolyMesh& GetPolyMesh()
-	{
-		return m_polyMesh;
-	}
-
-	CPoint3D GetPos() const
-	{
-		return m_pos;
-	}
-
-	void SetPos(const CPoint3D& pos);
-
-	void SetCamera(Camera* cam);
-
-	std::string GetDisplayID()
+    class CTextMesh
     {
-	    return m_textHandleID;
-    }
+    public:
+        CTextMesh();
 
-private:
-	std::string m_label;
-	std::string m_matKey;
+        ~CTextMesh();
 
-	CPoint3D m_pos{};
+        bool Init(const std::string& id,
+                CDisplayGL* display,
+                Camera* cam,
+                const rade::vector3& pos,
+                uint16_t size,
+                const std::string& matKey,
+                uint16_t maxChars = 256);
 
-	bool GenerateLabelGeometry(uint16_t maxChars, uint16_t size);
+        bool Reset();
 
-	static CPoint2D GetGlyphPosition(char glyphChar);
+        void SetText(const std::string& label);
 
-	//uint16_t m_numLines = 0;
+        CPolyMesh& GetPolyMesh()
+        {
+            return m_polyMesh;
+        }
 
-	CPolyMesh m_polyMesh;
+        rade::vector3 GetPos() const
+        {
+            return m_pos;
+        }
 
-	uint16_t m_maxChars = 0;
+        void SetPos(const rade::vector3& pos);
 
-    CDisplayGL* m_display = nullptr;
+        void SetCamera(Camera* cam);
 
-	std::string m_textHandleID = "";
+        std::string GetDisplayID()
+        {
+            return m_textHandleID;
+        }
 
-	Camera *m_camera = nullptr;
+    private:
+        bool GenerateLabelGeometry(uint16_t maxChars, uint16_t size);
+
+        static rade::vector2 GetGlyphPosition(char glyphChar);
+
+        std::string m_label;
+        std::string m_matKey;
+        rade::vector3 m_pos;
+        CPolyMesh m_polyMesh;
+        uint16_t m_maxChars = 0;
+        CDisplayGL* m_display = nullptr;
+        std::string m_textHandleID;
+        Camera* m_camera = nullptr;
+    };
 };

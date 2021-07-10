@@ -14,73 +14,52 @@
 #include <ratio>
 #include <chrono>
 
-class OS
+namespace rade
 {
-public:
+    std::string DefaultTextureFileName();
 
-    OS()
-    = default;
+    std::string TexturePath(const std::string& resourceName);
 
-    virtual ~OS()
-    = default;
+    std::string GetWorkingDir();
 
-    static const std::string DefaultTextureFileName()
-    {
-        return "notexture.png";
-    }
+    std::string GetDateTime();
 
-    static std::string TexturePath(const std::string& resourceName);
+    bool CreateDirectories(const std::string& path);
 
-    static std::string GetWorkingDir();
+    bool DirectoryExists(const std::string& path);
 
-    static std::string GetDateTime();
+    bool FileExists(const std::string& filename, int* size = nullptr);
 
-    static bool CreateDirectories(const std::string& path);
+    bool RemoveFile(const char* filename);
 
-    static bool DirectoryExists(const std::string& path);
+    char* ReadFile(const std::string& filename, long* size);
 
-    static bool FileExists(const std::string& filename, int* size = nullptr);
+    bool GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles,
+            bool returnDirectories);
 
-    static bool RemoveFile(const char* filename);
+    char* ReadPlatformAssetFile(const char* filename, long* size);
 
-    static char* ReadFile(const std::string& filename, long* size);
+    void Log(const char* pszFormat, ...);
 
-    static bool GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles, bool returnDirectories);
+    void LogOnce(const char* pszFormat, ...);
 
-    static char* ReadPlatformAssetFile(const char* filename, long* size);
+    void Assert(bool condition, const char* pszFormat, ...);
 
-    static void Log(const char* pszFormat, ...);
+    void Abort(const std::string& str);
 
-    static void LogOnce(const char* pszFormat, ...);
+    void Abort(const char* pszFormat, ...);
 
-    static void Assert(bool condition, const char* pszFormat, ...);
+    std::string ResourcePath(const std::string& resourceName);
 
-    static void Abort(const std::string& str);
+    std::chrono::high_resolution_clock::time_point GetTimeCount();
 
-    static void Abort(const char* pszFormat, ...);
-
-    static std::string ResourcePath(const std::string& resourceName);
-
-    static std::chrono::high_resolution_clock::time_point GetTimeCount();
-
-    static void Warning(const char* pszFormat, ...);
+    void Warning(const char* pszFormat, ...);
 
     uint32_t HashString(const char* s);
 
 #ifdef __ANDROID__
     static long GetAssetData(const char* filename, void** outData);
-
+    extern struct android_app*  g_App;
 #endif
-
-//	// must be implemented by platform specific classes
-//	virtual void GenerateGUID(std::vector<unsigned char> & out_bytes) = 0;
-//	virtual void SetWorkingDir(const std::string &path) = 0;
-//	virtual bool GetFilesInDir(const std::string &path, std::vector<std::string> &files) = 0;
-
-private:
 
 };
-
-#ifdef __ANDROID__
-extern struct android_app*  g_App;
-#endif

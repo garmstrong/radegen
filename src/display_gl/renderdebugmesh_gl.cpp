@@ -79,7 +79,7 @@ void CRenderDebugMeshGL::OnRenderFinish()
     //glUseProgram(0);
 }
 
-void CRenderDebugMeshGL::RenderAllFacesShadowMapped(Camera& cam)
+void CRenderDebugMeshGL::RenderAllFacesShadowMapped(rade::Camera& cam)
 {
     OnRenderStart();
 
@@ -155,7 +155,7 @@ void CRenderDebugMeshGL::RenderAllFacesShadowMapped(Camera& cam)
     OnRenderFinish();
 }
 
-void CRenderDebugMeshGL::RenderDiffuse(Camera& cam)
+void CRenderDebugMeshGL::RenderDiffuse(rade::Camera& cam)
 {
     m_meshShader.Use();
     m_meshShader.SetMat4("projection", cam.GetProjection());
@@ -241,7 +241,7 @@ void CRenderDebugMeshGL::RenderDiffuse(Camera& cam)
     OnRenderFinish();
 }
 
-void CRenderDebugMeshGL::RenderDepthOnly(Camera& cam)
+void CRenderDebugMeshGL::RenderDepthOnly(rade::Camera& cam)
 {
     OnRenderStart();
 
@@ -288,7 +288,7 @@ void CRenderDebugMeshGL::RenderDepthOnly(Camera& cam)
     OnRenderFinish();
 }
 
-void CRenderDebugMeshGL::RenderAllFacesW(Camera& cam)
+void CRenderDebugMeshGL::RenderAllFacesW(rade::Camera& cam)
 {
     OnRenderStart();
 
@@ -336,12 +336,12 @@ void CRenderDebugMeshGL::AddFace(Face& face)
     m_faces.emplace_back(face);
 }
 
-void CRenderDebugMeshGL::InitFromPolyMesh(CPolyMesh& renderMesh)
+void CRenderDebugMeshGL::InitFromPolyMesh(rade::CPolyMesh& renderMesh)
 {
-    std::vector<CPoly3D> polyList = renderMesh.GetPolyListRef();
+    std::vector<rade::CPoly3D> polyList = renderMesh.GetPolyListRef();
     m_hasLightmaps = renderMesh.HasLightmaps();
 
-    for (CPoly3D& poly : polyList)
+    for (rade::CPoly3D& poly : polyList)
     {
         Face renderFace {};
         renderFace.glVBOId = 0;
@@ -381,7 +381,7 @@ void CRenderDebugMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures)
             "data/shaders/diffuse_spec_vert.shader",
             "data/shaders/diffuse_spec_frag.shader"))
     {
-        OS::Abort("Failed to create shader\n");
+        rade::Abort("Failed to create shader\n");
     }
 
     if(loadTextures)
@@ -403,7 +403,7 @@ void CRenderDebugMeshGL::LoadMeshTexures(CDisplayGL& displayGl)
             }
             else
             {
-                OS::Log("Failed to load material %s\n", face.materialKey.c_str());
+                rade::Log("Failed to load material %s\n", face.materialKey.c_str());
             }
         }
     }

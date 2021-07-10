@@ -5,6 +5,8 @@
 #include "image.h"
 #include "display_gl.h"
 
+using namespace rade;
+
 CMaterialManager::CMaterialManager(CDisplayGL& display) :
         m_display(display)
 {
@@ -36,7 +38,7 @@ CMaterial* CMaterialManager::LoadFromKey(const std::string& key)
 
     // key is "d4/blocks_1_2"
     // if "d4/blocks_1_2.mat" exists, parse the complex material
-    if (OS::FileExists(key + ".mat"))
+    if (FileExists(key + ".mat"))
     {
         // TODO:
         // parse it..
@@ -46,9 +48,9 @@ CMaterial* CMaterialManager::LoadFromKey(const std::string& key)
     {
         // load a simple diffuse material (from simple filename)
         std::string filename = KeyToFilename(key);
-        if (filename.empty() || !OS::FileExists(filename))
+        if (filename.empty() || !FileExists(filename))
         {
-            OS::Log("Failed to load simple material from key: %s : file: %s\n",
+            Log("Failed to load simple material from key: %s : file: %s\n",
                     key.c_str(), filename.c_str());
             return nullptr;
         }
@@ -59,15 +61,15 @@ CMaterial* CMaterialManager::LoadFromKey(const std::string& key)
         diffuseProps->clampMode = TEXTURE_REPEAT_REPEAT;
         diffuseProps->filterMode = TEXTURE_FILTER_MIPMAPLINEAR;
 
-        CImage bmp;
+        Image bmp;
         bool loaded = bmp.LoadFile(filename);
         if (!loaded)
         {
-            OS::Log("Failed to load texture file %s for material key %s\n", filename.c_str(), key.c_str());
+            Log("Failed to load texture file %s for material key %s\n", filename.c_str(), key.c_str());
             return nullptr;
         }
 
-        OS::Assert(bmp.GetFormat() == CImage::Format_RGB || bmp.GetFormat() == CImage::Format_RGBA,
+        Assert(bmp.GetFormat() == Image::Format_RGB || bmp.GetFormat() == Image::Format_RGBA,
                 "invalid image format\n");
 
         bool genMipMaps = true;
@@ -76,13 +78,13 @@ CMaterial* CMaterialManager::LoadFromKey(const std::string& key)
         bool uploaded = m_display.LoadRAWTextureData(bmp.GetPixelBuffer(),
                 static_cast<int>(bmp.GetWidth()),
                 static_cast<int>(bmp.GetHeight()),
-                bmp.GetFormat() == CImage::Format_RGB ? 3 : 4,
+                bmp.GetFormat() == Image::Format_RGB ? 3 : 4,
                 genMipMaps,
                 diffuseProps->filterMode,
                 diffuseProps->clampMode,
                 &newID);
 
-        OS::Assert(uploaded, "Failed to upload texture %s!\n", filename.c_str());
+        Assert(uploaded, "Failed to upload texture %s!\n", filename.c_str());
         newMat.GetTextureProps(TEXTURE_SLOT_DIFFUSE)->loadedTextureID = newID;
 
         // insert to list
@@ -94,13 +96,13 @@ CMaterial* CMaterialManager::LoadFromKey(const std::string& key)
 
 std::string CMaterialManager::KeyToFilename(const std::string& key)
 {
-    std::string filenameNoExt = OS::TexturePath(key);
+    std::string filenameNoExt = TexturePath(key);
     std::vector<std::string> ext = { ".tga", ".png", ".jpg", ".jpeg" };
     bool fileFound = false;
     std::string fullPathFileName;
     for (auto& i : ext)
     {
-        if (OS::FileExists(filenameNoExt + i))
+        if (FileExists(filenameNoExt + i))
         {
             fullPathFileName = filenameNoExt + i;
             fileFound = true;
@@ -109,7 +111,7 @@ std::string CMaterialManager::KeyToFilename(const std::string& key)
     }
     if (!fileFound)
     {
-        OS::Log("Failed to find a matching file for material key %s\n", key.c_str());
+        Log("Failed to find a matching file for material key %s\n", key.c_str());
         return "";
     }
     return fullPathFileName;
@@ -144,4 +146,9 @@ bool CMaterialManager::LoadRAWTextureData(
         *id = 0;
     }
     return loaded;
+}
+
+bool CMaterialManager::DeleteTextureID(uint16_t texID)
+{
+    return m_display.DeleteTextureID(texID);
 }

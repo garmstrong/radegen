@@ -5,6 +5,8 @@
 
 #include <glad/glad.h>
 
+using namespace rade;
+
 Shader::Shader()
 = default;
 
@@ -40,14 +42,14 @@ bool Shader::CreateShaderFromString(const std::string& vs, const std::string& fs
 bool Shader::CreateShader(const char *vs, const char *fs)
 {
     long vs_size = 0;
-    char *vsData = OS::ReadPlatformAssetFile(vs, &vs_size);
+    char *vsData = ReadPlatformAssetFile(vs, &vs_size);
     if(!vsData)
 	{
     	return false;
 	}
 
 	long fs_size = 0;
-    char *fsData = OS::ReadPlatformAssetFile(fs, &fs_size);
+    char *fsData = ReadPlatformAssetFile(fs, &fs_size);
 	if(!fsData)
 	{
 		return false;
@@ -91,7 +93,7 @@ unsigned int Shader::CompileShader(const char *shader, unsigned int type, int nu
 		std::vector<GLchar> errorLog(maxLength);
 		glGetShaderInfoLog(s, maxLength, &maxLength, errorLog.data());
 		std::string errorStr(begin(errorLog), end(errorLog));
-		OS::Log("Shader compile error: %s\n", errorStr.c_str());
+		Log("Shader compile error: %s\n", errorStr.c_str());
 		glDeleteShader(s);
 		return 0;
 	}
@@ -110,7 +112,7 @@ bool Shader::LinkPrg()
     glGetProgramiv(m_prog.prgID, GL_LINK_STATUS, &okay);
     if(okay == GL_FALSE)
     {
-		OS::Log("Shader linking error:\n");
+		Log("Shader linking error:\n");
         glDeleteProgram(m_prog.prgID);
         m_prog.prgID = 0;
         return false;
@@ -123,7 +125,7 @@ int Shader::GetAttribLoc(const char *name) const
     int attrib = glGetAttribLocation(m_prog.prgID, name);
     if(attrib == -1)
     {
-		OS::Abort("Could not find vertex attribute: %s\n", name);
+		Abort("Could not find vertex attribute: %s\n", name);
         return -1;
     }
     return attrib;
@@ -142,7 +144,7 @@ int Shader::GetUniformLocation(const std::string &name)
 	GLint uniformLoc = glGetUniformLocation(m_prog.prgID, name.c_str());
 	if(uniformLoc == -1)
     {
-        OS::Warning("shader: glGetUniformLocation %s failed\n", name.c_str());
+        Warning("shader: glGetUniformLocation %s failed\n", name.c_str());
     }
 	m_uniformLocations[name] = uniformLoc;
 	return uniformLoc;
@@ -178,7 +180,7 @@ void Shader::SetVec3(const std::string &name, const glm::vec3 &value)
 	glUniform3fv(GetUniformLocation(name), 1, &value[0]);
 }
 
-void Shader::SetVec3(const std::string &name, const CPoint3D &value)
+void Shader::SetVec3(const std::string &name, const rade::vector3 &value)
 {
     float val[3];
     value.ToFloat3(val);

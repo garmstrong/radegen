@@ -15,6 +15,11 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+namespace rade
+{
+    class vector3;
+}
+
 class CPoint3D;
 
 typedef struct
@@ -57,7 +62,7 @@ public:
 
     void SetVec3(const std::string& name, const glm::vec3& value);
 
-    void SetVec3(const std::string &name, const CPoint3D &value);
+    void SetVec3(const std::string &name, const rade::vector3 &value);
 
     void SetVec3(const std::string& name, float x, float y, float z);
 

@@ -3,137 +3,134 @@
 #include <cmath>
 #include "point3d.h"
 
-class CPoint2D
+namespace rade
 {
+    class vector2
+    {
 
-public:
-	float x;
-	float y;
-	float z;
+    public:
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
 
+        vector2()
+        {
+            Zero();
+        }
 
-	CPoint2D()
-	{
-		Zero();
-	}
+        vector2(float a, float b)
+        {
+            Zero();
+            x = a;
+            y = b;
+        }
 
-	CPoint2D(float a, float b)
-	{
-		Zero();
-		x = a;
-		y = b;
-	}
+        void Scale(float s)
+        {
+            x *= s;
+            y *= s;
+        }
 
-	virtual ~CPoint2D()
-	{
-	};
+        void Zero()
+        {
+            x = 0;
+            y = 0;
+        }
 
+        inline void Set(float a, float b)
+        {
+            x = a;
+            y = b;
+        }
 
-	inline void Scale(float s)
-	{
-		x *= s;
-		y *= s;
-	}
+        inline void Set(const vector2& p)
+        {
+            x = p.x;
+            y = p.y;
+        }
 
-	void Zero()
-	{
-		x = 0;
-		y = 0;
-	}
+        bool IsZero()
+        {
+            return ( (fabsf(x) < rade::math::cEpsilon) && (fabsf(y) < rade::math::cEpsilon) );
+        }
 
-	inline void Set(float a, float b)
-	{
-		x = a;
-		y = b;
-	}
+        void ProjectOnVector(const rade::vector3& vector, const float distance)
+        {
+            // project a point from the camera in the view dir
+            x = (vector.x * distance) + x;
+            y = (vector.y * distance) + y;
+        }
 
-	inline void Set(const CPoint2D& p)
-	{
-		x = p.x;
-		y = p.y;
-	}
+        void Normalize()
+        {
+            float length = x * x + y * y;
+            length = (float)sqrtf(length);
+            if (length > 0.0f)
+            {
+                float ilength = 1 / length;
+                x *= ilength;
+                y *= ilength;
+            }
+        }
 
-	inline bool IsZero()
-	{
-		return (x == 0 && y == 0);
-	}
+        // check for equality
+        bool operator==(const vector2& a) const
+        {
+            return (fabsf(x - a.x) < rade::math::cEpsilon) && (fabsf(y - a.y) < rade::math::cEpsilon);
+        }
 
-	inline void ProjectOnVector(const CPoint3D& vector, const float distance)
-	{
-		// project a point from the camera in the view dir
-		x = (vector.x * distance) + x;
-		y = (vector.y * distance) + y;
-	}
+        vector2 operator-(const vector2& v) const
+        {
+            vector2 newPos;
+            newPos = *this;
+            newPos.Set(x - v.x,
+                    y - v.y);
+            return newPos;
+        }
 
-	inline void Normalize()
-	{
-		float length = x * x + y * y;
-		length = (float)sqrt(length);
-		if (length)
-		{
-			float ilength = 1 / length;
-			x *= ilength;
-			y *= ilength;
-		}
-	}
+        vector2 operator+(const vector2& v) const
+        {
+            vector2 newPos;
+            newPos = *this;
+            newPos.Set(x + v.x,
+                    y + v.y);
+            return newPos;
+        }
 
-	// check for equality
-	inline bool operator==(const CPoint2D& a) const
-	{
-		return (fabs(x - a.x) < RMATH::cEpsilon) && (fabs(y - a.y) < RMATH::cEpsilon);
-	}
+        // multiplication and division by scalar
+        vector2 operator*(float a) const
+        {
+            return {x * a,
+                    y * a};
+        }
 
-	inline CPoint2D operator-(const CPoint2D& v) const
-	{
-		CPoint2D newPos;
-		newPos = *this;
-		newPos.Set(x - v.x,
-				y - v.y);
-		return newPos;
-	}
+        // multiplication
+        vector2 operator*(vector2& v) const
+        {
+            return {x * v.x,
+                    y * v.y};
+        }
 
-	inline CPoint2D operator+(const CPoint2D& v) const
-	{
-		CPoint2D newPos;
-		newPos = *this;
-		newPos.Set(x + v.x,
-				y + v.y);
-		return newPos;
-	}
+        void Negate()
+        {
+            x = -x;
+            y = -y;
+        }
 
-	// multiplication and division by scalar
-	inline CPoint2D operator*(float a) const
-	{
-		return CPoint2D(x * a,
-				y * a);
-	}
+        float DotProduct(const vector2& p) const
+        {
+            return x * p.x + y * p.y;
+        }
 
-	// multiplication
-	inline CPoint2D operator*(CPoint2D& v) const
-	{
-		return CPoint2D(x * v.x,
-				y * v.y);
-	}
+        float Distance(const vector2& p) const
+        {
+            return sqrtf(rade::math::vsqr(fabsf(p.x - x)) + rade::math::vsqr(fabsf(p.y - y)));
+        }
 
-	inline void Negate()
-	{
-		x = -x;
-		y = -y;
-	}
-
-	inline float DotProduct(const CPoint2D& p) const
-	{
-		return x * p.x + y * p.y;
-	}
-
-	inline float Distance(const CPoint2D& p) const
-	{
-		return sqrt(RMATH::vsqr(fabs(p.x - x)) + RMATH::vsqr(fabs(p.y - y)));
-	}
-
-	inline CPoint2D CrossProduct(const CPoint2D& p2)
-	{
-		return CPoint2D(y * p2.z - z * p2.y,
-				z * p2.x - x * p2.z);
-	}
+        vector2 CrossProduct(const vector2& p2) const
+        {
+            return {y * p2.z - z * p2.y,
+                    z * p2.x - x * p2.z};
+        }
+    };
 };

@@ -5,6 +5,8 @@
 #include "keycodes.h"
 #include "timer.h"
 
+using namespace rade;
+
 CAppMain::CAppMain() :
         m_uiDisplay(*this)
 {
@@ -19,9 +21,10 @@ CAppMain::~CAppMain()
     }
     m_lightMapList.clear();
 
-    for(auto & m_light : m_lights)
+    for (auto& light : m_lights)
     {
-        delete m_light.label;
+        light.label->Reset();
+        delete light.label;
     }
     m_lights.clear();
 }
@@ -31,9 +34,12 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     // init video
     if (!m_display.Init(videoWidth, videoHeight))
     {
-        OS::Abort("Display could not be initialised\n");
+        Abort("Display could not be initialised\n");
         return false;
     }
+
+    m_cameraUI.SetOrtho(true);
+    m_cameraUI.SetViewport((float)videoWidth, (float)videoHeight);
 
     // setup camera
     m_camera.SetPosition(glm::vec3(0, 0, 0));
@@ -48,10 +54,35 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     OnScreenResize(videoWidth, videoHeight);
 
     // use same UI path to load a default mesh at startup
-    if(!OnUIMeshLoad(OS::ResourcePath("meshes/default.rbmesh")))
+    if (!OnUIMeshLoad(ResourcePath("meshes/default.rbmesh")))
     {
         return false;
     }
+
+    float width = 100;
+    float height = 100;
+
+    float zOff = 1.0f;
+    rade::CPoly3D poly;
+    rade::vector3 p1(0.0f,       0.0f, zOff);
+    rade::vector3 p2(100.0f,     0.0f, zOff);
+    rade::vector3 p3(100.0f,  -50.0f, zOff);
+    rade::vector3 p4(0.0f,    -50.0f, zOff);
+    p1.u =  0; p1.v =  1;
+    p2.u =  1; p2.v =  1;
+    p3.u =  1; p3.v =  0;
+    p4.u =  0; p4.v =  0;
+
+    poly.AddPoint( p1 ); //BR
+    poly.AddPoint( p2 ); //TR
+    poly.AddPoint( p3 ); //TL
+    poly.AddPoint( p4 ); //BL
+
+    poly.SetNormal( rade::vector3(0.0f, 0.0f, 1.0f) );
+    //poly.SortWindingOrder();
+    poly.SetMaterialKey("rade_large");
+    m_logomesh.AddPoly(poly);
+    m_logomesh.Init(m_display, &m_cameraUI);
     return true;
 }
 
@@ -66,15 +97,11 @@ void CAppMain::DrawTick(float deltaTime)
     m_lastDeltaTime = deltaTime;
     m_display.Draw(deltaTime);
 
-    if (m_meshID != 0)
-        m_display.RenderMeshID(m_meshID, m_camera);
+    //m_display.RenderDebugQuad(m_cameraUI);
+    m_display.RenderMeshes(m_camera);
 
-    m_display.RenderAllTextObjects();
+    m_display.RenderTextObjects();
     m_uiDisplay.Draw();
-}
-
-void CAppMain::OnUIButtonPressed()
-{
 
 }
 
@@ -101,7 +128,7 @@ void CAppMain::OnKeyUp(int keycode)
 void CAppMain::OnScreenResize(int width, int height)
 {
     m_display.SetViewport(width, height);
-    m_camera.SetViewport( static_cast<float>(width), static_cast<float>(height));
+    m_camera.SetViewport(static_cast<float>(width), static_cast<float>(height));
 }
 
 void CAppMain::OnMouseDown(int buttonId, double x, double y)
@@ -139,7 +166,7 @@ void CAppMain::OnMouseWheel(int y)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    float movementDelta = 500.0f * m_lastDeltaTime;
+    float movementDelta = 900.0f * m_lastDeltaTime;
     if (y == -1)
     {
         movementDelta = -movementDelta;
@@ -147,29 +174,11 @@ void CAppMain::OnMouseWheel(int y)
     m_camera.OffsetPosition(movementDelta * m_camera.ForwardVector());
 }
 
-uint32_t CAppMain::UploadNewMesh(CPolyMesh& polyMesh, std::vector<CLightmapImg>& lightmaps)
-{
-    // remove if loaded already
-    if (m_meshID != 0)
-    {
-        m_display.DeleteMesh(m_meshID);
-        m_meshID = 0;
-    }
-
-    // load any current lightmaps in the file (if any)
-    polyMesh.LoadLightmaps(m_display.GetMaterialMgr(), lightmaps);
-    //mesh.LoadMaterials(m_display.GetMaterialMgr());
-
-    // add this to the renderer
-    m_meshID = m_display.AddMesh(m_polyMesh);
-    return m_meshID;
-}
-
 void CAppMain::UpdateTransformViaInputs(float deltaTime)
 {
     float moveSpeed = deltaTime * 250.0f; //250 units per second
 
-    using namespace NKeyboardKeys;
+    using namespace rade::keys;
 
     if (m_inputs.IsPressed(KB_KEY_W))
     {
@@ -226,9 +235,9 @@ void CAppMain::UpdateTransformViaInputs(float deltaTime)
     }
 }
 
-bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<CLight> lights)
+bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<Light> lights)
 {
-    std::string outFile(OS::ResourcePath("meshes/default.rbmesh"));
+    std::string outFile(ResourcePath("meshes/default.rbmesh"));
 
     // scale light colour values to RGB 0-255 instead of 0-1
     for (auto& light : lights)
@@ -246,8 +255,8 @@ bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector
 
     CLightmapGen lmGen;
 
-    OS::Log("generating lightmap data..\n");
-    CTimer timer;
+    Log("generating lightmap data..\n");
+    Timer timer;
 
     lmGen.RegisterCallback(
             [this](int pctComplete)
@@ -258,7 +267,7 @@ bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector
     lmGen.GenerateLightmaps(lampOptions, m_polyMesh.GetPolyListRef(), lights, &m_lightMapList);
 
     float elapsedTime = timer.ElapsedTime();
-    OS::Log("lightmap generation took %.2f seconds\n", elapsedTime);
+    Log("lightmap generation took %.2f seconds\n", elapsedTime);
 
     // notify of completion (mesh is now written to file)
     m_uiDisplay.SetPercentComplete(100, true);
@@ -267,60 +276,68 @@ bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector
 
 bool CAppMain::OnUIMeshLoad(const std::string& filename)
 {
-    CMeshFile tmpMesh;
-    if(tmpMesh.LoadFromFile(filename))
+    MeshFile tmpMesh;
+    if (!tmpMesh.LoadFromFile(filename))
     {
-        std::vector<CPoly3D> polyList;
-        tmpMesh.GetAsPolyList(polyList);
-        m_polyMesh.Clear();
-        m_polyMesh.AddPolyList(polyList);
-
-        // delete any existing lightmaps generated by this tool
-        for (CLightmapImg& lm : m_lightMapList)
-        {
-            lm.Free();
-        }
-        m_lightMapList.clear();
-
-        tmpMesh.GetLightMaps(m_lightMapList);
-        m_polyMesh.LoadLightmaps(m_display.GetMaterialMgr(), m_lightMapList);
-
-        m_meshID = UploadNewMesh(m_polyMesh, m_lightMapList);
-
-        std::vector<NMeshFile::SLight>& meshLights = tmpMesh.GetLightsRef();
-        for(auto& light : meshLights)
-        {
-            CLight newLight{};
-            newLight.name = std::string(light.name);
-            newLight.pos = CPoint3D(light.pos);
-            newLight.orientation = CPoint3D(light.dir);
-            newLight.brightness = light.brightness;
-            newLight.radius = light.radius;
-            newLight.color[0] = light.color[0];
-            newLight.color[1] = light.color[1];
-            newLight.color[2] = light.color[2];
-            AddLight(newLight);
-        }
-        return m_meshID>0;
-    }
-    else
-    {
-        OS::Log("Cant find mesh %s\n", filename.c_str());
+        Log("Cant find mesh %s\n", filename.c_str());
         return false;
     }
+
+    std::vector<rade::CPoly3D> polyList;
+    tmpMesh.GetAsPolyList(polyList);
+    m_polyMesh.Reset();
+    m_polyMesh.AddPolyList(polyList);
+
+    // delete any existing lightmaps generated by this tool
+    for (CLightmapImg& lm : m_lightMapList)
+    {
+        lm.Free();
+    }
+    m_lightMapList.clear();
+
+    // load any lightmaps from the file
+    tmpMesh.GetLightMaps(m_lightMapList);
+
+    // copy into the polymesh
+    m_polyMesh.LoadLightmaps(m_display.GetMaterialMgr(), m_lightMapList);
+
+    m_polyMesh.Init(m_display, &m_camera);
+
+    for (auto & m_light : m_lights)
+    {
+        m_light.label->Reset();
+        delete m_light.label;
+    }
+    m_lights.clear();
+
+    std::vector<mesh::SLight>& meshLights = tmpMesh.GetLightsRef();
+    for (auto& light : meshLights)
+    {
+        Light newLight{};
+        newLight.name = std::string(light.name);
+        newLight.pos = rade::vector3(light.pos);
+        newLight.orientation = rade::vector3(light.dir);
+        newLight.brightness = light.brightness;
+        newLight.radius = light.radius;
+        newLight.color[0] = light.color[0];
+        newLight.color[1] = light.color[1];
+        newLight.color[2] = light.color[2];
+        AddLight(newLight);
+    }
+    return true; //m_meshID > 0;
 }
 
 void CAppMain::OnUILightmapsComplete()
 {
     // m_lightmaps is now ready to use
-    m_polyMesh.ClearLightmaps();
-    UploadNewMesh(m_polyMesh, m_lightMapList);
+    m_polyMesh.LoadLightmaps(m_display.GetMaterialMgr(), m_lightMapList);
+    m_polyMesh.Init(m_display, &m_camera);
 }
 
 bool CAppMain::OnUIMeshSave(const std::string& filename)
 {
-    OS::Log("storing compressed lightmap data in meshfile..\n");
-    CMeshFile outputMeshFile(m_polyMesh.GetPolyListRef());
+    Log("storing compressed lightmap data in meshfile..\n");
+    MeshFile outputMeshFile(m_polyMesh.GetPolyListRef());
 
     for (CLightmapImg& lm : m_lightMapList)
     {
@@ -328,20 +345,20 @@ bool CAppMain::OnUIMeshSave(const std::string& filename)
         outputMeshFile.AddLightmapData(lm.m_width, lm.m_height, lm.m_data, lm.m_width * lm.m_height * 4);
     }
 
-    for(auto& light : m_lights)
+    for (auto& light : m_lights)
     {
         outputMeshFile.AddLight(light);
     }
 
-    if(!outputMeshFile.WriteToFile(filename))
+    if (!outputMeshFile.WriteToFile(filename))
     {
-        OS::Log("Failed to save %s\n", filename.c_str());
+        Log("Failed to save %s\n", filename.c_str());
         return false;
     }
     return true;
 }
 
-std::vector<CLight>& CAppMain::GetLightsRef()
+std::vector<Light>& CAppMain::GetLightsRef()
 {
     return m_lights;
 }
@@ -354,10 +371,10 @@ bool CAppMain::RemoveLight(int index)
     return true;
 }
 
-bool CAppMain::AddLight(CLight& newLight)
+bool CAppMain::AddLight(Light& newLight)
 {
-    CTextMesh *newLabel = new CTextMesh();
-    if(!newLabel->Init(newLight.name, &m_display, &m_camera, newLight.pos, 4, "system/font"))
+    auto* newLabel = new rade::CTextMesh();
+    if (!newLabel->Init(newLight.name, &m_display, &m_camera, newLight.pos, 4, "system/font"))
     {
         return false;
     }
@@ -368,10 +385,10 @@ bool CAppMain::AddLight(CLight& newLight)
     return true;
 }
 
-bool CAppMain::ChangeLightPos(CLight& light, CPoint3D& pos)
+bool CAppMain::ChangeLightPos(Light& light, rade::vector3& pos)
 {
     light.pos = pos;
-    if(light.label)
+    if (light.label)
     {
         light.label->SetPos(pos);
     }

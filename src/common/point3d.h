@@ -1,150 +1,140 @@
 #pragma once
-
 #include <cmath>
 #include <string>
+
 #include "rmath.h"
 #include "rendertypes.h"
 
-class CPoint3D
+namespace rade
 {
-
-public:
-    float x;
-    float y;
-    float z;
-    float alpha;
-
-    float nx;
-    float ny;
-    float nz;
-    bool useNormal;
-
-    float u;
-    float v;
-
-    float lmU;
-    float lmV;
-
-    CPoint3D()
+    class vector3
     {
-        Zero();
-    }
 
-    CPoint3D(float a, float b, float c)
-    {
-        Zero();
-        x = a;
-        y = b;
-        z = c;
-    }
+    public:
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        float alpha = 0.0f;
 
-    CPoint3D(int a, int b, int c)
-    {
-        Zero();
-        x = static_cast<float>(a);
-        y = static_cast<float>(b);
-        z = static_cast<float>(c);
-    }
+        float nx = 0.0f;
+        float ny = 0.0f;
+        float nz = 0.0f;
+        bool useNormal = false;
 
-    CPoint3D(const float* vec)
-    {
-        Zero();
-        x = vec[0];
-        y = vec[1];
-        z = vec[2];
-    }
+        float u = 0.0f;
+        float v = 0.0f;
 
-    // for colors
-    CPoint3D(float a, float b, float c, float d)
-    {
-        Zero();
-        x = a;
-        y = b;
-        z = c;
-        alpha = d;
-    }
+        float lmU = 0.0f;
+        float lmV = 0.0f;
 
-    inline void SetUV(float newU, float newV)
-    {
-        u = newU;
-        v = newV;
-    }
+        vector3()
+        = default;
 
-    virtual ~CPoint3D()
-    {
+        vector3(float a, float b, float c)
+        {
+            Zero();
+            x = a;
+            y = b;
+            z = c;
+        }
+
+        explicit vector3(const float* vec)
+        {
+            Zero();
+            x = vec[0];
+            y = vec[1];
+            z = vec[2];
+        }
+
+        // for colors
+        vector3(float r, float g, float b, float a)
+        {
+            Zero();
+            x = r;
+            y = g;
+            z = b;
+            alpha = a;
+        }
+
+        void SetUV(float newU, float newV)
+        {
+            u = newU;
+            v = newV;
+        }
+
+        void Scale(float s);
+
+        void Divide(float s);
+
+        void Zero();
+
+        void Set(float a, float b, float c)
+        {
+            x = a;
+            y = b;
+            z = c;
+        }
+
+        void Set(vector3& p)
+        {
+            x = p.x;
+            y = p.y;
+            z = p.z;
+        }
+
+        bool IsZero() const
+        {
+            return ( (fabsf(x) < rade::math::cEpsilon) && (fabsf(y) < rade::math::cEpsilon) &&
+                    (fabsf(z) < rade::math::cEpsilon));
+        }
+
+        void ProjectOnVector(const vector3& vector, float distance);
+
+        vector3 Normalize();
+
+        // check for equality
+        bool operator==(const vector3& a) const;
+
+        vector3 operator-(const vector3& v) const;
+
+        vector3 operator+(const vector3& v) const;
+
+        // multiplication and division by scalar
+        vector3 operator*(float a) const;
+
+        // multiplication
+        vector3 operator*(const vector3& v) const;
+
+        void Negate();
+
+        float Dot(const vector3& p) const;
+
+        float Distance(const vector3& p) const;
+
+        vector3 CrossProduct(const vector3& p2) const;
+
+        void ToFloat3(float* val) const
+        {
+            val[0] = x;
+            val[1] = y;
+            val[2] = z;
+        }
+
+        std::string ToString() const;
+
+        void ToRenderVert(NRenderTypes::Vert* rVert) const
+        {
+            rVert->position.x = x;
+            rVert->position.y = y;
+            rVert->position.z = z;
+            rVert->normal.x = nx;
+            rVert->normal.y = ny;
+            rVert->normal.z = nz;
+            rVert->texCoord.x = u;
+            rVert->texCoord.y = v;
+            rVert->texCoordLM.x = lmU;
+            rVert->texCoordLM.y = lmV;
+        }
     };
 
-    void Scale(float s);
-
-    void Divide(float s);
-
-    void Zero();
-
-    void Set(float a, float b, float c)
-    {
-        x = a;
-        y = b;
-        z = c;
-    }
-
-    void Set(CPoint3D& p)
-    {
-        x = p.x;
-        y = p.y;
-        z = p.z;
-    }
-
-    bool IsZero()
-    {
-        return (x == 0 && y == 0 && z == 0);
-    }
-
-    void ProjectOnVector(const CPoint3D& vector, const float distance);
-
-    CPoint3D Normalize();
-
-    // check for equality
-    bool operator==(const CPoint3D& a) const;
-
-    CPoint3D operator-(const CPoint3D& v) const;
-
-    CPoint3D operator+(const CPoint3D& v) const;
-
-    // multiplication and division by scalar
-    CPoint3D operator*(const float a) const;
-
-    // multiplication
-    CPoint3D operator*(const CPoint3D& v) const;
-
-    void Negate();
-
-    float Dot(const CPoint3D& p) const;
-
-    float Distance(const CPoint3D& p) const;
-
-    CPoint3D CrossProduct(const CPoint3D& p2) const;
-
-    void ToFloat3(float* val) const
-    {
-        val[0] = x;
-        val[1] = y;
-        val[2] = z;
-    }
-
-    std::string ToString() const;
-
-    void ToRenderVert(NRenderTypes::Vert *rVert)
-    {
-        rVert->position.x = x;
-        rVert->position.y = y;
-        rVert->position.z = z;
-        rVert->normal.x = nx;
-        rVert->normal.y = ny;
-        rVert->normal.z = nz;
-        rVert->texCoord.x = u;
-        rVert->texCoord.y = v;
-        rVert->texCoordLM.x = lmU;
-        rVert->texCoordLM.y = lmV;
-    }
 };
-
