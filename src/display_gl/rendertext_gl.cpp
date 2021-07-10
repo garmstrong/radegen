@@ -130,9 +130,9 @@ void CRenderTextGL::AddFace(Face& face)
 
 void CRenderTextGL::AllocateFromMesh(rade::CPolyMesh* renderMesh)
 {
-	std::vector<CPoly3D> polyList = renderMesh->GetPolyListRef();
+	std::vector<poly3d> polyList = renderMesh->GetPolyListRef();
 
-	for (CPoly3D& poly : polyList)
+	for (poly3d& poly : polyList)
 	{
 		NRenderTextGL::Face renderFace;
 		renderFace.glVBOId = 0;

@@ -158,7 +158,7 @@ void CRenderMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool u
     }
 
     // diffuse shader
-    if (!m_meshShader.CreateShader(
+    if (!m_meshShader.CreateShader("basic",
             "data/shaders/vs.glsl",
             "data/shaders/fs.glsl"))
     {
@@ -211,11 +211,11 @@ void CRenderMeshGL::LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAsset
 
 void CRenderMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
 {
-    std::vector<rade::CPoly3D>& polyList = polyMesh.GetPolyListRef();
+    std::vector<rade::poly3d>& polyList = polyMesh.GetPolyListRef();
 
     m_hasLightmaps = polyMesh.HasLightmaps();
 
-    for (rade::CPoly3D& poly : polyList)
+    for (rade::poly3d& poly : polyList)
     {
         Face renderFace;
         renderFace.glVBOId = 0;

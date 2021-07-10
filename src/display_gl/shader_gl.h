@@ -20,8 +20,6 @@ namespace rade
     class vector3;
 }
 
-class CPoint3D;
-
 typedef struct
 {
     unsigned int prgID;
@@ -31,13 +29,10 @@ typedef struct
 class Shader
 {
 public:
-    Shader();
 
-    ~Shader();
+    bool CreateShaderFromString(const std::string& key, const std::string& vs, const std::string& fs);
 
-    bool CreateShaderFromString(const std::string& vs, const std::string& fs);
-
-    bool CreateShader(const char* vs, const char* fs);
+    bool CreateShader(const std::string& key, const char* vs, const char* fs);
 
     int GetAttribLoc(const char* name) const;
 
@@ -62,7 +57,7 @@ public:
 
     void SetVec3(const std::string& name, const glm::vec3& value);
 
-    void SetVec3(const std::string &name, const rade::vector3 &value);
+    void SetVec3(const std::string& name, const rade::vector3& value);
 
     void SetVec3(const std::string& name, float x, float y, float z);
 
@@ -77,11 +72,12 @@ public:
     void SetMat4(const std::string& name, const glm::mat4& mat);
 
 private:
-    std::map<std::string, int> m_uniformLocations;
-
-    ShaderPrg m_prog{};
 
     unsigned int CompileShader(const char* shader, unsigned int type, int num_bytes);
 
     bool LinkPrg();
+
+    ShaderPrg m_prog{};
+    std::map<std::string, int> m_uniformLocations;
+    std::string m_name;
 };

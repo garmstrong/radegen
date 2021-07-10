@@ -83,4 +83,6 @@ protected:
     std::vector<rade::Light> m_lights;
 
     rade::CPolyMesh m_logomesh;
+
+    bool LoadAppShaders();
 };

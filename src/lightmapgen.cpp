@@ -70,11 +70,11 @@ void CLightmapGen::GenerateHemisphereRay(const rade::vector3& normal, rade::vect
 }
 
 bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, const rade::vector3& lumelPos,
-        const std::vector<rade::CPoly3D>& polyList)
+        const std::vector<rade::poly3d>& polyList)
 {
     int count = 0;
 
-    for (const rade::CPoly3D& poly : polyList)
+    for (const rade::poly3d& poly : polyList)
     {
         count++;
         //rade::plane3d plane(poly);
@@ -96,11 +96,11 @@ bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, 
 }
 
 bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, const rade::vector3& lumelPos,
-        const std::vector<rade::CPoly3D>& polyList, float* distance)
+        const std::vector<rade::poly3d>& polyList, float* distance)
 {
     int count = 0;
 
-    for (const rade::CPoly3D& poly: polyList)
+    for (const rade::poly3d& poly: polyList)
     {
         count++;
         //rade::plane3d plane(poly);
@@ -273,7 +273,7 @@ void CLightmapGen::CalcLightmapUV(std::vector<rade::vector3>& polyPoints, rade::
     }
 }
 
-int CLightmapGen::CalcShadowLightmap(rade::CPoly3D* poly, std::vector<rade::CPoly3D>& polyList, const std::vector<rade::Light>& lights,
+int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const std::vector<rade::Light>& lights,
         CLightmapImg& lightmap) const
 {
     //rade::plane3d plane(poly);
@@ -394,7 +394,7 @@ int CLightmapGen::CalcShadowLightmap(rade::CPoly3D* poly, std::vector<rade::CPol
     return dataModified;
 }
 
-int CLightmapGen::CalcSunLightmap(rade::CPoly3D* poly, std::vector<rade::CPoly3D>& polyList, const rade::vector3& sunDir,
+int CLightmapGen::CalcSunLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const rade::vector3& sunDir,
         const rade::vector3& sunColor,
         CLightmapImg& lightmap) const
 {
@@ -513,7 +513,7 @@ int CLightmapGen::CalcSunLightmap(rade::CPoly3D* poly, std::vector<rade::CPoly3D
     return dataModified;
 }
 
-int CLightmapGen::CalcPolyAmbientOcclusion(rade::CPoly3D* poly, std::vector<rade::CPoly3D>& polyList, CLightmapImg& lightmap)
+int CLightmapGen::CalcPolyAmbientOcclusion(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, CLightmapImg& lightmap)
 {
     rade::plane3d plane = poly->GetPlane();
     std::vector<rade::vector3>& polyPoints = poly->GetPointListRef();
@@ -642,13 +642,13 @@ void CLightmapGen::GenerateLMData(unsigned char val, CLightmapImg& lm)
     }
 }
 
-int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::CPoly3D>& polyList,
+int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::poly3d>& polyList,
         const std::vector<rade::Light>& lights,
         threadData_t* threadData)
 {
     for (unsigned int i = threadData->startIndex; i < threadData->endIndex; i++)
     {
-        rade::CPoly3D& poly = polyList.at(i);
+        rade::poly3d& poly = polyList.at(i);
 
         bool writeLM = false;
 
@@ -707,7 +707,7 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::CPoly3D>& polyList
     return 0;
 }
 
-void CLightmapGen::ThreadWorkerLightmapRange(std::vector<rade::CPoly3D>* polyList,
+void CLightmapGen::ThreadWorkerLightmapRange(std::vector<rade::poly3d>* polyList,
         const std::vector<rade::Light>* lights,
         threadData_t* threadData,
         int threadID)
@@ -746,7 +746,7 @@ void CLightmapGen::ThreadStatusUpdate(threadData_t* threadData, uint16_t numThre
 
 int CLightmapGen::GenerateLightmaps(
         NRadeLamp::lmOptions_t lampOptions,
-        std::vector<rade::CPoly3D>& polyList,
+        std::vector<rade::poly3d>& polyList,
         const std::vector<rade::Light>& lights,
         std::vector<CLightmapImg>* lightMapList)
 {

@@ -3,8 +3,6 @@
 #include <vector>
 #include "point3d.h"
 
-class CPoly3D;
-
 namespace rade
 {
     class plane3d

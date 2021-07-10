@@ -38,6 +38,16 @@ namespace rade
             z = c;
         }
 
+        vector3(float a, float b, float c, float uv_a, float uv_b)
+        {
+            Zero();
+            x = a;
+            y = b;
+            z = c;
+            u = uv_a;
+            v = uv_b;
+        }
+
         explicit vector3(const float* vec)
         {
             Zero();

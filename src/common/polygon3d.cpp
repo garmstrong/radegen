@@ -8,14 +8,8 @@ using namespace rade;
 
 namespace rade
 {
-    CPoly3D::CPoly3D()
-    = default;
-
-    CPoly3D::~CPoly3D()
-    = default;
-
     // sort verts in order from small angles from center to big
-    void CPoly3D::SortWindingOrder()
+    void poly3d::SortWindingOrder()
     {
         rade::vector3 center = GetCenter();
         // order the points (may still be backwards winding)
@@ -62,12 +56,24 @@ namespace rade
         CalcNormal();
     }
 
-    void CPoly3D::AddPoint(const rade::vector3& p)
+    void poly3d::Reset()
+    {
+        m_points.clear();
+        m_normal.Zero();
+        m_distance = 0;
+        m_flags = 0;
+        m_materialKey.clear();
+        m_materialIndex = 0;
+        m_lightmapDataIndex = 0;
+        m_lightmapTextureID = 0;
+    }
+
+    void poly3d::AddPoint(const rade::vector3& p)
     {
         m_points.push_back(p);
     }
 
-    int CPoly3D::PointInPoly(const rade::vector3& p) const
+    int poly3d::PointInPoly(const rade::vector3& p) const
     {
         double angles = 0.0f;
         for (unsigned int i = 0; i < NumPoints(); i++)
@@ -93,7 +99,7 @@ namespace rade
         return 0;
     }
 
-    rade::vector3 CPoly3D::GetCenter() const
+    rade::vector3 poly3d::GetCenter() const
     {
         rade::vector3 center;
         for (const auto& m_point : m_points)
@@ -104,10 +110,10 @@ namespace rade
         return center;
     }
 
-    std::vector<CPoly3D> CPoly3D::ToTriangles() const
+    std::vector<poly3d> poly3d::ToTriangles() const
     {
         //TODO: simple triangle fan might cause problems, look into ear clipping
-        std::vector<CPoly3D> triangles;
+        std::vector<poly3d> triangles;
         if (NumPoints() == 3)
         {
             triangles.push_back(*this);
@@ -116,7 +122,7 @@ namespace rade
         {
             for (unsigned int i = 0; i < NumPoints() - 2; i++)
             {
-                CPoly3D triangle = *this;
+                poly3d triangle = *this;
                 triangle.ClearPoints();
                 triangle.AddPoint(GetPoint(0));
                 triangle.AddPoint(GetPoint(i + 1));
@@ -127,7 +133,7 @@ namespace rade
         return triangles;
     }
 
-    math::ESide CPoly3D::Split(const plane3d& plane, CPoly3D& front, CPoly3D& back) const
+    math::ESide poly3d::Split(const plane3d& plane, poly3d& front, poly3d& back) const
     {
         bool hasFront = false;
         bool hasBack = false;
@@ -221,7 +227,7 @@ namespace rade
         return polySide;
     }
 
-    void CPoly3D::TextureFromPlane(uint16_t texWidth, uint16_t texHeight, const float scalex, const float scaley,
+    void poly3d::TextureFromPlane(uint16_t texWidth, uint16_t texHeight, const float scalex, const float scaley,
             const float shiftx, const float shifty)
     {
         for (size_t i = 0; i < NumPoints(); i++)
@@ -240,7 +246,7 @@ namespace rade
         }
     }
 
-    math::ESide CPoly3D::ClassifyPolygon(const CPoly3D& poly)
+    math::ESide poly3d::ClassifyPolygon(const poly3d& poly)
     {
         int frontCount = 0;
         int backCount = 0;
@@ -291,9 +297,24 @@ namespace rade
         return math::ESide_SPAN;
     }
 
-    plane3d CPoly3D::GetPlane() const
+    plane3d poly3d::GetPlane() const
     {
         plane3d plane(GetPoint(0), GetPoint(1), GetPoint(2));
         return plane;
+    }
+
+    void poly3d::ConstructQuad(float width, float height, float z)
+    {
+        Reset();
+        vector3 p1(0.0f,     0.0f, z, 0, 1);
+        vector3 p2(width,    0.0f, z, 1, 1);
+        vector3 p3(width, -height, z, 1, 0);
+        vector3 p4(0.0f,  -height, z, 0, 0);
+
+        AddPoint( p1 ); //BR
+        AddPoint( p2 ); //TR
+        AddPoint( p3 ); //TL
+        AddPoint( p4 ); //BL
+        CalcNormal();
     }
 };

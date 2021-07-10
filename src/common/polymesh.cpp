@@ -6,16 +6,24 @@
 
 namespace rade
 {
-    void CPolyMesh::AddPoly(const CPoly3D& poly)
+    void CPolyMesh::AddPoly(const poly3d& poly)
     {
         m_polyList.emplace_back(poly);
     }
 
-    void CPolyMesh::AddPolyList(std::vector<CPoly3D>& polyList)
+    void CPolyMesh::AddPolyList(std::vector<poly3d>& polyList)
     {
-        for (CPoly3D& poly : polyList)
+        for (poly3d& poly : polyList)
         {
             AddPoly(poly);
+        }
+    }
+
+    void CPolyMesh::SetShaderKey(const std::string& shaderKey)
+    {
+        for (poly3d& poly : m_polyList)
+        {
+            poly.SetShaderKey(shaderKey);
         }
     }
 
@@ -26,7 +34,7 @@ namespace rade
         Assert(!m_polyList.empty(), "LoadMaterial called on mesh with 0 polygons\n");
         bool success = true;
         // generate
-        for (CPoly3D& poly : m_polyList)
+        for (poly3d& poly : m_polyList)
         {
             materialMgr.LoadFromKey(poly.GetMaterialKey());
         }
@@ -84,7 +92,7 @@ namespace rade
         if (!m_lightmaps.empty())
         {
             m_hasLightmaps = true;
-            for (CPoly3D& poly : m_polyList)
+            for (poly3d& poly : m_polyList)
             {
                 uint32_t lightDataIndex = poly.GetLightmapDataIndex();
                 uint32_t textureID = m_lightmaps.at(lightDataIndex).texID;
@@ -118,13 +126,13 @@ namespace rade
     void CPolyMesh::ClearLightmaps()
     {
         m_lightmaps.clear();
-        for (CPoly3D& poly : m_polyList)
+        for (poly3d& poly : m_polyList)
         {
             poly.SetLightTexID(0);
         }
     }
 
-    bool CPolyMesh::Init(CDisplayGL& display, Camera* camera)
+    bool CPolyMesh::RegisterWithDisplay(CDisplayGL& display, Camera* camera)
     {
         m_display = &display;
         m_camera = camera;

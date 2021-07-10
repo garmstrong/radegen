@@ -5,7 +5,6 @@
 #include "display_gl.h"
 #include "material.h"
 #include "polymesh.h"
-#include "camera.h"
 
 using namespace NRenderTypes;
 
@@ -25,19 +24,22 @@ void CMeshGL::Reset()
     m_renderMode = NRenderTypes::ERenderDefault;
 }
 
-void CMeshGL::RenderAllFaces()
+void CMeshGL::RenderAllFaces(CDisplayGL *display)
 {
     // generate VBO's for each section
     for (auto & vbuff : m_vertBuffers)
     {
-        m_meshShader.Use();
-        m_meshShader.SetMat4("projection", m_camera->GetProjection());
-        m_meshShader.SetMat4("view", m_camera->GetView());
-        m_meshShader.SetMat4("model", glm::mat4(1.0f));
-        m_meshShader.SetVec3("viewPos", m_camera->GetPosition());
-        m_meshShader.SetVec3("lightPos", glm::vec3(0, 0, 0));
-        m_meshShader.SetVec3("lightColor", glm::vec3(1, 1, 1));
-        m_meshShader.SetInt("lightmapTexture", 1);
+        Shader *shader = display->GetShader(vbuff.second.shaderName);
+        rade::Assert(shader, "CMeshGL cant find shader %s\n", vbuff.second.shaderName.c_str());
+
+        shader->Use();
+        shader->SetMat4("projection", m_camera->GetProjection());
+        shader->SetMat4("view", m_camera->GetView());
+        shader->SetMat4("model", glm::mat4(1.0f));
+        shader->SetVec3("viewPos", m_camera->GetPosition());
+        shader->SetVec3("lightPos", glm::vec3(0, 0, 0));
+        shader->SetVec3("lightColor", glm::vec3(1, 1, 1));
+        shader->SetInt("lightmapTexture", 1);
 
         GLuint texID = 1;
         if(vbuff.second.mat != nullptr)
@@ -66,13 +68,13 @@ void CMeshGL::AddFace(Tri& face)
     m_tmpFaces.emplace_back(face);
 }
 
-void CMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlatformAssets /*= false*/)
+void CMeshGL::PrepareMesh(CDisplayGL& displayGl)
 {
     // lightmapID really needs to be in a sprite sheet / atlas
     // make vertex buffer for each material key
     for(Tri& face : m_tmpFaces)
     {
-        std::string matKey = face.materialKey + "_" + std::to_string(face.lightmapID);
+        std::string matKey = face.materialKey + "_" + std::to_string(face.lightmapID)  + "_" + face.shaderKey;
         m_vertBuffers[matKey].numVerts += 3;// static_cast<uint16_t>(face.verts.size());
     }
 
@@ -90,11 +92,12 @@ void CMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlat
         uint16_t copyIndex = 0;
         for(const auto& v : face.verts)
         {
-            std::string matKey = face.materialKey + "_" + std::to_string(face.lightmapID);
+            std::string matKey = face.materialKey + "_" + std::to_string(face.lightmapID)  + "_" + face.shaderKey;
             vertBuffer_t* vb = &m_vertBuffers[matKey];
             vb->vertBuffer[vb->copiedSoFar] = face.verts[copyIndex];
             vb->copiedSoFar++;
             vb->materialName = face.materialKey;
+            vb->shaderName = face.shaderKey;
             vb->mat = face.material;
             vb->lightmapID = face.lightmapID;
             copyIndex++;
@@ -139,20 +142,21 @@ void CMeshGL::PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlat
 //        delete [] x.second.vertBuffer;
 //    }
 
-    // diffuse shader
-    if (!m_meshShader.CreateShader(
-            "data/shaders/vs.glsl",
-            "data/shaders/fs.glsl"))
-//            "data/shaders/diffuse_spec_vert.shader",
-//            "data/shaders/diffuse_spec_frag.shader"))
-    {
-        rade::Abort("Failed to create shader\n");
-    }
 
-    if(loadTextures)
-    {
-        LoadMeshTexures(displayGl, usePlatformAssets);
-    }
+//    // diffuse shader
+//    if (!m_meshShader.CreateShader("basicmesh",
+//            "data/shaders/vs.glsl",
+//            "data/shaders/fs.glsl"))
+////            "data/shaders/diffuse_spec_vert.shader",
+////            "data/shaders/diffuse_spec_frag.shader"))
+//    {
+//        rade::Abort("Failed to create shader\n");
+//    }
+
+//    if(loadTextures)
+//    {
+//        LoadMeshTexures(displayGl, usePlatformAssets);
+//    }
     m_tmpFaces.clear();
 }
 
@@ -182,11 +186,11 @@ void CMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
     rade::Assert(polyMesh.m_camera, "camera cant be null\n");
     m_camera = polyMesh.m_camera;
 
-    std::vector<rade::CPoly3D>& polyList = polyMesh.GetPolyListRef();
+    std::vector<rade::poly3d>& polyList = polyMesh.GetPolyListRef();
     m_hasLightmaps = polyMesh.HasLightmaps();
-    for (rade::CPoly3D& poly : polyList)
+    for (rade::poly3d& poly : polyList)
     {
-        std::vector<rade::CPoly3D> polyTriangles = poly.ToTriangles();
+        std::vector<rade::poly3d> polyTriangles = poly.ToTriangles();
         for(auto& polyTri : polyTriangles)
         {
             Tri renderTri {};
@@ -199,6 +203,7 @@ void CMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
                 vert.normal.z = poly.GetNormal().z;
                 renderTri.verts[i] = vert;
             }
+            renderTri.shaderKey = poly.GetShaderKey();
             renderTri.lightmapID = poly.GetLightTexID();
             renderTri.materialKey = poly.GetMaterialKey();
             AddFace(renderTri);

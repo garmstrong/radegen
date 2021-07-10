@@ -49,6 +49,7 @@ namespace NRenderTypes
     {
         //unsigned int glVBOId; // VBOID
         std::string materialKey;
+        std::string shaderKey;
         uint32_t lightmapID;
         //CGLTexture *texture;
         CMaterial *material;

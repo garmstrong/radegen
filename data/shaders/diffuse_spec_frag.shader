@@ -42,9 +42,9 @@ void main()
     diffuseTexColor = diffuseTexColor * result;
 
     lightmapTexColor *= result;
-    //FragColor = lightmapTexColor * diffuseTexColor;
+    FragColor = lightmapTexColor * diffuseTexColor;
     //FragColor = lightmapTexColor;
-    FragColor = diffuseTexColor;
+    //FragColor = diffuseTexColor;
 
 //    vec4 lightmapTexColor = texture(lightmapTexture, fs_in.TexCoordsLM).rgba;
 //    FragColor = lightmapTexColor;

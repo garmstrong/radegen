@@ -11,13 +11,9 @@ namespace rade
 {
     class plane3d;
 
-    class CPoly3D
+    class poly3d
     {
     public:
-
-        CPoly3D();
-
-        ~CPoly3D();
 
         void AddPoint(const vector3& p);
 
@@ -25,6 +21,8 @@ namespace rade
         {
             return m_points.size();
         }
+
+        void Reset();
 
         vector3 GetPoint(unsigned int index) const
         {
@@ -93,15 +91,15 @@ namespace rade
             return m_normal;
         }
 
-        std::vector<CPoly3D> ToTriangles() const;
+        std::vector<poly3d> ToTriangles() const;
 
-        rade::math::ESide Split(const rade::plane3d& plane, CPoly3D& front, CPoly3D& back) const;
+        rade::math::ESide Split(const rade::plane3d& plane, poly3d& front, poly3d& back) const;
 
         void TextureFromPlane(uint16_t texWidth, uint16_t texHeight,
                 float scalex = 1.0f, float scaley = 1.0f,
                 float shiftx = 0.0f, float shifty = 0.0f);
 
-        rade::math::ESide ClassifyPolygon(const CPoly3D& poly);
+        rade::math::ESide ClassifyPolygon(const poly3d& poly);
 
         std::string GetMaterialKey() const
         {
@@ -111,6 +109,16 @@ namespace rade
         void SetMaterialKey(const std::string& materialKey)
         {
             m_materialKey = materialKey;
+        }
+
+        void SetShaderKey(const std::string& shaderKey)
+        {
+            m_shaderKey = shaderKey;
+        }
+
+        std::string GetShaderKey()
+        {
+            return m_shaderKey;
         }
 
         void SetLightmapDataIndex(uint32_t id)
@@ -135,13 +143,17 @@ namespace rade
 
         plane3d GetPlane() const;
 
+        void ConstructQuad(float width, float height, float z);
+
     private:
         std::vector<rade::vector3> m_points;
         rade::vector3 m_normal;
+
         double m_distance = 0;
         unsigned int m_flags = 0;
         // material key is path "base/door1" to texture (.png .jpg etc.. ) or a .json material file
         std::string m_materialKey;
+        std::string m_shaderKey;
         // id of material once loaded to display
         uint32_t m_materialIndex = 0;
         // special lightmap id index into data from file

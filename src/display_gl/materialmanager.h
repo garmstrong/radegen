@@ -36,4 +36,6 @@ private:
 
     std::map<std::string, CMaterial> m_materials;
     CDisplayGL& m_display;
+
+
 };

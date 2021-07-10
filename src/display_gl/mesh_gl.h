@@ -30,6 +30,7 @@ public:
         unsigned int glVAOId;
         unsigned int glVBOId;
         std::string materialName;
+        std::string shaderName;
         CMaterial* mat;
         uint16_t copiedSoFar;
         unsigned int lightmapID;
@@ -39,7 +40,7 @@ public:
 
     void AddFace(NRenderTypes::Tri& face);
 
-    void RenderAllFaces();
+    void RenderAllFaces(CDisplayGL *display);
 
     void Reset();
 
@@ -55,10 +56,11 @@ public:
         return m_renderMode;
     }
 
-    void PrepareMesh(CDisplayGL& displayGl, bool loadTextures, bool usePlatformAssets = false);
+    void PrepareMesh(CDisplayGL& displayGl);
 
 private:
 
+    CDisplayGL *m_display;
     rade::Camera* m_camera;
 
     NRenderTypes::ERenderMode m_renderMode = NRenderTypes::ERenderDefault;
@@ -67,7 +69,7 @@ private:
     std::map<std::string, vertBuffer_t> m_vertBuffers;
 
 
-    Shader m_meshShader;
+    //Shader m_meshShader;
 
     glm::mat4 m_model = glm::mat4(1);
 

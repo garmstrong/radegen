@@ -19,6 +19,12 @@ CDisplayGL::~CDisplayGL()
         delete textMesh.second;
     }
     m_textMeshes.clear();
+
+    for (auto& shader : m_shaders)
+    {
+        delete shader.second;
+    }
+    m_shaders.clear();
 }
 
 bool CDisplayGL::Init(int screenWidth, int screenHeight)
@@ -48,21 +54,6 @@ bool CDisplayGL::Init(int screenWidth, int screenHeight)
     {
         Abort("Failed to load notexture, check working directory\n");
         success = false;
-    }
-
-    // font shader
-    if (!m_fontShader.CreateShader(
-            "data/shaders/font_vert.shader",
-            "data/shaders/font_frag.shader"))
-    {
-        Abort("Failed to create shader\n");
-    }
-
-    if (!m_spriteShader.CreateShader(
-            "data/shaders/vs.glsl",
-            "data/shaders/fs.glsl"))
-    {
-        Abort("Failed to create shader\n");
     }
 
     return success;
@@ -273,11 +264,8 @@ uint32_t CDisplayGL::AddMesh(rade::CPolyMesh& polyMesh)
     // generate a GL specific render mesh object for this mesh
     CMeshGL renderMesh;
     renderMesh.InitFromPolyMesh(polyMesh);
-
-    bool loadTextures = true;
-    renderMesh.PrepareMesh(*this, loadTextures);
-
-    //renderMesh.LoadMeshTexures(*this);
+    renderMesh.PrepareMesh(*this);
+    renderMesh.LoadMeshTexures(*this);
     m_meshes.push_back(renderMesh);
     return static_cast<uint32_t>(m_meshes.size()); // 0 = invalid
 }
@@ -288,14 +276,14 @@ void CDisplayGL::RenderMeshID(uint32_t id, rade::Camera& cam)
     if (m_meshes.size() < id)
         return;
 
-    m_meshes.at(id - 1).RenderAllFaces();
+    m_meshes.at(id - 1).RenderAllFaces(this);
 }
 
 void CDisplayGL::RenderMeshes(rade::Camera& cam)
 {
     for(auto& mesh : m_meshes)
     {
-        mesh.RenderAllFaces();
+        mesh.RenderAllFaces(this);
     }
 }
 
@@ -315,18 +303,21 @@ void CDisplayGL::RenderTextObjects()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    m_fontShader.Use();
+    Shader *shader = GetShader("font");
+    rade::Assert(shader, "CMeshGL cant find font shader");
+
+    shader->Use();
     for (auto& textMesh : m_textMeshes)
     {
         CRenderTextGL *txtGL = textMesh.second;
-        m_fontShader.SetMat4("projection", txtGL->GetCamera()->GetProjection());
-        m_fontShader.SetMat4("view", txtGL->GetCamera()->GetView());
+        shader->SetMat4("projection", txtGL->GetCamera()->GetProjection());
+        shader->SetMat4("view", txtGL->GetCamera()->GetView());
         //m_fontShader.SetMat4("model", glm::mat4(1.0f));
         glm::vec3 pos(txtGL->GetPos().x, txtGL->GetPos().y, txtGL->GetPos().z);
-        m_fontShader.SetMat4("model", glm::translate(glm::mat4(), pos));
+        shader->SetMat4("model", glm::translate(glm::mat4(), pos));
         rade::Camera* cam = txtGL->GetCamera();
         Assert(cam, "textmesh camera was null\n");
-        txtGL->RenderAllFaces(&m_fontShader);
+        txtGL->RenderAllFaces(shader);
     }
 }
 
@@ -363,3 +354,21 @@ void CDisplayGL::UpdateTextMeshCamera(const std::string& name, rade::Camera *cam
     textGL->SetCamera(camera);
 }
 
+bool CDisplayGL::LoadShader(const std::string& name, const std::string& vertFile, const std::string& fragFile)
+{
+    Shader *shader = new Shader();
+    bool success = shader->CreateShader(name, vertFile.c_str(), fragFile.c_str());
+    if(!success)
+    {
+        rade::Log("Shader %s failed to load\n", name.c_str());
+        return false;
+    }
+
+    m_shaders[name] = shader;
+    return success;
+}
+
+Shader* CDisplayGL::GetShader(const std::string& name)
+{
+    return m_shaders[name];
+}

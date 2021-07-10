@@ -75,6 +75,9 @@ public:
 
     void RenderDebugQuad(rade::Camera& cam);
 
+    bool LoadShader(const std::string& name, const std::string& vertString, const std::string& fragString);
+    Shader* GetShader(const std::string& name);
+
 private:
     unsigned int m_videoWidth = 800;
     unsigned int m_videoHeight = 600;
@@ -91,12 +94,10 @@ private:
 
     void DrawDebug();
 
-
     int m_maxTextureSize = 1024;
     int m_maxTextureUnits = 16;
 
-    Shader m_fontShader;
 
-    Shader m_spriteShader;
 
+    std::map<std::string, Shader*> m_shaders;
 };

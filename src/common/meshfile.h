@@ -202,7 +202,7 @@ namespace rade
     {
     public:
 
-        explicit MeshFile(const std::vector<CPoly3D>& polylist)
+        explicit MeshFile(const std::vector<poly3d>& polylist)
         {
             LoadFromPolyList(polylist);
         }
@@ -213,11 +213,11 @@ namespace rade
 
         bool LoadFromFile(const std::string& filename);
 
-        void LoadFromPolyList(const std::vector<CPoly3D>& polylist);
+        void LoadFromPolyList(const std::vector<poly3d>& polylist);
 
         bool WriteToFile(const std::string& filename);
 
-        void GetAsPolyList(std::vector<CPoly3D>& polyListOut);
+        void GetAsPolyList(std::vector<poly3d>& polyListOut);
 
         void AddLightmapData(
                 uint16_t width,
@@ -258,7 +258,7 @@ namespace rade
 
         bool ValidateData();
 
-        void AddPoly(const CPoly3D& poly);
+        void AddPoly(const poly3d& poly);
 
         uint32_t AddDiffuseOnlyMaterial(const std::string& matkey, const std::string& diffuseName);
 

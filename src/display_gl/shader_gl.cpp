@@ -7,19 +7,14 @@
 
 using namespace rade;
 
-Shader::Shader()
-= default;
-
-Shader::~Shader()
-= default;
-
 void Shader::Use() const
 {
     glUseProgram(GetShaderID());
 }
 
-bool Shader::CreateShaderFromString(const std::string& vs, const std::string& fs)
+bool Shader::CreateShaderFromString(const std::string& key, const std::string& vs, const std::string& fs)
 {
+    m_name = key;
     m_prog.vs = CompileShader(vs.c_str(), GL_VERTEX_SHADER, vs.size());
     if(!m_prog.vs)
     {
@@ -39,8 +34,9 @@ bool Shader::CreateShaderFromString(const std::string& vs, const std::string& fs
     return true;
 }
 
-bool Shader::CreateShader(const char *vs, const char *fs)
+bool Shader::CreateShader(const std::string& key, const char *vs, const char *fs)
 {
+    m_name = key;
     long vs_size = 0;
     char *vsData = ReadPlatformAssetFile(vs, &vs_size);
     if(!vsData)

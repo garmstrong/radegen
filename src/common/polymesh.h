@@ -25,11 +25,11 @@ namespace rade
             unsigned int channels;
         };
 
-        bool Init(CDisplayGL& display, Camera* camera);
+        bool RegisterWithDisplay(CDisplayGL& display, Camera* camera);
 
-        void AddPoly(const rade::CPoly3D& poly);
+        void AddPoly(const rade::poly3d& poly);
 
-        void AddPolyList(std::vector<rade::CPoly3D>& polyList);
+        void AddPolyList(std::vector<rade::poly3d>& polyList);
 
         bool LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath = "");
 
@@ -40,7 +40,7 @@ namespace rade
             return m_hasLightmaps;
         }
 
-        std::vector<rade::CPoly3D>& GetPolyListRef()
+        std::vector<rade::poly3d>& GetPolyListRef()
         {
             return m_polyList;
         }
@@ -54,10 +54,12 @@ namespace rade
             return m_lightmaps;
         }
 
+        void SetShaderKey(const std::string& shaderKey);
+
         Camera* m_camera = nullptr;
 
     private:
-        std::vector<rade::CPoly3D> m_polyList;
+        std::vector<rade::poly3d> m_polyList;
         std::vector<lightmapInfo_t> m_lightmaps;
         bool m_hasLightmaps = false;
 

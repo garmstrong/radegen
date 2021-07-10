@@ -149,17 +149,17 @@ namespace rade
         return true;
     }
 
-    void MeshFile::LoadFromPolyList(const std::vector<CPoly3D>& polylist)
+    void MeshFile::LoadFromPolyList(const std::vector<poly3d>& polylist)
     {
         Reset();
-        for (const CPoly3D& poly : polylist)
+        for (const poly3d& poly : polylist)
         {
             AddPoly(poly);
         }
         ValidateData();
     }
 
-    void MeshFile::AddPoly(const CPoly3D& poly)
+    void MeshFile::AddPoly(const poly3d& poly)
     {
         LogicalPolygon newPoly{};
 
@@ -188,7 +188,7 @@ namespace rade
             newPoint.nornmal[1] = p.ny;
             newPoint.nornmal[2] = p.nz;
 
-            // convert CPoly3D point to SPolyPoint
+            // convert poly3d point to SPolyPoint
             newPoly.AddPoint(newPoint);
         }
         m_polygons.push_back(newPoly);
@@ -335,11 +335,11 @@ namespace rade
         m_polygons.clear();
     }
 
-    void MeshFile::GetAsPolyList(std::vector<CPoly3D>& polyListOut)
+    void MeshFile::GetAsPolyList(std::vector<poly3d>& polyListOut)
     {
         for (LogicalPolygon& poly : m_polygons)
         {
-            CPoly3D newPoly;
+            poly3d newPoly;
 
             uint16_t matIndex = poly.GetHeaderPtr()->matIndex;
             if (m_materials.size() > matIndex)
