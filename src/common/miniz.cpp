@@ -4837,11 +4837,11 @@ mz_zip_reader_extract_iter_state* mz_zip_reader_extract_iter_new(mz_zip_archive 
         return NULL;
     }
 
-    /* RegisterWithDisplay state - save args */
+    /* Init state - save args */
     pState->pZip = pZip;
     pState->flags = flags;
 
-    /* RegisterWithDisplay state - reset variables to defaults */
+    /* Init state - reset variables to defaults */
     pState->status = TINFL_STATUS_DONE;
 #ifndef MINIZ_DISABLE_ZIP_READER_CRC32_CHECKS
     pState->file_crc32 = MZ_CRC32_INIT;

@@ -24,7 +24,7 @@ namespace rade
         m_textHandleID = id;
         m_matKey = matKey;
         m_display = display;
-        rade::Assert(m_display, "CTextMesh::RegisterWithDisplay Display cannot be null\n");
+        rade::Assert(m_display, "CTextMesh::Init Display cannot be null\n");
         m_label = "CTextMesh text";
         m_maxChars = maxChars;
         GenerateLabelGeometry(m_maxChars, size);
