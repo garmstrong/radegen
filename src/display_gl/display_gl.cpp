@@ -44,6 +44,8 @@ bool CDisplayGL::Init(int screenWidth, int screenHeight)
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
     glEnable(GL_TEXTURE_2D);
 
     glEnable(GL_BLEND);
@@ -153,7 +155,7 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
             GL_UNSIGNED_BYTE,
             data);
 
-    //if (genMipMaps || GL_minMagFilter == GL_NEAREST_MIPMAP_LINEAR || GL_minMagFilter == GL_NEAREST_MIPMAP_NEAREST)
+    if (genMipMaps || GL_minMagFilter == GL_NEAREST_MIPMAP_LINEAR || GL_minMagFilter == GL_NEAREST_MIPMAP_NEAREST)
     {
         glGenerateMipmap(GL_TEXTURE_2D);
     }

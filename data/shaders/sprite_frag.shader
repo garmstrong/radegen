@@ -11,6 +11,5 @@ void main()
     vec4 color = texture(diffuseTexture, fs_in.TexCoords).rgba;
     if(color.a < 0.1)
         discard;
-
     FragColor = color;
 }

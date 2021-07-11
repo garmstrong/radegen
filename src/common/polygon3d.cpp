@@ -110,7 +110,7 @@ namespace rade
         return center;
     }
 
-    std::vector<poly3d> poly3d::ToTriangles() const
+    std::vector<poly3d> poly3d::ToTriangles()
     {
         //TODO: simple triangle fan might cause problems, look into ear clipping
         std::vector<poly3d> triangles;
@@ -303,18 +303,17 @@ namespace rade
         return plane;
     }
 
-    void poly3d::ConstructQuad(float width, float height, float z)
+    void poly3d::ConstructQuad(float width, float height, float z, float posx, float posy)
     {
         Reset();
-        vector3 p1(0.0f,     0.0f, z, 0, 1);
-        vector3 p2(width,    0.0f, z, 1, 1);
-        vector3 p3(width, -height, z, 1, 0);
-        vector3 p4(0.0f,  -height, z, 0, 0);
-
-        AddPoint( p1 ); //BR
-        AddPoint( p2 ); //TR
-        AddPoint( p3 ); //TL
-        AddPoint( p4 ); //BL
+        vector3 p1( (width/2)+posx,  -(height/2)+posy, z, 1, 0); //BR
+        vector3 p2( (width/2)+posx,   (height/2)+posy, z, 1, 1); //TR
+        vector3 p3(-(width/2)+posx,   (height/2)+posy, z, 0, 1); //TL
+        vector3 p4(-(width/2)+posx,  -(height/2)+posy, z, 0, 0); //BL
+        AddPoint( p1 );
+        AddPoint( p2 );
+        AddPoint( p3 );
+        AddPoint( p4 );
         CalcNormal();
     }
 };

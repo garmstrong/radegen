@@ -59,6 +59,7 @@ namespace rade
         }
 
         int width, height, channels;
+        stbi_set_flip_vertically_on_load(true);
         unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buff), size, &width, &height,
                 &channels, 0);
         if (!pixels)
@@ -87,6 +88,7 @@ namespace rade
             // copy to local data and delete buffer
             Set(width, height, (Format)channels, pixels);
             stbi_image_free(pixels);
+            FlipVertically();
             return true;
         }
     }

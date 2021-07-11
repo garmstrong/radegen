@@ -65,10 +65,10 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     }
 
     poly3d poly;
-    poly.ConstructQuad(100.0f, 50.0f, 1.0f);
+    poly.ConstructQuad(323/2, 122/2, 1.0f, -880, -500);
     poly.SetMaterialKey("rade_large");
-    poly.SetShaderKey("default");
-
+    poly.SetShaderKey("sprite");
+    //poly.GetTransform()->SetPosition(-100, -100, 1);
     m_logomesh.AddPoly(poly);
     m_logomesh.RegisterWithDisplay(m_display, &m_cameraUI);
     return true;
@@ -76,24 +76,39 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
 
 bool CAppMain::LoadAppShaders()
 {
-    bool success = m_display.LoadShader("font", "data/shaders/font_vert.shader", "data/shaders/font_frag.shader");
-    if(!success)
+    if(!m_display.LoadShader(
+            "font",
+            "data/shaders/font_vert.shader",
+            "data/shaders/font_frag.shader"))
     {
         Abort("Failed to create shader\n");
+        return false;
     }
 
-    success = m_display.LoadShader("default", "data/shaders/vs.glsl", "data/shaders/fs.glsl");
-    if(!success)
+    if(!m_display.LoadShader("default",
+            "data/shaders/vs.glsl",
+            "data/shaders/fs.glsl"))
     {
         Abort("Failed to create shader\n");
+        return false;
     }
 
-    success = m_display.LoadShader("mesh-lightmap", "data/shaders/diffuse_spec_vert.shader", "data/shaders/diffuse_spec_frag.shader");
-    if(!success)
+    if(!m_display.LoadShader("mesh-lightmap",
+            "data/shaders/diffuse_spec_vert.shader",
+            "data/shaders/diffuse_spec_frag.shader"))
     {
         Abort("Failed to create shader\n");
+        return false;
     }
-    return success;
+
+    if(!m_display.LoadShader("sprite",
+            "data/shaders/sprite_vert.shader",
+            "data/shaders/sprite_frag.shader"))
+    {
+        Abort("Failed to create shader\n");
+        return false;
+    }
+    return true;
 }
 
 int CAppMain::UpdateTick(float deltaTime)

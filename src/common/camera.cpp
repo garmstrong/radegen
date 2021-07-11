@@ -234,9 +234,13 @@ namespace rade
     {
         if (m_isOrtho)
         {
-            return glm::ortho(-(m_videoWidth / 2), (m_videoWidth / 2), (m_videoHeight / 2), -(m_videoHeight / 2),
+            return glm::ortho(
+                    -(m_videoWidth / 2),  // left
+                     (m_videoWidth / 2),  // right
+                    -(m_videoHeight / 2), // bottom
+                     (m_videoHeight / 2), // top
                     -1000.0f,
-                    1000.0f);
+                     1000.0f);
         }
         else
         {

@@ -91,7 +91,7 @@ namespace rade
             return m_normal;
         }
 
-        std::vector<poly3d> ToTriangles() const;
+        std::vector<poly3d> ToTriangles();
 
         rade::math::ESide Split(const rade::plane3d& plane, poly3d& front, poly3d& back) const;
 
@@ -143,7 +143,7 @@ namespace rade
 
         plane3d GetPlane() const;
 
-        void ConstructQuad(float width, float height, float z);
+        void ConstructQuad(float width, float height, float z, float posx, float posy);
 
     private:
         std::vector<rade::vector3> m_points;
