@@ -38,6 +38,7 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
     ImGui::Text("Settings");
     ImGui::Checkbox("Ambient Occlusion", &m_lampOptions.createAO);
     ImGui::Checkbox("Shadows", &m_lampOptions.createShadows);
+    ImGui::SliderInt("Post Blur", &m_lampOptions.postBlur, 0, 4);
     ImGui::SliderFloat("Texture Size", &m_lampOptions.lmDetail, 0.6f, 1.8f);
     ImGui::Separator();
 
@@ -64,10 +65,11 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
                 40,     // numSphereRays for AO
                 15.0f,  // spheresize for AO
                 230,    // lit
-                70,     // unlit
+                10,     // unlit
                 1.2f,   // lmDetail - resolution for textures
                 false,  // AO
-                true    // shadows
+                true,   // shadows
+                2,      // blur
         };
     }
     ImGui::End();

@@ -195,6 +195,11 @@ namespace rade
 
     void Image::GetRGBAArray(int col, int row, unsigned char* rgba)
     {
+        if(col>=(int)m_width) col = m_width-1;
+        if(row>=(int)m_height) row = m_height-1;
+        if(col<0) col = 0;
+        if(row<0) row = 0;
+
         unsigned srcOffset = GetPixelOffset(col, row, m_width, m_format);
         for (int i = 0; i < m_format; i++)
             rgba[i] = *(m_pixels + srcOffset + i);
@@ -210,16 +215,22 @@ namespace rade
         };
 
         std::vector<blurKernel_t> blurKernel = {
-                { -1, -1, 1 / 4 },  // TL
-                { 0,  -1, 1 / 4 },  // TM
-                { 1,  1,  1 / 4 },  // TR
-                { -1, 0,  1 / 4 },  // CL
-                { 0,  0,  1 },      // C
-                { 1,  0,  1 / 4 },  // CR
-                { -1, 1,  1 / 4 },  // BL
-                { 0,  1,  1 / 4 },  // BM
-                { 1,  1,  1 / 4 }   // BR
+                { -1, -1, 0.2f },  // TL
+                { 0,  -1, 0.2f },  // TM
+                { 1,  1,  0.2f },  // TR
+                { -1, 0,  0.2f },  // CL
+                { 0,  0,  0.3f },  // C
+                { 1,  0,  0.2f },  // CR
+                { -1, 1,  0.2f },  // BL
+                { 0,  1,  0.2f },  // BM
+                { 1,  1,  0.2f }   // BR
         };
+
+        float totalWeight = 0.0f;
+        for (auto & kern : blurKernel)
+        {
+            totalWeight += kern.weight;
+        }
 
         auto newPixels = (unsigned char*)malloc(m_format * m_width * m_height);
 
@@ -227,37 +238,23 @@ namespace rade
         {
             for (unsigned iY = 0; iY < m_height; ++iY)
             {
-                float totalWeight = 0;
-                uint32_t avg_rgba[4] = { 0, 0, 0, 0 }; // allow over "saturation" and divide later
-                for (size_t i = 0; i < blurKernel.size(); i++)
+                float avg_rgba[4] = { 0, 0, 0, 0 }; // allow over "saturation" and divide later
+                for (auto & kern : blurKernel)
                 {
                     unsigned char rgba[4];
-                    unsigned int xoff = iX + blurKernel.at(i).xOffset;
-                    if (xoff < 0) xoff = 1;
-                    if (xoff >= m_width) xoff = m_width - 2;
-                    unsigned int yoff = iY + blurKernel.at(i).yOffset;
-                    if (yoff < 0) yoff = 1;
-                    if (yoff >= m_height) yoff = m_height - 2;
-                    GetRGBAArray(xoff, yoff, rgba);
+                    GetRGBAArray(iX + kern.xOffset, iY + kern.yOffset, rgba);
 
-                    float weight = blurKernel.at(i).weight;
-                    avg_rgba[0] += rgba[0];// * weight;
-                    avg_rgba[1] += rgba[1];// * weight;
-                    avg_rgba[2] += rgba[2];// * weight;
-                    avg_rgba[3] += rgba[3];// * weight;
-                    //totalWeight += weight;
+                    float multiplierAvg = kern.weight / totalWeight;
+                    avg_rgba[0] += (float)rgba[0] * multiplierAvg;
+                    avg_rgba[1] += (float)rgba[1] * multiplierAvg;
+                    avg_rgba[2] += (float)rgba[2] * multiplierAvg;
                 }
-                totalWeight = static_cast<float>(blurKernel.size());
-                avg_rgba[0] /= static_cast<uint32_t>(totalWeight);
-                avg_rgba[1] /= static_cast<uint32_t>(totalWeight);
-                avg_rgba[2] /= static_cast<uint32_t>(totalWeight);
-                avg_rgba[3] /= static_cast<uint32_t>(totalWeight);
 
                 unsigned char final_rgba[4];
-                final_rgba[0] = avg_rgba[0];
-                final_rgba[1] = avg_rgba[1];
-                final_rgba[2] = avg_rgba[2];
-                final_rgba[3] = avg_rgba[3];
+                final_rgba[0] = static_cast<unsigned char>(avg_rgba[0]);
+                final_rgba[1] = static_cast<unsigned char>(avg_rgba[1]);
+                final_rgba[2] = static_cast<unsigned char>(avg_rgba[2]);
+                final_rgba[3] = 255; //avg_rgba[3];
 
                 unsigned int destOffset = GetPixelOffset(iX, iY, m_width, m_format);
                 memcpy(newPixels + destOffset, final_rgba, 4); //copy one pixel

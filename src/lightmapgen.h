@@ -25,6 +25,7 @@ namespace NRadeLamp
         float lmDetail;
         bool createAO;
         bool createShadows;
+        int postBlur;
     } lmOptions_t;
 };
 
@@ -65,10 +66,11 @@ protected:
             40,     // numSphereRays
             15.0f,  // spheresize
             200,    // lit
-            120,    // unlit
+            10,     // unlit
             0.6f,   // lmDetail
             true,   // AO
-            true    // shadows
+            true,   // shadows
+            2       // blur
     };
 
     std::mutex m_lmMutex;

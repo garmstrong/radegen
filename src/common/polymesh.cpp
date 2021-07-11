@@ -58,10 +58,10 @@ namespace rade
 
             uint32_t texID = 0;
 
-            bool genMipMaps = false;
+            bool genMipMaps = true;
 
             // CLAMP_TO_EDGE and no mip maps are required for Lightmaps (or they will bleed at edges)
-            RMaterials::ETextureFilterMode filterMode = RMaterials::TEXTURE_FILTER_LINEAR;
+            RMaterials::ETextureFilterMode filterMode = RMaterials::TEXTURE_FILTER_MIPMAPLINEAR; //RMaterials::TEXTURE_FILTER_LINEAR;
             RMaterials::ETextureClampMode clampMode = RMaterials::TEXTURE_REPEAT_CLAMP_TO_EDGE;
 
             bool loaded = materialMgr.LoadRAWTextureData(

@@ -27,15 +27,15 @@ private:
 
     CAppMain& m_appMain;
 
-
     NRadeLamp::lmOptions_t m_lampOptions = {
             40,     // numSphereRays for AO
             15.0f,  // spheresize for AO
             230,    // lit
-            70,     // unlit
+            10,     // unlit
             1.2f,   // lmDetail - resolution for textures
             false,  // AO
-            true    // shadows
+            true,   // shadows
+            2,      // blur
     };
 
     void DrawMenuBar();

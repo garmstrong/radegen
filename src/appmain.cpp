@@ -65,13 +65,13 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     }
 
     poly3d poly;
-    //poly.ConstructQuad(323/6, 122/6, 1.0f, -880, -500);
-    poly.ConstructQuad(323/6, 122/6, 1.0f, 0, 0);
+    poly.ConstructQuad(323/2, 122/2, 1.0f, -880, -500);
+    //poly.ConstructQuad(323/6, 122/6, 1.0f, 0, 0);
     poly.SetMaterialKey("rade_large");
     poly.SetShaderKey("spriteheat");
     //poly.GetTransform()->SetPosition(-100, -100, 1);
     m_logomesh.AddPoly(poly);
-    m_logomesh.RegisterWithDisplay(m_display, &m_camera);
+    m_logomesh.RegisterWithDisplay(m_display, &m_cameraUI);
     return true;
 }
 

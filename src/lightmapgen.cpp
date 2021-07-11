@@ -368,8 +368,9 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
         }
 
         rade::Image bm(lightmapWidth, lightmapHeight, rade::Image::Format_RGBA, lightmap.m_data);
-//        for (uint16_t i = 0; i < 1; i++)
-//            bm.Blur();
+        for(int i=0;i<m_options.postBlur; i++)
+            bm.Blur();
+
 //
 //        static int counter = 0;
 //        char fname[128];
