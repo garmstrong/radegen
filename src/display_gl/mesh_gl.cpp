@@ -5,6 +5,7 @@
 #include "display_gl.h"
 #include "material.h"
 #include "polymesh.h"
+#include "timer.h"
 
 using namespace NRenderTypes;
 
@@ -26,6 +27,8 @@ void CMeshGL::Reset()
 
 void CMeshGL::RenderAllFaces(CDisplayGL *display)
 {
+    static rade::Timer timer;
+
     // generate VBO's for each section
     for (auto & vbuff : m_vertBuffers)
     {
@@ -40,6 +43,7 @@ void CMeshGL::RenderAllFaces(CDisplayGL *display)
         shader->SetVec3("lightPos", glm::vec3(0, 0, 0));
         shader->SetVec3("lightColor", glm::vec3(1, 1, 1));
         shader->SetInt("lightmapTexture", 1);
+        shader->SetFloat("time", timer.ElapsedTime());
 
         GLuint texID = 1;
         if(vbuff.second.mat != nullptr)
