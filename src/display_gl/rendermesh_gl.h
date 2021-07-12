@@ -14,7 +14,7 @@ class CMaterial;
 
 namespace rade
 {
-    class CPolyMesh;
+    class polymesh;
 
     class Camera;
 };
@@ -33,7 +33,7 @@ public:
         uint16_t copiedSoFar;
     };
 
-    void InitFromPolyMesh(rade::CPolyMesh& renderMesh);
+    void InitFromPolyMesh(rade::polymesh& renderMesh);
 
     void AddFace(NRenderTypes::Face& face);
 

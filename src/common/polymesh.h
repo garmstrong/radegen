@@ -15,7 +15,7 @@ namespace rade
 {
     class Camera;
 
-    class CPolyMesh
+    class polymesh
     {
     public:
 

@@ -12,7 +12,7 @@ class CDisplayGL;
 
 namespace rade
 {
-    class CPolyMesh;
+    class polymesh;
 };
 
 class Shader;
@@ -71,7 +71,7 @@ namespace NRenderTextGL
 class CRenderTextGL
 {
 public:
-	CRenderTextGL(CDisplayGL* display, rade::CPolyMesh* renderMesh);
+	CRenderTextGL(CDisplayGL* display, rade::polymesh* renderMesh);
 
 	~CRenderTextGL();
 
@@ -79,7 +79,7 @@ public:
 
 	void RenderAllFaces(Shader *shader);
 
-	void AllocateFromMesh(rade::CPolyMesh* renderMesh);
+	void AllocateFromMesh(rade::polymesh* renderMesh);
 
 
 	void SetRenderMode(NRenderTextGL::ERenderMode renderMode)

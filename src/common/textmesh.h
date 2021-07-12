@@ -31,7 +31,7 @@ namespace rade
 
         void SetText(const std::string& label);
 
-        CPolyMesh& GetPolyMesh()
+        polymesh& GetPolyMesh()
         {
             return m_polyMesh;
         }
@@ -58,7 +58,7 @@ namespace rade
         std::string m_label;
         std::string m_matKey;
         rade::vector3 m_pos;
-        CPolyMesh m_polyMesh;
+        polymesh m_polyMesh;
         uint16_t m_maxChars = 0;
         CDisplayGL* m_display = nullptr;
         std::string m_textHandleID;

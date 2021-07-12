@@ -6,12 +6,12 @@
 
 namespace rade
 {
-    void CPolyMesh::AddPoly(const poly3d& poly)
+    void polymesh::AddPoly(const poly3d& poly)
     {
         m_polyList.emplace_back(poly);
     }
 
-    void CPolyMesh::AddPolyList(std::vector<poly3d>& polyList)
+    void polymesh::AddPolyList(std::vector<poly3d>& polyList)
     {
         for (poly3d& poly : polyList)
         {
@@ -19,7 +19,7 @@ namespace rade
         }
     }
 
-    void CPolyMesh::SetShaderKey(const std::string& shaderKey)
+    void polymesh::SetShaderKey(const std::string& shaderKey)
     {
         for (poly3d& poly : m_polyList)
         {
@@ -27,7 +27,7 @@ namespace rade
         }
     }
 
-    bool CPolyMesh::LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath /* = "" */)
+    bool polymesh::LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath /* = "" */)
     {
         using namespace RMaterials;
 
@@ -41,7 +41,7 @@ namespace rade
         return success;
     }
 
-    void CPolyMesh::LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps)
+    void polymesh::LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps)
     {
         Assert(!m_polyList.empty(), "LoadLightmaps called, but no polygons loaded\n");
 
@@ -102,7 +102,7 @@ namespace rade
         }
     }
 
-    void CPolyMesh::Reset()
+    void polymesh::Reset()
     {
         // and delete material from materialmgr too?
         for (auto& lmap : m_lightmaps)
@@ -123,7 +123,7 @@ namespace rade
         }
     }
 
-    void CPolyMesh::ClearLightmaps()
+    void polymesh::ClearLightmaps()
     {
         m_lightmaps.clear();
         for (poly3d& poly : m_polyList)
@@ -132,7 +132,7 @@ namespace rade
         }
     }
 
-//    bool CPolyMesh::RegisterWithDisplay(CDisplayGL& display, Camera* camera)
+//    bool polymesh::RegisterWithDisplay(CDisplayGL& display, Camera* camera)
 //    {
 //        m_display = &display;
 //        m_camera = camera;

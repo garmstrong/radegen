@@ -51,7 +51,7 @@ public:
     //
     void RenderAllMeshes();
 
-    IRenderObj* AddMesh(rade::CPolyMesh& polyMesh);
+    IRenderObj* AddMesh(rade::polymesh& polyMesh);
 
     void DeleteMesh(IRenderObj* renderObj);
 

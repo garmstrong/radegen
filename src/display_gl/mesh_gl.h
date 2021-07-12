@@ -17,7 +17,7 @@ class CMaterialManager;
 
 namespace rade
 {
-    class CPolyMesh;
+    class polymesh;
 
     class Camera;
 };
@@ -31,7 +31,7 @@ public:
     ~CMeshGL() override
     = default;
 
-    CMeshGL(rade::CPolyMesh& polymesh, CMaterialManager& matMgr);
+    CMeshGL(rade::polymesh& polymesh, CMaterialManager& matMgr);
 
     struct vertBuffer_t
     {
@@ -46,7 +46,7 @@ public:
         unsigned int lightmapID;
     };
 
-    void InitFromPolyMesh(rade::CPolyMesh& renderMesh);
+    void InitFromPolyMesh(rade::polymesh& renderMesh);
 
     void AddFace(NRenderTypes::Tri& face);
 

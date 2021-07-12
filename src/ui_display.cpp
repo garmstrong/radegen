@@ -75,7 +75,7 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
     ImGui::End();
 }
 
-void CUIDisplay::DrawLMTexturePanel(std::vector<rade::CPolyMesh::lightmapInfo_t>& lmaps)
+void CUIDisplay::DrawLMTexturePanel(std::vector<rade::polymesh::lightmapInfo_t>& lmaps)
 {
     ImGui::Begin("Textures");
     for(auto& lmInfo : lmaps)

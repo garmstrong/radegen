@@ -65,5 +65,5 @@ private:
     //bool LoadMesh();
     std::string GetNextLightName(std::vector<rade::Light>& lights);
 
-    void DrawLMTexturePanel(std::vector<rade::CPolyMesh::lightmapInfo_t>& lmaps);
+    void DrawLMTexturePanel(std::vector<rade::polymesh::lightmapInfo_t>& lmaps);
 };

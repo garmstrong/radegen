@@ -209,7 +209,7 @@ void CRenderMeshGL::LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAsset
     }
 }
 
-void CRenderMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
+void CRenderMeshGL::InitFromPolyMesh(rade::polymesh& polyMesh)
 {
     std::vector<rade::poly3d>& polyList = polyMesh.GetPolyListRef();
 

@@ -179,7 +179,7 @@ void CDisplayGL::SetViewport(int screenWidth, int screenHeight)
     glViewport(0, 0, screenWidth, screenHeight);
 }
 
-IRenderObj* CDisplayGL::AddMesh(rade::CPolyMesh& polyMesh)
+IRenderObj* CDisplayGL::AddMesh(rade::polymesh& polyMesh)
 {
     rade::Assert(m_activeCamera, "display has no active camera\n");
 

@@ -11,7 +11,7 @@ using namespace rade;
 
 using namespace NRenderTextGL;
 
-CRenderTextGL::CRenderTextGL(CDisplayGL* display, rade::CPolyMesh* polyMesh)
+CRenderTextGL::CRenderTextGL(CDisplayGL* display, rade::polymesh* polyMesh)
 {
 	// generate vertex array id for this mesh
 	glGenVertexArrays(1, &m_vaoId);
@@ -128,7 +128,7 @@ void CRenderTextGL::AddFace(Face& face)
 	m_faces.emplace_back(face);
 }
 
-void CRenderTextGL::AllocateFromMesh(rade::CPolyMesh* renderMesh)
+void CRenderTextGL::AllocateFromMesh(rade::polymesh* renderMesh)
 {
 	std::vector<poly3d> polyList = renderMesh->GetPolyListRef();
 

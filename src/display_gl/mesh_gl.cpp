@@ -9,7 +9,7 @@
 
 using namespace NRenderTypes;
 
-CMeshGL::CMeshGL(rade::CPolyMesh& polymesh, CMaterialManager& matMgr)
+CMeshGL::CMeshGL(rade::polymesh& polymesh, CMaterialManager& matMgr)
 {
     InitFromPolyMesh(polymesh);
     PrepareMesh();
@@ -193,7 +193,7 @@ void CMeshGL::LoadMeshTexures(CMaterialManager& materialMgr, bool usePlatformAss
     }
 }
 
-void CMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
+void CMeshGL::InitFromPolyMesh(rade::polymesh& polyMesh)
 {
     //rade::Assert(polyMesh.m_camera, "camera cant be null\n");
     //m_camera = polyMesh.m_camera;

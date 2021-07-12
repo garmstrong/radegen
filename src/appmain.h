@@ -61,7 +61,7 @@ public:
 
     bool ChangeLightPos(rade::Light& light, rade::vector3& pos);
 
-    std::vector<rade::CPolyMesh::lightmapInfo_t>& GetLoadedLightmapInfoRef()
+    std::vector<rade::polymesh::lightmapInfo_t>& GetLoadedLightmapInfoRef()
     {
         return m_polyMesh.GetLoadedLightmapInfoRef();
     }
@@ -81,11 +81,11 @@ protected:
     rade::InputSystem m_inputs;
     bool m_isMouseDown = false;
     float m_lastDeltaTime = 0.033f;
-    rade::CPolyMesh m_polyMesh;
+    rade::polymesh m_polyMesh;
     std::vector<CLightmapImg> m_lightMapList;
     std::vector<rade::Light> m_lights;
 
-    rade::CPolyMesh m_logomesh;
+
     IRenderObj *m_logoObj = nullptr;
 
     IRenderObj *m_mainMesh = nullptr;

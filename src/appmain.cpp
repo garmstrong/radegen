@@ -67,13 +67,14 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     }
 
     // make a basic quad for the logo
+    rade::polymesh logomesh;
     poly3d poly;
     poly.ConstructQuad(323/4, 122/4, 1.0f);
     poly.SetMaterialKey("rade_large");
     poly.SetShaderKey("spriteheat");
-    m_logomesh.AddPoly(poly);
+    logomesh.AddPoly(poly);
 
-    m_logoObj = m_display.AddMesh(m_logomesh);
+    m_logoObj = m_display.AddMesh(logomesh);
     m_logoObj->SetCamera(&m_camera);
     //m_logoObj->GetTransform().SetPosition(glm::vec3(-880, -480.0f, -1.0f));
     //m_logoObj->GetTransform().OffsetOrientation(0.1f * m_timer.ElapsedTime(), 0.0f);
