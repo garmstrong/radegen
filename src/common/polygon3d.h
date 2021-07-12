@@ -143,7 +143,7 @@ namespace rade
 
         plane3d GetPlane() const;
 
-        void ConstructQuad(float width, float height, float z, float posx, float posy);
+        void ConstructQuad(float width, float height, float z, float posx = 0.0f, float posy = 0.0f);
 
     private:
         std::vector<rade::vector3> m_points;

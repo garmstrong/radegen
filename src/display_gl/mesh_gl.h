@@ -5,12 +5,15 @@
 #include <cstdint>
 #include "rendertypes.h"
 #include "shader_gl.h"
+#include "irenderobj.h"
 
 #include <string>
 
 class CDisplayGL;
 
 class CMaterial;
+
+class CMaterialManager;
 
 namespace rade
 {
@@ -19,9 +22,16 @@ namespace rade
     class Camera;
 };
 
-class CMeshGL
+class CMeshGL : public IRenderObj
 {
 public:
+    CMeshGL()
+    = default;
+
+    ~CMeshGL() override
+    = default;
+
+    CMeshGL(rade::CPolyMesh& polymesh, CMaterialManager& matMgr);
 
     struct vertBuffer_t
     {
@@ -44,7 +54,7 @@ public:
 
     void Reset();
 
-    void LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAssets = false);
+    void LoadMeshTexures(CMaterialManager& materialMgr, bool usePlatformAssets = false);
 
     void SetRenderMode(NRenderTypes::ERenderMode renderMode)
     {
@@ -56,20 +66,16 @@ public:
         return m_renderMode;
     }
 
-    void PrepareMesh(CDisplayGL& displayGl);
+    void PrepareMesh();
+
+    void GetBoundingBox() override{};
 
 private:
-
-    CDisplayGL *m_display;
-    rade::Camera* m_camera;
 
     NRenderTypes::ERenderMode m_renderMode = NRenderTypes::ERenderDefault;
 
     std::vector<NRenderTypes::Tri> m_tmpFaces;
     std::map<std::string, vertBuffer_t> m_vertBuffers;
-
-
-    //Shader m_meshShader;
 
     glm::mat4 m_model = glm::mat4(1);
 

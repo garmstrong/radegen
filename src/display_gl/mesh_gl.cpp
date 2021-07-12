@@ -9,6 +9,13 @@
 
 using namespace NRenderTypes;
 
+CMeshGL::CMeshGL(rade::CPolyMesh& polymesh, CMaterialManager& matMgr)
+{
+    InitFromPolyMesh(polymesh);
+    PrepareMesh();
+    LoadMeshTexures(matMgr);
+}
+
 void CMeshGL::Reset()
 {
     for (auto & x : m_vertBuffers)
@@ -27,6 +34,7 @@ void CMeshGL::Reset()
 
 void CMeshGL::RenderAllFaces(CDisplayGL *display)
 {
+    rade::Assert(m_camera, "Camera is null\n");
     static rade::Timer timer;
 
     // generate VBO's for each section
@@ -38,7 +46,7 @@ void CMeshGL::RenderAllFaces(CDisplayGL *display)
         shader->Use();
         shader->SetMat4("projection", m_camera->GetProjection());
         shader->SetMat4("view", m_camera->GetView());
-        shader->SetMat4("model", glm::mat4(1.0f));
+        shader->SetMat4("model", m_transform.GetMatrix());
         shader->SetVec3("viewPos", m_camera->GetPosition());
         shader->SetVec3("lightPos", glm::vec3(0, 0, 0));
         shader->SetVec3("lightColor", glm::vec3(1, 1, 1));
@@ -72,7 +80,7 @@ void CMeshGL::AddFace(Tri& face)
     m_tmpFaces.emplace_back(face);
 }
 
-void CMeshGL::PrepareMesh(CDisplayGL& displayGl)
+void CMeshGL::PrepareMesh()
 {
     // lightmapID really needs to be in a sprite sheet / atlas
     // make vertex buffer for each material key
@@ -164,14 +172,14 @@ void CMeshGL::PrepareMesh(CDisplayGL& displayGl)
     m_tmpFaces.clear();
 }
 
-void CMeshGL::LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAssets /*= false*/)
+void CMeshGL::LoadMeshTexures(CMaterialManager& materialMgr, bool usePlatformAssets /*= false*/)
 {
     for (auto & x : m_vertBuffers)
     {
         if (x.second.mat == nullptr)
         {
             std::string materialKey = x.second.materialName;
-            CMaterial* newMaterial = displayGl.GetMaterialMgr().LoadFromKey(materialKey);
+            CMaterial* newMaterial = materialMgr.LoadFromKey(materialKey);
             if(!newMaterial)
             {
                 rade::Log("Failed to load material %s\n", x.second.materialName.c_str());
@@ -187,8 +195,8 @@ void CMeshGL::LoadMeshTexures(CDisplayGL& displayGl, bool usePlatformAssets /*= 
 
 void CMeshGL::InitFromPolyMesh(rade::CPolyMesh& polyMesh)
 {
-    rade::Assert(polyMesh.m_camera, "camera cant be null\n");
-    m_camera = polyMesh.m_camera;
+    //rade::Assert(polyMesh.m_camera, "camera cant be null\n");
+    //m_camera = polyMesh.m_camera;
 
     std::vector<rade::poly3d>& polyList = polyMesh.GetPolyListRef();
     m_hasLightmaps = polyMesh.HasLightmaps();

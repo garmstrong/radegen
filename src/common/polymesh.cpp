@@ -118,7 +118,7 @@ namespace rade
         if (m_meshID != 0)
         {
             if (m_display)
-                m_display->DeleteMesh(m_meshID);
+                //m_display->DeleteMesh(m_meshID);
             m_meshID = 0;
         }
     }
@@ -132,20 +132,20 @@ namespace rade
         }
     }
 
-    bool CPolyMesh::RegisterWithDisplay(CDisplayGL& display, Camera* camera)
-    {
-        m_display = &display;
-        m_camera = camera;
-
-        // remove if loaded already
-        if (m_meshID != 0)
-        {
-            display.DeleteMesh(m_meshID);
-            m_meshID = 0;
-        }
-
-        // add this to the renderer
-        m_meshID = display.AddMesh(*this);
-        return m_meshID;
-    }
+//    bool CPolyMesh::RegisterWithDisplay(CDisplayGL& display, Camera* camera)
+//    {
+//        m_display = &display;
+//        m_camera = camera;
+//
+//        // remove if loaded already
+//        if (m_meshID != 0)
+//        {
+//            display.DeleteMesh(m_meshID);
+//            m_meshID = 0;
+//        }
+//
+//        // add this to the renderer
+//        m_meshID = display.AddMesh(*this);
+//        return m_meshID;
+//    }
 };

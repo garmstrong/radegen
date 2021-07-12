@@ -57,6 +57,8 @@ namespace rade
 
     uint32_t HashString(const char* s);
 
+    //void GenerateGUID(unsigned char* out_bytes);
+
 #ifdef __ANDROID__
     static long GetAssetData(const char* filename, void** outData);
     extern struct android_app*  g_App;

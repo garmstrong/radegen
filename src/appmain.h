@@ -7,6 +7,7 @@
 #include "meshfile.h"
 #include "inputs.h"
 #include "lightmapgen.h"
+#include "timer.h"
 
 class CAppMain
 {
@@ -67,6 +68,8 @@ public:
 
 protected:
 
+    rade::Timer m_timer;
+
     void UpdateTransformViaInputs(float deltaTime);
 
     bool m_appDone = false;
@@ -83,6 +86,9 @@ protected:
     std::vector<rade::Light> m_lights;
 
     rade::CPolyMesh m_logomesh;
+    IRenderObj *m_logoObj = nullptr;
+
+    IRenderObj *m_mainMesh = nullptr;
 
     bool LoadAppShaders();
 };

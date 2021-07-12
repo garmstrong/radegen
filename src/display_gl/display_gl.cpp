@@ -25,6 +25,13 @@ CDisplayGL::~CDisplayGL()
         delete shader.second;
     }
     m_shaders.clear();
+
+    for (auto& mesh : m_meshes)
+    {
+        mesh.second->Reset();
+        delete mesh.second;
+    }
+    m_meshes.clear();
 }
 
 bool CDisplayGL::Init(int screenWidth, int screenHeight)
@@ -165,95 +172,6 @@ bool CDisplayGL::LoadRAWTextureData(const unsigned char* data,
     return true;
 }
 
-void CDisplayGL::RenderDebugQuad(Camera& cam)
-{
-
-
-//    float xoffset = -0.5;
-//    float yoffset = -0.5;
-//
-//    float quadSize = 100.0f;
-//
-//    float quadVertices[] = {
-//            // positions        // texture Coords
-//             quadSize + xoffset, -quadSize + yoffset, 1.0f, // top right
-//             quadSize + xoffset,  quadSize + yoffset, 1.0f, // bottom right
-//            -quadSize + xoffset, -quadSize + yoffset, 1.0f, // bottom left
-//            -quadSize + xoffset,  quadSize + yoffset, 1.0f, // top left
-//    };
-//
-//    float quadTex[] = {
-//            // texture Coords
-//            1.0f, 0.0f,  // top right
-//            1.0f, 1.0f,  // bottom right
-//            0.0f, 0.0f,  // bottom left
-//            0.0f, 1.0f,  // top left
-//    };
-//
-//    glm::mat4 view(1);
-//    glm::mat4 model(1);
-//
-//    m_spriteShader.Use();
-//    m_spriteShader.SetMat4("projection", cam.GetProjection());
-//    m_spriteShader.SetMat4("view", view);
-//
-//    glm::vec3 pos(0, 0, 0);
-//    m_spriteShader.SetMat4("model", model);
-//
-//    glEnable(GL_TEXTURE_2D);
-//
-//    glBindTexture(GL_TEXTURE_2D, 1);
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, quadVertices);
-//    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, quadTex);
-//    glEnableVertexAttribArray(0);
-//    glEnableVertexAttribArray(1);
-//    glDisable(GL_DEPTH_TEST);
-//    glDrawArrays(GL_LINE_LOOP, 0, 4);
-//    glEnable(GL_DEPTH_TEST);
-//
-//    glm::mat4 view(1);
-//    glm::mat4 model(1);
-//    m_spriteShader.Use();
-//    m_spriteShader.SetMat4("projection", cam.GetProjection());
-//    m_spriteShader.SetMat4("view", cam.GetView());
-//
-//    glm::vec3 pos(0, 0, 0);
-//    m_spriteShader.SetMat4("model", model);
-//
-//    glEnable(GL_TEXTURE_2D);
-//
-//    float xoffset = -0.5;
-//    float yoffset = -0.5;
-//
-//    float leftPos = -10.0f;
-//    float rightPos = 10.0f;
-//
-//    if (m_quadVAO == 0)
-//    {
-//        float quadVertices[] = {
-//                // positions        // texture Coords
-//                leftPos + xoffset, rightPos + yoffset, 0.0f, 0.0f, 1.0f, // top left
-//                leftPos + xoffset, leftPos + yoffset, 0.0f, 0.0f, 0.0f, // bottom left
-//                rightPos + xoffset, rightPos + yoffset, 0.0f, 1.0f, 1.0f,  // bottom right
-//                rightPos + xoffset, leftPos + yoffset, 0.0f, 1.0f, 0.0f,  // top right
-//        };
-//        // setup plane VAO
-//        glGenVertexArrays(1, &m_quadVAO);
-//        glGenBuffers(1, &m_quadVBO);
-//        glBindVertexArray(m_quadVAO);
-//        glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
-//        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-//        glEnableVertexAttribArray(0);
-//        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-//        glEnableVertexAttribArray(1);
-//        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-//    }
-//
-//    glBindVertexArray(m_quadVAO);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//    glBindVertexArray(0);
-}
-
 void CDisplayGL::SetViewport(int screenWidth, int screenHeight)
 {
     m_videoWidth = screenWidth;
@@ -261,42 +179,40 @@ void CDisplayGL::SetViewport(int screenWidth, int screenHeight)
     glViewport(0, 0, screenWidth, screenHeight);
 }
 
-uint32_t CDisplayGL::AddMesh(rade::CPolyMesh& polyMesh)
+IRenderObj* CDisplayGL::AddMesh(rade::CPolyMesh& polyMesh)
 {
+    rade::Assert(m_activeCamera, "display has no active camera\n");
+
     // generate a GL specific render mesh object for this mesh
-    CMeshGL renderMesh;
-    renderMesh.InitFromPolyMesh(polyMesh);
-    renderMesh.PrepareMesh(*this);
-    renderMesh.LoadMeshTexures(*this);
-    m_meshes.push_back(renderMesh);
-    return static_cast<uint32_t>(m_meshes.size()); // 0 = invalid
+    auto* renderMesh = new CMeshGL(polyMesh, GetMaterialMgr());
+    renderMesh->SetCamera(m_activeCamera);
+
+    // the std::map really does nothing here, we are just hiding the CMeshGL (OpenGL specific) class
+    // from the outside. It *could* be casted to the CMeshGL (for debugging purposes), but we dont
+    // actually do that for normal run-time operations because the dynamic_cast is actually slow (and
+    // badly with classes that have lots of data on them)
+    auto* renderObj = dynamic_cast<IRenderObj*>(renderMesh);
+    m_meshes[renderObj] = renderMesh;
+    return renderObj;
 }
 
-void CDisplayGL::RenderMeshID(uint32_t id, rade::Camera& cam)
-{
-    Assert(m_activeCamera, "Call SetCamera before rendering\n");
-    if (m_meshes.size() < id)
-        return;
-
-    m_meshes.at(id - 1).RenderAllFaces(this);
-}
-
-void CDisplayGL::RenderMeshes(rade::Camera& cam)
+void CDisplayGL::RenderAllMeshes()
 {
     for(auto& mesh : m_meshes)
     {
-        mesh.RenderAllFaces(this);
+        mesh.second->RenderAllFaces(this);
     }
 }
 
-void CDisplayGL::DeleteMesh(uint32_t id)
+void CDisplayGL::DeleteMesh(IRenderObj* renderObj)
 {
-    if (m_meshes.size() < id)
-        return;
+    CMeshGL* meshGL = m_meshes[renderObj];
+    rade::Assert(meshGL, "renderObj pointer is invalid or stale\n");
 
-    m_meshes.at(id - 1).Reset();
-
-    m_meshes.erase(m_meshes.begin()+ id - 1);
+    meshGL->Reset();
+    m_meshes.erase(renderObj);
+    delete renderObj;
+    renderObj = nullptr;
 }
 
 void CDisplayGL::RenderTextObjects()

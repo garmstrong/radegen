@@ -9,6 +9,8 @@ class CMaterialManager;
 
 class CDisplayGL;
 
+class IRenderObj;
+
 namespace rade
 {
     class Camera;
@@ -25,7 +27,7 @@ namespace rade
             unsigned int channels;
         };
 
-        bool RegisterWithDisplay(CDisplayGL& display, Camera* camera);
+        //bool RegisterWithDisplay(CDisplayGL& display, Camera* camera);
 
         void AddPoly(const rade::poly3d& poly);
 
@@ -56,14 +58,14 @@ namespace rade
 
         void SetShaderKey(const std::string& shaderKey);
 
-        Camera* m_camera = nullptr;
+        //Camera* m_camera = nullptr;
 
     private:
         std::vector<rade::poly3d> m_polyList;
         std::vector<lightmapInfo_t> m_lightmaps;
         bool m_hasLightmaps = false;
 
-        uint32_t m_meshID = 0;
+        IRenderObj* m_meshID = nullptr;
         CDisplayGL* m_display = nullptr;
 
     };

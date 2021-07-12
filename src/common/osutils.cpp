@@ -19,6 +19,8 @@ struct android_app*  g_App = NULL;
 
 #include <unistd.h>
 #include <dirent.h>
+#include <uuid/uuid.h>
+#include <climits>
 
 #endif
 
@@ -325,4 +327,20 @@ namespace rade
     }
 #endif
 
+//    void GenerateGUID(unsigned char* out_bytes)
+//    {
+//#ifdef _WIN32
+//        GUID newId;
+//        CoCreateGuid(&newId);
+//
+//        unsigned char bytes[16];
+//        ::CopyMemory(&bytes, &newId, sizeof(bytes));
+//        out_bytes.assign(bytes, bytes + 16);
+//#else
+//        uuid_t id;
+//        uuid_generate(id);
+//        rade::Assert(sizeof(uuid_t) == 128/CHAR_BIT, "GUID size mis-match\n");
+//        memcpy(out_bytes, id, 16);
+//#endif
+//    }
 };

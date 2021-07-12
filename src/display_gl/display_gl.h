@@ -2,10 +2,10 @@
 
 #include <vector>
 #include <map>
+
 #include "glm/glm.hpp"
 #include "shader_gl.h"
 #include "mesh_gl.h"
-//#include "rendermesh_gl.h"
 #include "rendertext_gl.h"
 #include "camera.h"
 #include "materialmanager.h"
@@ -46,18 +46,19 @@ public:
         return m_materialMgr;
     }
 
-    void RenderMeshID(uint32_t id, rade::Camera& cam);
+    //
+    // Meshes
+    //
+    void RenderAllMeshes();
 
-    void RenderMeshes(rade::Camera& cam);
+    IRenderObj* AddMesh(rade::CPolyMesh& polyMesh);
 
-    uint32_t AddMesh(rade::CPolyMesh& polyMesh);
+    void DeleteMesh(IRenderObj* renderObj);
 
-    int GetMaxTextureSize()
+    int GetMaxTextureSize() const
     {
         return m_maxTextureSize;
     }
-
-    void DeleteMesh(uint32_t id);
 
     void RenderTextObjects();
 
@@ -73,7 +74,7 @@ public:
 
     static bool DeleteTextureID(uint32_t texID);
 
-    void RenderDebugQuad(rade::Camera& cam);
+    //void RenderDebugQuad(rade::Camera& cam);
 
     bool LoadShader(const std::string& name, const std::string& vertString, const std::string& fragString);
     Shader* GetShader(const std::string& name);
@@ -87,7 +88,8 @@ private:
     CMaterial* m_noTexture = nullptr;
     rade::Camera* m_activeCamera = nullptr;
 
-    std::vector<CMeshGL> m_meshes;
+
+    std::map<IRenderObj*, CMeshGL*> m_meshes;
     std::map<std::string, CRenderTextGL*> m_textMeshes;
 
     CMaterialManager m_materialMgr;
@@ -96,8 +98,6 @@ private:
 
     int m_maxTextureSize = 1024;
     int m_maxTextureUnits = 16;
-
-
 
     std::map<std::string, Shader*> m_shaders;
 };
