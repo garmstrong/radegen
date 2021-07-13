@@ -2,8 +2,10 @@
 #include "shader_gl.h"
 #include "osutils.h"
 #include "point3d.h"
+#include "point2d.h"
 
 #include <glad/glad.h>
+
 
 using namespace rade;
 
@@ -161,9 +163,9 @@ void Shader::SetFloat(const std::string &name, float value)
 	glUniform1f(GetUniformLocation(name), value);
 }
 
-void Shader::SetVec2(const std::string &name, const glm::vec2 &value)
+void Shader::SetVec2(const std::string &name, const rade::vector2 &value)
 {
-	glUniform2fv(GetUniformLocation(name), 1, &value[0]);
+    SetVec2(name, value.x, value.y);
 }
 
 void Shader::SetVec2(const std::string &name, float x, float y)
@@ -171,10 +173,10 @@ void Shader::SetVec2(const std::string &name, float x, float y)
 	glUniform2f(GetUniformLocation(name), x, y);
 }
 
-void Shader::SetVec3(const std::string &name, const glm::vec3 &value)
-{
-	glUniform3fv(GetUniformLocation(name), 1, &value[0]);
-}
+//void Shader::SetVec3(const std::string &name, const glm::vec3 &value)
+//{
+//	glUniform3fv(GetUniformLocation(name), 1, &value[0]);
+//}
 
 void Shader::SetVec3(const std::string &name, const rade::vector3 &value)
 {
@@ -188,25 +190,25 @@ void Shader::SetVec3(const std::string &name, float x, float y, float z)
 	glUniform3f(GetUniformLocation(name), x, y, z);
 }
 
-void Shader::SetVec4(const std::string &name, const glm::vec4 &value)
-{
-	glUniform4fv(GetUniformLocation(name), 1, &value[0]);
-}
+//void Shader::SetVec4(const std::string &name, const glm::vec4 &value)
+//{
+//	glUniform4fv(GetUniformLocation(name), 1, &value[0]);
+//}
 
-void Shader::SetVec4(const std::string &name, float x, float y, float z, float w)
-{
-	glUniform4f(GetUniformLocation(name), x, y, z, w);
-}
-
-void Shader::SetMat2(const std::string &name, const glm::mat2 &mat)
-{
-	glUniformMatrix2fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
-}
-
-void Shader::SetMat3(const std::string &name, const glm::mat3 &mat)
-{
-	glUniformMatrix3fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
-}
+//void Shader::SetVec4(const std::string &name, float x, float y, float z, float w)
+//{
+//	glUniform4f(GetUniformLocation(name), x, y, z, w);
+//}
+//
+//void Shader::SetMat2(const std::string &name, const glm::mat2 &mat)
+//{
+//	glUniformMatrix2fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
+//}
+//
+//void Shader::SetMat3(const std::string &name, const glm::mat3 &mat)
+//{
+//	glUniformMatrix3fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
+//}
 
 void Shader::SetMat4(const std::string &name, const glm::mat4 &mat)
 {

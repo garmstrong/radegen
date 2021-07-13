@@ -40,7 +40,7 @@ namespace rade
 
     bool Image::LoadFile(const std::string& filePath, bool usePlatformAsset /*= false*/)
     {
-        Timer time;
+        timer time;
 
         long size = 0;
         char* buff = nullptr;

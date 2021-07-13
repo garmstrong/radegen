@@ -98,13 +98,21 @@ namespace rade
                 y * vec.y,
                 z * vec.z};
     }
+//
+//    vector3 vector3::operator-(const rade::vector3& vec) const
+//    {
+//        return {-x,
+//                -y,
+//                -z};
+//    }
 
     // invert
-    void vector3::Negate()
+    vector3 vector3::Negate()
     {
         x = -x;
         y = -y;
         z = -z;
+        return *this;
     }
 
     float vector3::Dot(const vector3& p) const

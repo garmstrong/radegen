@@ -6,6 +6,7 @@
 #include "plane3d.h"
 #include "image.h"
 #include "rmath.h"
+#include "osutils.h"
 
 //using namespace rade;
 
@@ -124,7 +125,8 @@ bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, 
     return false;
 }
 
-void CLightmapGen::CalcEdgeVectors(const rade::plane3d& plane, const float* uvMin, const float* uvMax, rade::vector3& edge1,
+void
+CLightmapGen::CalcEdgeVectors(const rade::plane3d& plane, const float* uvMin, const float* uvMax, rade::vector3& edge1,
         rade::vector3& edge2,
         rade::vector3& UVVector)
 {
@@ -273,7 +275,8 @@ void CLightmapGen::CalcLightmapUV(std::vector<rade::vector3>& polyPoints, rade::
     }
 }
 
-int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const std::vector<rade::Light>& lights,
+int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList,
+        const std::vector<rade::Light>& lights,
         CLightmapImg* lightmap) const
 {
     //rade::plane3d plane(poly);
@@ -318,7 +321,8 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
             newedge2 = edge2 * vfactor;
             lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
 
-            rade::vector3 color((float)m_options.shadowUnlit, (float)m_options.shadowUnlit, (float)m_options.shadowUnlit);
+            rade::vector3 color((float)m_options.shadowUnlit, (float)m_options.shadowUnlit,
+                    (float)m_options.shadowUnlit);
 
             for (auto& light :lights)
             {
@@ -368,7 +372,7 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
         }
 
         rade::Image bm(lightmapWidth, lightmapHeight, rade::Image::Format_RGBA, lightmap->m_data);
-        for(int i=0;i<m_options.postBlur; i++)
+        for (int i = 0; i < m_options.postBlur; i++)
             bm.Blur();
 
 //
@@ -387,7 +391,8 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
         {
             for (int iY = 0; iY < lightmapHeight; iY++)
             {
-                rade::vector3 p((float)m_options.shadowUnlit, (float)m_options.shadowUnlit, (float)m_options.shadowUnlit);
+                rade::vector3 p((float)m_options.shadowUnlit, (float)m_options.shadowUnlit,
+                        (float)m_options.shadowUnlit);
                 lightmap->SetPixel(iX, iY, p);
             }
         }
@@ -514,7 +519,8 @@ int CLightmapGen::CalcSunLightmap(rade::poly3d* poly, std::vector<rade::poly3d>&
     return dataModified;
 }
 
-int CLightmapGen::CalcPolyAmbientOcclusion(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, CLightmapImg& lightmap)
+int
+CLightmapGen::CalcPolyAmbientOcclusion(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, CLightmapImg& lightmap)
 {
     rade::plane3d plane = poly->GetPlane();
     std::vector<rade::vector3>& polyPoints = poly->GetPointListRef();
@@ -663,13 +669,13 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::poly3d>& polyList,
 
 
 
-          int hasAmbient = 0;
+        int hasAmbient = 0;
 //        CLightmapImg lmAO;
 //        hasAmbient = CalcPolyAmbientOcclusion(&poly, polyList, lmAO);
 //        writeLM = true;
 
         int hasShadows = 0;
-        CLightmapImg *lmShadow = new CLightmapImg();
+        CLightmapImg* lmShadow = new CLightmapImg();
         hasShadows = CalcShadowLightmap(&poly, polyList, lights, lmShadow);
         if (hasShadows)
         {
@@ -692,14 +698,14 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::poly3d>& polyList,
 
         if (writeLM)
         {
-            // BEGIN LOCK
             m_lmMutex.lock();
+
             // copy the ptr to the shared list, get an index and quickly get out of here
-            //m_lightMapList.push_back(lmAO);
-            m_lightMapList.push_back(lmShadow);
+            m_lightMapList.emplace_back(lmShadow);
             uint32_t lmIndex = static_cast<uint32_t>(m_lightMapList.size()) - 1;
+
             m_lmMutex.unlock();
-            // END LOCK
+
             poly.SetLightmapDataIndex(lmIndex);
         }
         else
@@ -717,7 +723,6 @@ void CLightmapGen::ThreadWorkerLightmapRange(std::vector<rade::poly3d>* polyList
         threadData_t* threadData,
         int threadID)
 {
-    //rade::Log("Thread %i processing from %i - %i\n", threadID, startIndex, endIndex);
     GenerateLightMapDataRange(*polyList, *lights, threadData);
 }
 
@@ -735,13 +740,13 @@ void CLightmapGen::ThreadStatusUpdate(threadData_t* threadData, uint16_t numThre
             totalDone += threadData[i].completedItems;
         }
 
-        float pctComplete = float(totalDone) / float(totalItems);
+        float pctComplete = static_cast<float>(totalDone) / static_cast<float>(totalItems) * 100;
         //PrintProgress(pctComplete);
 
         if (totalDone >= totalItems)
             complete = true;
 
-        m_progress = static_cast<int>(pctComplete*100.0f);
+        m_progress = static_cast<int>(pctComplete);
         NotifyCallbacks();
 
     } while (!complete);
@@ -765,13 +770,13 @@ int CLightmapGen::GenerateLightmaps(
     }
 
     threadData_t threadData[/*processor_count*/ 128];
-    printf("spawning %i threads\n", processor_count);
+    rade::Log("Spawning %i threads\n", processor_count);
 
-    unsigned int polyCount = static_cast<unsigned int>(polyList.size());
+    auto polyCount = static_cast<unsigned int>(polyList.size());
     unsigned int range = polyCount / processor_count;
 
     // generate simple black lightmap to use for all polys that have no lights affecting them
-    CLightmapImg *lmBlack = new CLightmapImg();
+    auto* lmBlack = new CLightmapImg();
     GenerateLMData(m_options.shadowUnlit, *lmBlack);
     m_lightMapList.push_back(lmBlack);
 

@@ -11,7 +11,7 @@
 
 namespace rade
 {
-    class CTextMesh;
+    class textmesh;
 };
 
 namespace NRadeLamp

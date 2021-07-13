@@ -145,7 +145,7 @@ namespace rade
 //        }
 //
 //        // add this to the renderer
-//        m_meshID = display.AddMesh(*this);
+//        m_meshID = display.AddPolyMesh(*this);
 //        return m_meshID;
 //    }
 };

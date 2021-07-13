@@ -11,7 +11,7 @@ namespace rade
     public:
         float x = 0.0f;
         float y = 0.0f;
-        float z = 0.0f;
+        //float z = 0.0f;
 
         vector2()
         {
@@ -127,10 +127,10 @@ namespace rade
             return sqrtf(rade::math::vsqr(fabsf(p.x - x)) + rade::math::vsqr(fabsf(p.y - y)));
         }
 
-        vector2 CrossProduct(const vector2& p2) const
-        {
-            return {y * p2.z - z * p2.y,
-                    z * p2.x - x * p2.z};
-        }
+//        vector2 CrossProduct(const vector2& p2) const
+//        {
+//            return {y * p2.z - z * p2.y,
+//                    z * p2.x - x * p2.z};
+//        }
     };
 };

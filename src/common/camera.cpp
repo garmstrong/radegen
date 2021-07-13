@@ -1,10 +1,11 @@
 #define _USE_MATH_DEFINES
 
 #include <cmath>
-#include "glm/gtc/matrix_transform.hpp"
+
 #include "camera.h"
 #include "osutils.h"
 
+using namespace rade;
 
 static const float MaxVerticalAngle = 88.0f; //must be less than 90 to avoid gimbal lock
 
@@ -87,19 +88,76 @@ namespace rade
     {
     }
 
-//const glm::vec3& Camera::GetPosition() const
-//{
-//    return m_position;
-//}
+    glm::mat4 Camera::GetOrientation() const
+    {
+        glm::mat4 orientation;
+        orientation = glm::rotate(orientation, glm::radians(m_verticalAngle), glm::vec3(1, 0, 0));
+        orientation = glm::rotate(orientation, glm::radians(m_horizontalAngle), glm::vec3(0, 1, 0));
+        return orientation;
+    }
 
-    void Camera::SetPosition(const glm::vec3& position)
+    glm::mat4 Camera::GetProjection() const
+    {
+        if (m_isOrtho)
+        {
+            return glm::ortho(
+                    -(m_videoWidth / 2),  // left
+                    (m_videoWidth / 2),  // right
+                    -(m_videoHeight / 2), // bottom
+                    (m_videoHeight / 2), // top
+                    -1000.0f,
+                    1000.0f);
+        }
+        else
+        {
+            return glm::perspective(glm::radians(m_fieldOfView), m_viewportAspectRatio, m_nearPlane, m_farPlane);
+        }
+    }
+
+    glm::mat4 Camera::GetView() const
+    {
+        return GetOrientation() * glm::translate(glm::mat4(), -glm::vec3(m_position.x, m_position.y, m_position.z));
+    }
+
+    void Camera::LookAt(const rade::vector3& position)
+    {
+        glm::vec3 direction = glm::normalize(glm::vec3(position.x, position.y, position.z) - glm::vec3(m_position.x, m_position.y, m_position.z));
+        m_verticalAngle = glm::degrees(asinf(-direction.y));
+        m_horizontalAngle = -glm::degrees(atan2f(-direction.x, -direction.z));
+        NormalizeAngles();
+    }
+
+    rade::vector3 Camera::ForwardVector() const
+    {
+        glm::vec4 fwd = glm::inverse(GetOrientation()) * glm::vec4(0, 0, -1, 1);
+        return {fwd.x, fwd.y, fwd.z};
+    }
+
+    rade::vector3 Camera::RightVector() const
+    {
+        glm::vec4 right = glm::inverse(GetOrientation()) * glm::vec4(1, 0, 0, 1);
+        return {right.x, right.y, right.z};
+    }
+
+    rade::vector3 Camera::UpVector() const
+    {
+        glm::vec4 up = glm::inverse(GetOrientation()) * glm::vec4(0, 1, 0, 1);
+        return {up.x, up.y, up.z};
+    }
+
+    glm::mat4 Camera::GetMatrix() const
+    {
+        return GetProjection() * GetView();
+    }
+
+    void Camera::SetPosition(const rade::vector3& position)
     {
         m_position = position;
     }
 
-    void Camera::OffsetPosition(const glm::vec3& offset)
+    void Camera::OffsetPosition(const rade::vector3& offset)
     {
-        m_position += offset;
+        m_position = m_position + offset;
     }
 
     void Camera::SetHorizontalAngle(const float horizontalAngle)
@@ -112,7 +170,7 @@ namespace rade
         m_verticalAngle = verticalAngle;
     }
 
-    void Camera::SetRotation(const glm::vec3& rotation)
+    void Camera::SetRotation(const rade::vector3& rotation)
     {
         m_horizontalAngle = rotation.x;
         m_verticalAngle = rotation.y;
@@ -149,14 +207,9 @@ namespace rade
         return m_nearPlane;
     }
 
-    glm::vec3 Camera::GetPositionGLM() const
-    {
-        return glm::vec3(m_position.x, m_position.y, m_position.z);
-    }
-
     rade::vector3 Camera::GetPosition() const
     {
-        return rade::vector3(m_position.x, m_position.y, m_position.z);
+        return m_position;
     }
 
     float Camera::GetFarPlane() const
@@ -172,27 +225,10 @@ namespace rade
         m_farPlane = farPlane;
     }
 
-    glm::mat4 Camera::GetOrientation() const
-    {
-        glm::mat4 orientation;
-        orientation = glm::rotate(orientation, glm::radians(m_verticalAngle), glm::vec3(1, 0, 0));
-        orientation = glm::rotate(orientation, glm::radians(m_horizontalAngle), glm::vec3(0, 1, 0));
-        return orientation;
-    }
-
     void Camera::OffsetOrientation(float upAngle, float rightAngle)
     {
         m_horizontalAngle += rightAngle;
         m_verticalAngle += upAngle;
-        NormalizeAngles();
-    }
-
-    void Camera::LookAt(glm::vec3 position)
-    {
-        rade::Assert(position != m_position,  "Current position and lookat are the same\n");
-        glm::vec3 direction = glm::normalize(position - m_position);
-        m_verticalAngle = glm::degrees(asinf(-direction.y));
-        m_horizontalAngle = -glm::degrees(atan2f(-direction.x, -direction.z));
         NormalizeAngles();
     }
 
@@ -205,52 +241,6 @@ namespace rade
     {
         rade::Assert(viewportAspectRatio > 0.0, "Invalid aspect ratio\n");
         m_viewportAspectRatio = viewportAspectRatio;
-    }
-
-    glm::vec3 Camera::ForwardVector() const
-    {
-        glm::vec4 forward = glm::inverse(GetOrientation()) * glm::vec4(0, 0, -1, 1);
-        return glm::vec3(forward);
-    }
-
-    glm::vec3 Camera::RightVector() const
-    {
-        glm::vec4 right = glm::inverse(GetOrientation()) * glm::vec4(1, 0, 0, 1);
-        return glm::vec3(right);
-    }
-
-    glm::vec3 Camera::UpVector() const
-    {
-        glm::vec4 up = glm::inverse(GetOrientation()) * glm::vec4(0, 1, 0, 1);
-        return glm::vec3(up);
-    }
-
-    glm::mat4 Camera::GetMatrix() const
-    {
-        return GetProjection() * GetView();
-    }
-
-    glm::mat4 Camera::GetProjection() const
-    {
-        if (m_isOrtho)
-        {
-            return glm::ortho(
-                    -(m_videoWidth / 2),  // left
-                     (m_videoWidth / 2),  // right
-                    -(m_videoHeight / 2), // bottom
-                     (m_videoHeight / 2), // top
-                    -1000.0f,
-                     1000.0f);
-        }
-        else
-        {
-            return glm::perspective(glm::radians(m_fieldOfView), m_viewportAspectRatio, m_nearPlane, m_farPlane);
-        }
-    }
-
-    glm::mat4 Camera::GetView() const
-    {
-        return GetOrientation() * glm::translate(glm::mat4(), -m_position);
     }
 
     void Camera::NormalizeAngles()

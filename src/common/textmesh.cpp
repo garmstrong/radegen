@@ -2,58 +2,30 @@
 
 #include "textmesh.h"
 #include "point2d.h"
-#include "osutils.h"
 #include "display_gl.h"
 
 namespace rade
 {
-    CTextMesh::CTextMesh()
+    textmesh::textmesh()
     = default;
 
-    CTextMesh::~CTextMesh()
-    = default;
-
-    bool CTextMesh::Init(const std::string& id,
-            CDisplayGL* display,
-            Camera* cam,
-            const rade::vector3& pos,
+    bool textmesh::Init(const std::string& matKey,
             const uint16_t size,
-            const std::string& matKey,
             const uint16_t maxChars /*= 256*/ )
     {
-        m_textHandleID = id;
         m_matKey = matKey;
-        m_display = display;
-        rade::Assert(m_display, "CTextMesh::Init Display cannot be null\n");
-        m_label = "CTextMesh text";
         m_maxChars = maxChars;
         GenerateLabelGeometry(m_maxChars, size);
-        display->LoadTextMesh(this);
-        SetPos(pos);
-        SetCamera(cam);
         return true;
     }
 
-    bool CTextMesh::Reset()
+    bool textmesh::Reset()
     {
-        m_display->RemoveTextMesh(m_textHandleID);
         m_matKey = "";
-        m_display = nullptr;
-        m_label = "CTextMesh text";
-        m_textHandleID = "";
         return true;
     }
 
-    void CTextMesh::SetText(const std::string& label)
-    {
-        if (m_label != label)
-        {
-            m_label = label;
-            m_display->UpdateTextMesh(m_textHandleID, label);
-        }
-    }
-
-    rade::vector2 CTextMesh::GetGlyphPosition(char glyphChar)
+    rade::vector2 textmesh::GetGlyphPosition(char glyphChar)
     {
         rade::vector2 uvOffset;
         const int cFontWidth = 16;
@@ -65,7 +37,7 @@ namespace rade
         return uvOffset;
     }
 
-    bool CTextMesh::GenerateLabelGeometry(const uint16_t maxChars, const uint16_t size)
+    bool textmesh::GenerateLabelGeometry(const uint16_t maxChars, const uint16_t size)
     {
         float size_x = size;
         float size_y = size;
@@ -123,22 +95,11 @@ namespace rade
             newPoly.AddPoint(p2);
             newPoly.AddPoint(p1);
             newPoly.SetMaterialKey(m_matKey);
+            newPoly.SetShaderKey("font");
             m_polyMesh.AddPoly(newPoly);
         }
 
         return true;
-    }
-
-    void CTextMesh::SetPos(const rade::vector3& pos)
-    {
-        m_pos = pos;
-        m_display->UpdateTextMeshPos(m_textHandleID, pos);
-    }
-
-    void CTextMesh::SetCamera(rade::Camera* cam)
-    {
-        m_camera = cam;
-        m_display->UpdateTextMeshCamera(m_textHandleID, m_camera);
     }
 
 };

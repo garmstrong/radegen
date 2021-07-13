@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "glm/glm.hpp"
+//#include "glm/glm.hpp"
 #include "shader_gl.h"
 #include "mesh_gl.h"
 #include "rendertext_gl.h"
@@ -51,7 +51,7 @@ public:
     //
     void RenderAllMeshes();
 
-    IRenderObj* AddMesh(rade::polymesh& polyMesh);
+    IRenderObj* AddPolyMesh(rade::polymesh& polyMesh);
 
     void DeleteMesh(IRenderObj* renderObj);
 
@@ -62,19 +62,11 @@ public:
 
     void RenderTextObjects();
 
-    void LoadTextMesh(rade::CTextMesh* textMesh);
+    IRenderObj* AddTextMesh(rade::textmesh& textMesh);
 
-    void UpdateTextMesh(const std::string& name, const std::string& newString);
-
-    void UpdateTextMeshPos(const std::string& name, const rade::vector3& pos);
-
-    void UpdateTextMeshCamera(const std::string& name, rade::Camera* camera);
-
-    void RemoveTextMesh(const std::string& name);
+    void DeleteTextMesh(IRenderObj* renderObj);
 
     static bool DeleteTextureID(uint32_t texID);
-
-    //void RenderDebugQuad(rade::Camera& cam);
 
     bool LoadShader(const std::string& name, const std::string& vertString, const std::string& fragString);
     Shader* GetShader(const std::string& name);
@@ -90,7 +82,8 @@ private:
 
 
     std::map<IRenderObj*, CMeshGL*> m_meshes;
-    std::map<std::string, CRenderTextGL*> m_textMeshes;
+    //std::map<std::string, CRenderTextGL*> m_textMeshes;
+    std::map<IRenderObj*, CRenderTextGL*> m_textMeshes;
 
     CMaterialManager m_materialMgr;
 

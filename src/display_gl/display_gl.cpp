@@ -179,7 +179,7 @@ void CDisplayGL::SetViewport(int screenWidth, int screenHeight)
     glViewport(0, 0, screenWidth, screenHeight);
 }
 
-IRenderObj* CDisplayGL::AddMesh(rade::polymesh& polyMesh)
+IRenderObj* CDisplayGL::AddPolyMesh(rade::polymesh& polyMesh)
 {
     rade::Assert(m_activeCamera, "display has no active camera\n");
 
@@ -215,73 +215,56 @@ void CDisplayGL::DeleteMesh(IRenderObj* renderObj)
     renderObj = nullptr;
 }
 
+IRenderObj* CDisplayGL::AddTextMesh(rade::textmesh& textMesh)
+{
+    rade::Assert(m_activeCamera, "display has no active camera\n");
+
+    // generate a GL specific render mesh object for this mesh
+    auto *textmesh = new CRenderTextGL(this, &textMesh.GetPolyMesh());
+    textmesh->SetCamera(m_activeCamera);
+
+    // the std::map really does nothing here, we are just hiding the CMeshGL (OpenGL specific) class
+    // from the outside. It *could* be casted to the CMeshGL (for debugging purposes), but we dont
+    // actually do that for normal run-time operations because the dynamic_cast is actually slow (and
+    // badly with classes that have lots of data on them)
+    auto* renderObj = dynamic_cast<IRenderObj*>(textmesh);
+    m_textMeshes[renderObj] = textmesh;
+    return renderObj;
+}
+
+void CDisplayGL::DeleteTextMesh(IRenderObj* renderObj)
+{
+    CRenderTextGL* textMeshGL = m_textMeshes[renderObj];
+    rade::Assert(textMeshGL, "renderObj pointer is invalid or stale\n");
+
+    textMeshGL->Reset();
+    m_textMeshes.erase(renderObj);
+    delete renderObj;
+    renderObj = nullptr;
+
+//    CRenderTextGL* textGL = m_textMeshes[name];
+//    textGL->Reset();
+//    delete textGL;
+//    m_textMeshes.erase(name);
+}
+
 void CDisplayGL::RenderTextObjects()
 {
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    Shader *shader = GetShader("font");
-    rade::Assert(shader, "CMeshGL cant find font shader");
-
-    shader->Use();
     for (auto& textMesh : m_textMeshes)
     {
-        CRenderTextGL *txtGL = textMesh.second;
-        shader->SetMat4("projection", txtGL->GetCamera()->GetProjection());
-        shader->SetMat4("view", txtGL->GetCamera()->GetView());
-        //m_fontShader.SetMat4("model", glm::mat4(1.0f));
-        glm::vec3 pos(txtGL->GetPos().x, txtGL->GetPos().y, txtGL->GetPos().z);
-        shader->SetMat4("model", glm::translate(glm::mat4(), pos));
-        rade::Camera* cam = txtGL->GetCamera();
-        Assert(cam, "textmesh camera was null\n");
-        txtGL->RenderAllFaces(shader);
+        textMesh.second->RenderAllFaces(*this);
     }
-}
-
-void CDisplayGL::RemoveTextMesh(const std::string& name)
-{
-    CRenderTextGL* textGL = m_textMeshes[name];
-    textGL->Reset();
-    delete textGL;
-    m_textMeshes.erase(name);
-}
-
-void CDisplayGL::LoadTextMesh(CTextMesh* textMesh)
-{
-    auto *newMesh = new CRenderTextGL(this, &textMesh->GetPolyMesh());
-    // return index so can be rendered later
-    m_textMeshes[textMesh->GetDisplayID()] = newMesh;
-}
-
-void CDisplayGL::UpdateTextMesh(const std::string& name, const std::string& newString)
-{
-    CRenderTextGL* textGL = m_textMeshes[name];
-    textGL->UpdateText(newString);
-}
-
-void CDisplayGL::UpdateTextMeshPos(const std::string& name, const rade::vector3& pos)
-{
-    CRenderTextGL* textGL = m_textMeshes[name];
-    textGL->SetPos(pos);
-}
-
-void CDisplayGL::UpdateTextMeshCamera(const std::string& name, rade::Camera *camera)
-{
-    CRenderTextGL* textGL = m_textMeshes[name];
-    textGL->SetCamera(camera);
 }
 
 bool CDisplayGL::LoadShader(const std::string& name, const std::string& vertFile, const std::string& fragFile)
 {
-    Shader *shader = new Shader();
+    auto *shader = new Shader();
     bool success = shader->CreateShader(name, vertFile.c_str(), fragFile.c_str());
     if(!success)
     {
         rade::Log("Shader %s failed to load\n", name.c_str());
         return false;
     }
-
     m_shaders[name] = shader;
     return success;
 }

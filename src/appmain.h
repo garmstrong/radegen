@@ -68,7 +68,7 @@ public:
 
 protected:
 
-    rade::Timer m_timer;
+    rade::timer m_timer;
 
     void UpdateTransformViaInputs(float deltaTime);
 
@@ -90,7 +90,11 @@ protected:
 
     IRenderObj *m_mainMesh = nullptr;
 
+    IRenderObj *m_textObj = nullptr;
+
     bool LoadAppShaders();
 
     void DeleteLightmaps();
+
+    void DeleteLights();
 };

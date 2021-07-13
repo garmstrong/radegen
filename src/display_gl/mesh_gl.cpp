@@ -35,7 +35,7 @@ void CMeshGL::Reset()
 void CMeshGL::RenderAllFaces(CDisplayGL *display)
 {
     rade::Assert(m_camera, "Camera is null\n");
-    static rade::Timer timer;
+    static rade::timer timer;
 
     // generate VBO's for each section
     for (auto & vbuff : m_vertBuffers)
@@ -46,10 +46,10 @@ void CMeshGL::RenderAllFaces(CDisplayGL *display)
         shader->Use();
         shader->SetMat4("projection", m_camera->GetProjection());
         shader->SetMat4("view", m_camera->GetView());
-        shader->SetMat4("model", m_transform.GetMatrix());
+        shader->SetMat4("model", m_transform.GetModelMatrix());
         shader->SetVec3("viewPos", m_camera->GetPosition());
-        shader->SetVec3("lightPos", glm::vec3(0, 0, 0));
-        shader->SetVec3("lightColor", glm::vec3(1, 1, 1));
+        shader->SetVec3("lightPos", rade::vector3(0, 0, 0));
+        shader->SetVec3("lightColor", rade::vector3(1, 1, 1));
         shader->SetInt("lightmapTexture", 1);
         shader->SetFloat("time", timer.ElapsedTime());
 
@@ -59,7 +59,7 @@ void CMeshGL::RenderAllFaces(CDisplayGL *display)
             using namespace RMaterials;
             texID = vbuff.second.mat->GetTextureProps(TEXTURE_SLOT_DIFFUSE)->loadedTextureID;
         }
-        glEnable(GL_TEXTURE_2D);
+
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texID);
@@ -72,6 +72,10 @@ void CMeshGL::RenderAllFaces(CDisplayGL *display)
 
         glBindVertexArray(vbuff.second.glVAOId);
         glDrawArrays(GL_TRIANGLES, 0, vbuff.second.numVerts);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
 

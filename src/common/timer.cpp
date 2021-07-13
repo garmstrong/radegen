@@ -4,18 +4,18 @@ using namespace std::chrono;
 
 namespace rade
 {
-    Timer::Timer()
+    timer::timer()
     {
         Start();
     }
 
-    void Timer::Start()
+    void timer::Start()
     {
         startTime = high_resolution_clock::now();
     }
 
     // returns time elapses since start() or constructor called
-    float Timer::ElapsedTime() const
+    float timer::ElapsedTime() const
     {
         high_resolution_clock::time_point now = high_resolution_clock::now();
         duration<double> time_span = duration_cast<duration<double>>(now - startTime);

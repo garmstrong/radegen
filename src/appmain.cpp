@@ -15,13 +15,15 @@ CAppMain::CAppMain() :
 CAppMain::~CAppMain()
 {
     m_polyMesh.ClearLightmaps();
-
     DeleteLightmaps();
+    DeleteLights();
+}
 
+void CAppMain::DeleteLights()
+{
     for (auto& light : m_lights)
     {
-        light.label->Reset();
-        delete light.label;
+        m_display.DeleteTextMesh(light.renderObj);
     }
     m_lights.clear();
 }
@@ -49,7 +51,7 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     m_cameraUI.SetViewport((float)videoWidth, (float)videoHeight);
 
     // setup camera
-    m_camera.SetPosition(glm::vec3(0, 0, 0));
+    m_camera.SetPosition(rade::vector3(0, 0, 0));
     m_camera.SetViewportAspectRatio(static_cast<float>(videoWidth) / static_cast<float>(videoHeight));
     m_camera.SetFieldOfView(90);
     m_camera.SetNearAndFarPlanes(0.1f, 1500.0f);
@@ -74,16 +76,27 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     // make a basic quad for the logo
     rade::polymesh logomesh;
     poly3d poly;
-    poly.ConstructQuad(323/4, 122/4, 1.0f);
+    poly.ConstructQuad(323/3, 122/3, 1.0f);
     poly.SetMaterialKey("rade_large");
-    poly.SetShaderKey("spriteheat");
+    poly.SetShaderKey("sprite");
     logomesh.AddPoly(poly);
 
-    m_logoObj = m_display.AddMesh(logomesh);
+    m_logoObj = m_display.AddPolyMesh(logomesh);
     m_logoObj->SetCamera(&m_camera);
-    //m_logoObj->GetTransform().SetPosition(glm::vec3(-880, -480.0f, -1.0f));
-    //m_logoObj->GetTransform().OffsetOrientation(0.1f * m_timer.ElapsedTime(), 0.0f);
+    m_logoObj->GetTransform().SetTranslation(rade::vector3(-880, -480.0f, -1.0f));
+    m_logoObj->GetTransform().SetTranslation(rade::vector3(0.0f, -80.0f, 0.0f));
+    m_logoObj->GetTransform().SetRotation(rade::vector3(0.0f, 0.0f, 0.0f));
+    m_logoObj->GetTransform().SetScale(rade::vector3(2.0f, 1.0, 1.0f));
 
+    rade::textmesh textMesh;
+    if(!textMesh.Init("system/font", 16))
+    {
+        return false;
+    }
+    m_textObj = m_display.AddTextMesh(textMesh);
+    m_textObj->SetCamera(&m_cameraUI);
+    m_textObj->GetTransform().SetTranslation(rade::vector3(0, 0.0f, 0.0f));
+    m_textObj->GetTransform().SetScale(rade::vector3(1.7f, 1.0f, 1.0f));
     return true;
 }
 
@@ -149,8 +162,16 @@ void CAppMain::DrawTick(float deltaTime)
     m_display.RenderAllMeshes();
 
     m_display.RenderTextObjects();
-    m_uiDisplay.Draw();
 
+
+    //m_textObj->SetText("time since start: %f", m_timer.ElapsedTime());
+
+//    static float x = 0.0f;
+//    x+= 10.0f * m_lastDeltaTime;
+//    m_mainMesh->GetTransform().SetRotation( vector3(x, 0.0f, 0.0f) );
+//    m_mainMesh->GetTransform().SetScale( {1.0f, 0.5f, 1.0f} );
+
+    m_uiDisplay.Draw();
 }
 
 void CAppMain::UpdateCameraInputs(float deltaTime)
@@ -219,7 +240,7 @@ void CAppMain::OnMouseWheel(int y)
     {
         movementDelta = -movementDelta;
     }
-    m_camera.OffsetPosition(movementDelta * m_camera.ForwardVector());
+    m_camera.OffsetPosition(m_camera.ForwardVector() * movementDelta);
 }
 
 void CAppMain::UpdateTransformViaInputs(float deltaTime)
@@ -230,56 +251,42 @@ void CAppMain::UpdateTransformViaInputs(float deltaTime)
 
     if (m_inputs.IsPressed(KB_KEY_W))
     {
-        m_camera.OffsetPosition(moveSpeed * m_camera.ForwardVector());
-        //transform.OffsetPosition(moveSpeed * transform.ForwardVector());
+        m_camera.OffsetPosition(m_camera.ForwardVector() * moveSpeed);
     }
 
     if (m_inputs.IsPressed(KB_KEY_S))
     {
-        m_camera.OffsetPosition(moveSpeed * -m_camera.ForwardVector());
-        //transform.OffsetPosition(moveSpeed * -transform.ForwardVector());
+        m_camera.OffsetPosition(m_camera.ForwardVector() * -moveSpeed);
     }
 
     if (m_inputs.IsPressed(KB_KEY_A))
     {
-        m_camera.OffsetPosition(moveSpeed * -m_camera.RightVector());
-        //transform.OffsetPosition(moveSpeed * -transform.RightVector());
+        m_camera.OffsetPosition(m_camera.RightVector() * -moveSpeed);
     }
 
     if (m_inputs.IsPressed(KB_KEY_D))
     {
-        m_camera.OffsetPosition(moveSpeed * m_camera.RightVector());
-        //transform.OffsetPosition(moveSpeed * transform.RightVector());
-    }
-
-    if (m_inputs.IsPressed(KB_KEY_X))
-    {
-        m_camera.OffsetPosition(moveSpeed * glm::vec3(0, 1, 0));
-        //transform.OffsetPosition(moveSpeed * glm::vec3(0, 1, 0));
+        m_camera.OffsetPosition(m_camera.RightVector() * moveSpeed);
     }
 
     if (m_inputs.IsPressed(KB_KEY_LEFT))
     {
         m_camera.OffsetOrientation(0.0f, -70.0f * deltaTime);
-        //transform.OffsetOrientation(0.0f, -70.0f * deltaTime);
     }
 
     if (m_inputs.IsPressed(KB_KEY_RIGHT))
     {
         m_camera.OffsetOrientation(0.0f, 70.0f * deltaTime);
-        //transform.OffsetOrientation(0.0f, 70.0f * deltaTime);
     }
 
     if (m_inputs.IsPressed(KB_KEY_SPACE))
     {
-        m_camera.OffsetPosition(moveSpeed * m_camera.UpVector());
-        //transform.OffsetPosition(moveSpeed * transform.UpVector());
+        m_camera.OffsetPosition(m_camera.UpVector() * moveSpeed);
     }
 
     if (m_inputs.IsPressed(KB_KEY_Z))
     {
-        m_camera.OffsetPosition(moveSpeed * -m_camera.UpVector());
-        //transform.OffsetPosition(moveSpeed * -transform.UpVector());
+        m_camera.OffsetPosition(m_camera.UpVector() * -moveSpeed);
     }
 }
 
@@ -299,7 +306,7 @@ bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector
     CLightmapGen lmGen;
 
     Log("generating lightmap data..\n");
-    Timer timer;
+    timer timer;
 
     lmGen.RegisterCallback(
             [this](int pctComplete)
@@ -347,14 +354,9 @@ bool CAppMain::OnUIMeshLoad(const std::string& filename)
         m_display.DeleteMesh(m_mainMesh);
     }
 
-    m_mainMesh = m_display.AddMesh(m_polyMesh);
+    m_mainMesh = m_display.AddPolyMesh(m_polyMesh);
 
-    for (auto & m_light : m_lights)
-    {
-        m_light.label->Reset();
-        delete m_light.label;
-    }
-    m_lights.clear();
+    DeleteLights();
 
     std::vector<mesh::SLight>& meshLights = tmpMesh.GetLightsRef();
     for (auto& light : meshLights)
@@ -385,7 +387,7 @@ void CAppMain::OnUILightmapsComplete()
     }
 
     // add a new one
-    m_mainMesh = m_display.AddMesh(m_polyMesh);
+    m_mainMesh = m_display.AddPolyMesh(m_polyMesh);
 }
 
 bool CAppMain::OnUIMeshSave(const std::string& filename)
@@ -419,21 +421,25 @@ std::vector<Light>& CAppMain::GetLightsRef()
 
 bool CAppMain::RemoveLight(int index)
 {
-    m_lights.at(index).label->Reset();
-    delete m_lights.at(index).label;
+    m_display.DeleteTextMesh(m_lights.at(index).renderObj);
     m_lights.erase(m_lights.begin() + index);
     return true;
 }
 
 bool CAppMain::AddLight(Light& newLight)
 {
-    auto* newLabel = new rade::CTextMesh();
-    if (!newLabel->Init(newLight.name, &m_display, &m_camera, newLight.pos, 4, "system/font"))
+    rade::textmesh textMesh;
+    if(!textMesh.Init("system/font", 3))
     {
         return false;
     }
-    newLabel->SetText(newLight.name);
-    newLight.label = newLabel;
+
+    IRenderObj *textObj = m_display.AddTextMesh(textMesh);
+    textObj->SetCamera(&m_camera);
+    textObj->GetTransform().SetTranslation(newLight.pos);
+    textObj->SetText(newLight.name);
+
+    newLight.renderObj = textObj;
     m_lights.emplace_back(newLight);
     return true;
 }
@@ -441,9 +447,9 @@ bool CAppMain::AddLight(Light& newLight)
 bool CAppMain::ChangeLightPos(Light& light, rade::vector3& pos)
 {
     light.pos = pos;
-    if (light.label)
+    if (light.renderObj)
     {
-        light.label->SetPos(pos);
+        light.renderObj->GetTransform().SetTranslation(pos);
     }
     return true;
 }

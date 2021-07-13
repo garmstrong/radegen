@@ -115,7 +115,7 @@ namespace rade
         // multiplication
         vector3 operator*(const vector3& v) const;
 
-        void Negate();
+        vector3 Negate();
 
         float Dot(const vector3& p) const;
 
@@ -146,5 +146,14 @@ namespace rade
             rVert->texCoordLM.y = lmV;
         }
     };
+
+//    // multiplication
+//    vector3 operator*(const float lhs, const rade::vector3& rhs)
+//    {
+//        return {lhs * rhs.x,
+//                lhs * rhs.y,
+//                lhs * rhs.z
+//                };
+//    }
 
 };

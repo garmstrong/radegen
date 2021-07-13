@@ -3,10 +3,10 @@
 #include <chrono>
 namespace rade
 {
-    class Timer
+    class timer
     {
     public:
-        Timer();
+        timer();
 
         void Start();
 

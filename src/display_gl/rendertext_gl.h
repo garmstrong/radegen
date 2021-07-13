@@ -7,6 +7,7 @@
 #include "camera.h"
 #include "point2d.h"
 #include "polygon3d.h"
+#include "irenderobj.h"
 
 class CDisplayGL;
 
@@ -68,19 +69,16 @@ namespace NRenderTextGL
 	};
 }
 
-class CRenderTextGL
+class CRenderTextGL : public IRenderObj
 {
 public:
 	CRenderTextGL(CDisplayGL* display, rade::polymesh* renderMesh);
 
-	~CRenderTextGL();
-
 	void AddFace(NRenderTextGL::Face& face);
 
-	void RenderAllFaces(Shader *shader);
+	void RenderAllFaces(CDisplayGL& display);
 
 	void AllocateFromMesh(rade::polymesh* renderMesh);
-
 
 	void SetRenderMode(NRenderTextGL::ERenderMode renderMode)
 	{
@@ -94,25 +92,7 @@ public:
 
 	void UpdateText(const std::string& newText);
 
-	rade::vector3 GetPos() const
-	{
-		return m_pos;
-	}
-
-	void SetPos(const rade::vector3& pos)
-	{
-		m_pos = pos;
-	}
-
-	void SetCamera(rade::Camera *camera)
-	{
-		m_camera = camera;
-	}
-
-	rade::Camera* GetCamera()
-	{
-		return m_camera;
-	}
+    void GetBoundingBox() override {};
 
     void Reset();
 
@@ -126,14 +106,6 @@ private:
 	void OnRenderStart();
 
 	void OnRenderFinish();
-
-	CDisplayGL* m_display{};
-
-    rade::vector3 m_pos;
-
-	rade::Camera *m_camera = nullptr;
-
-	std::string m_text;
 
 	uint32_t m_texid = 0;
     CMaterial *m_mat = nullptr;
