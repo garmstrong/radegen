@@ -379,16 +379,13 @@ namespace rade
         m_header.numLightmaps++;
     }
 
-    void MeshFile::GetLightMaps(std::vector<CLightmapImg>& lmaps)
+    void MeshFile::GetLightMaps(std::vector<CLightmapImg*>& lmaps)
     {
         for (LogicalLightmap& lm : m_lightmaps)
         {
-            CLightmapImg newLM;
-            newLM.m_width = lm.GetHeaderPtr()->width;
-            newLM.m_height = lm.GetHeaderPtr()->height;
-            newLM.Allocate(newLM.m_width, newLM.m_height);
-            int bufferSize = newLM.m_width * newLM.m_height * 4;
-            memcpy(newLM.m_data, lm.GetLightmapData()->data, bufferSize);
+            auto *newLM = new CLightmapImg(lm.GetHeaderPtr()->width, lm.GetHeaderPtr()->height);
+            int bufferSize = newLM->m_width * newLM->m_height * 4;
+            memcpy(newLM->m_data, lm.GetLightmapData()->data, bufferSize);
             lmaps.push_back(newLM);
         }
     }

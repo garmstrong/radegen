@@ -34,13 +34,6 @@ typedef std::function<void(int)> cb_t;
 class CLightmapGen
 {
 public:
-    CLightmapGen()
-    {
-    }
-
-    ~CLightmapGen()
-    {
-    }
 
     // register a callback
     void RegisterCallback(const cb_t &cb)
@@ -82,7 +75,7 @@ protected:
         uint16_t completedItems;
     } threadData_t;
 
-    std::vector<CLightmapImg> m_lightMapList;
+    std::vector<CLightmapImg*> m_lightMapList;
 
     typedef struct
     {
@@ -117,7 +110,7 @@ protected:
     static void CalcLightmapUV(std::vector<rade::vector3>& polyPoints, rade::plane3d::EPlaneAxis bestAxis);
 
     int CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const std::vector<rade::Light>& lights,
-            CLightmapImg& lightmap) const;
+            CLightmapImg* lightmap) const;
 
     int CalcSunLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const rade::vector3& sunDir,
             const rade::vector3& sunColor,
@@ -143,7 +136,7 @@ public:
             NRadeLamp::lmOptions_t lampOptions,
             std::vector<rade::poly3d>& polyList,
             const std::vector<rade::Light>& lights,
-            std::vector<CLightmapImg>* lightMapList);
+            std::vector<CLightmapImg*>* lightMapList);
 
 };
 

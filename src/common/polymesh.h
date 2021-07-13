@@ -35,7 +35,7 @@ namespace rade
 
         bool LoadMaterials(CMaterialManager& materialMgr, const std::string& extraPath = "");
 
-        void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps);
+        void LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg*>& lightmaps);
 
         bool HasLightmaps() const
         {

@@ -274,7 +274,7 @@ void CLightmapGen::CalcLightmapUV(std::vector<rade::vector3>& polyPoints, rade::
 }
 
 int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const std::vector<rade::Light>& lights,
-        CLightmapImg& lightmap) const
+        CLightmapImg* lightmap) const
 {
     //rade::plane3d plane(poly);
     rade::plane3d plane = poly->GetPlane();
@@ -294,7 +294,7 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
     lightmapWidth = static_cast<uint16_t>(lightmapWidth * m_options.lmDetail);
     lightmapHeight = static_cast<uint16_t>(lightmapHeight * m_options.lmDetail);
 
-    lightmap.Allocate(lightmapWidth, lightmapHeight);
+    lightmap->Allocate(lightmapWidth, lightmapHeight);
 
     // calculate the edge vectors to interpolate over later
     rade::vector3 edge1, edge2, UVVector;
@@ -363,11 +363,11 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
         {
             for (int iY = 0; iY < lightmapHeight; iY++)
             {
-                lightmap.SetPixel(iX, iY, *lumelData.GetColor(iX, iY));
+                lightmap->SetPixel(iX, iY, *lumelData.GetColor(iX, iY));
             }
         }
 
-        rade::Image bm(lightmapWidth, lightmapHeight, rade::Image::Format_RGBA, lightmap.m_data);
+        rade::Image bm(lightmapWidth, lightmapHeight, rade::Image::Format_RGBA, lightmap->m_data);
         for(int i=0;i<m_options.postBlur; i++)
             bm.Blur();
 
@@ -379,7 +379,7 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
 //        bm.SavePNG(fname);
 
         unsigned char* pixBuff = bm.GetPixelBuffer();
-        memcpy(lightmap.m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
+        memcpy(lightmap->m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
     }
     else
     {
@@ -388,7 +388,7 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
             for (int iY = 0; iY < lightmapHeight; iY++)
             {
                 rade::vector3 p((float)m_options.shadowUnlit, (float)m_options.shadowUnlit, (float)m_options.shadowUnlit);
-                lightmap.SetPixel(iX, iY, p);
+                lightmap->SetPixel(iX, iY, p);
             }
         }
     }
@@ -669,7 +669,7 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::poly3d>& polyList,
 //        writeLM = true;
 
         int hasShadows = 0;
-        CLightmapImg lmShadow;
+        CLightmapImg *lmShadow = new CLightmapImg();
         hasShadows = CalcShadowLightmap(&poly, polyList, lights, lmShadow);
         if (hasShadows)
         {
@@ -702,6 +702,10 @@ int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::poly3d>& polyList,
             // END LOCK
             poly.SetLightmapDataIndex(lmIndex);
         }
+        else
+        {
+            delete lmShadow;
+        }
 
         threadData->completedItems++;
     }
@@ -713,7 +717,7 @@ void CLightmapGen::ThreadWorkerLightmapRange(std::vector<rade::poly3d>* polyList
         threadData_t* threadData,
         int threadID)
 {
-    //printf("\nthread %i processing from %i - %i\n", threadID, startIndex, endIndex);
+    //rade::Log("Thread %i processing from %i - %i\n", threadID, startIndex, endIndex);
     GenerateLightMapDataRange(*polyList, *lights, threadData);
 }
 
@@ -749,7 +753,7 @@ int CLightmapGen::GenerateLightmaps(
         NRadeLamp::lmOptions_t lampOptions,
         std::vector<rade::poly3d>& polyList,
         const std::vector<rade::Light>& lights,
-        std::vector<CLightmapImg>* lightMapList)
+        std::vector<CLightmapImg*>* lightMapList)
 {
     // copy options
     m_options = lampOptions;
@@ -767,8 +771,8 @@ int CLightmapGen::GenerateLightmaps(
     unsigned int range = polyCount / processor_count;
 
     // generate simple black lightmap to use for all polys that have no lights affecting them
-    CLightmapImg lmBlack;
-    GenerateLMData(m_options.shadowUnlit, lmBlack);
+    CLightmapImg *lmBlack = new CLightmapImg();
+    GenerateLMData(m_options.shadowUnlit, *lmBlack);
     m_lightMapList.push_back(lmBlack);
 
     std::vector<std::thread> workers;

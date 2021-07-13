@@ -225,7 +225,7 @@ namespace rade
                 unsigned char* dataPtr,
                 unsigned int dataSize);
 
-        void GetLightMaps(std::vector<CLightmapImg>& lmaps);
+        void GetLightMaps(std::vector<CLightmapImg*>& lmaps);
 
         size_t GetPolyCount()
         {

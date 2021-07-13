@@ -41,7 +41,7 @@ namespace rade
         return success;
     }
 
-    void polymesh::LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg>& lightmaps)
+    void polymesh::LoadLightmaps(CMaterialManager& materialMgr, std::vector<CLightmapImg*>& lightmaps)
     {
         Assert(!m_polyList.empty(), "LoadLightmaps called, but no polygons loaded\n");
 
@@ -65,9 +65,9 @@ namespace rade
             RMaterials::ETextureClampMode clampMode = RMaterials::TEXTURE_REPEAT_CLAMP_TO_EDGE;
 
             bool loaded = materialMgr.LoadRAWTextureData(
-                    lm.m_data,
-                    lm.m_width,
-                    lm.m_height,
+                    lm->m_data,
+                    lm->m_width,
+                    lm->m_height,
                     4, // TODO: this should be reduced to 3
                     genMipMaps,
                     filterMode,
@@ -79,8 +79,8 @@ namespace rade
                 Log("failed to load RAW texture data in LoadLightmaps()\n");
             }
 
-            lmInfo.width = lm.m_width;
-            lmInfo.height = lm.m_height;
+            lmInfo.width = lm->m_width;
+            lmInfo.height = lm->m_height;
             lmInfo.channels = 4;
             lmInfo.texID = texID;
 

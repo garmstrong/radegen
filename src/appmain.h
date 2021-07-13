@@ -82,7 +82,7 @@ protected:
     bool m_isMouseDown = false;
     float m_lastDeltaTime = 0.033f;
     rade::polymesh m_polyMesh;
-    std::vector<CLightmapImg> m_lightMapList;
+    std::vector<CLightmapImg*> m_lightMapList;
     std::vector<rade::Light> m_lights;
 
 
@@ -91,4 +91,6 @@ protected:
     IRenderObj *m_mainMesh = nullptr;
 
     bool LoadAppShaders();
+
+    void DeleteLightmaps();
 };

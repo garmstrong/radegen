@@ -2,6 +2,7 @@
 
 #include "point3d.h"
 #include <cstdint>
+#include <cstring>
 
 class CLightmapImg
 {
@@ -22,8 +23,9 @@ public:
 
     ~CLightmapImg()
     {
-        //Free();
+        Free();
     }
+
 
     uint16_t m_width = 0;
     uint16_t m_height = 0;
@@ -72,18 +74,11 @@ public:
         m_width = width;
         m_height = height;
         if (m_data)
-            delete[] m_data;
+            free(m_data);
 
-        m_data = new unsigned char[width * height * 4]{};
-    }
-
-    void Free()
-    {
-        if (m_data)
-        {
-            delete[] m_data;
-            m_data = nullptr;
-        }
+        //m_data = new unsigned char[width * height * 4]{};
+        m_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 4);
+        memset(m_data, '\0', sizeof(unsigned char) * width * height * 4);
     }
 
     void Combine(CLightmapImg& lmOther)
@@ -118,6 +113,21 @@ public:
                 SetPixel(iX, iY, cRGBA);
 
             }
+        }
+    }
+
+private:
+
+    CLightmapImg( const CLightmapImg& ) = delete; // non construction-copyable
+
+    CLightmapImg& operator=( const CLightmapImg& ) = delete; // non copyable
+
+    void Free()
+    {
+        if (m_data)
+        {
+            free(m_data);
+            m_data = nullptr;
         }
     }
 };
