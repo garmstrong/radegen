@@ -27,15 +27,32 @@ private:
 
     CAppMain& m_appMain;
 
-    CLightmapGen::lmoptions_t m_lampOptions = {
+    CLightmapGen::lmoptions_t m_lampDefaults = {
             40,     // numSphereRays for AO
-            15.0f,  // spheresize for AO
+            6.5f,   // spheresize for AO
             230,    // lit
             10,     // unlit
             1.2f,   // lmDetail - resolution for textures
             false,  // AO
             true,   // shadows
-            2,      // blur
+            1,      // blur
+            true,   // genereate sun
+            { 102, 178, 255 },  // sun colour
+            { 0.1, 0.6, 0.3 }   // sun dir
+    };
+
+    CLightmapGen::lmoptions_t m_lampOptions = {
+            40,     // numSphereRays for AO
+            6.5f,   // spheresize for AO
+            230,    // lit
+            10,     // unlit
+            1.2f,   // lmDetail - resolution for textures
+            false,  // AO
+            true,   // shadows
+            1,      // blur
+            true,   // genereate sun
+            { 102, 178, 255 },  // sun colour
+            { 0.1, 0.6, 0.3 }   // sun dir
     };
 
     void DrawMenuBar();

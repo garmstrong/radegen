@@ -38,8 +38,11 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
     ImGui::Text("Settings");
     ImGui::Checkbox("Ambient Occlusion", &m_lampOptions.createAO);
     ImGui::Checkbox("Shadows", &m_lampOptions.createShadows);
+    ImGui::Checkbox("Sun", &m_lampOptions.createSun);
     ImGui::SliderInt("Post Blur", &m_lampOptions.postBlur, 0, 4);
     ImGui::SliderFloat("Texture Size", &m_lampOptions.lmDetail, 0.6f, 1.8f);
+    ImGui::DragFloat3("Sun Direction", m_lampOptions.sunDir);
+    ImGui::ColorEdit3("Sun Colour", m_lampOptions.sunColour);
     ImGui::Separator();
 
     ImGui::Text("AO Settings");
@@ -61,16 +64,7 @@ void CUIDisplay::DrawLightmapGeneratorPanel()
 
     if (ImGui::Button("Reset"))
     {
-        m_lampOptions = {
-                40,     // numSphereRays for AO
-                15.0f,  // spheresize for AO
-                230,    // lit
-                10,     // unlit
-                1.2f,   // lmDetail - resolution for textures
-                false,  // AO
-                true,   // shadows
-                2,      // blur
-        };
+        m_lampOptions = m_lampDefaults;
     }
     ImGui::End();
 }
@@ -212,8 +206,6 @@ void CUIDisplay::DrawLightInspector()
             ImGui::SliderFloat("Radius", &light.radius, 5.0f, 500.0f);
         }
     }
-
-
 
     ImGui::End();
 }

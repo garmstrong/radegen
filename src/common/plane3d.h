@@ -52,6 +52,7 @@ namespace rade
 
         // intersection
         bool GetRayIntersect(const vector3& p1, const vector3& p2, vector3* intersect) const;
+        bool GetRayIntersection(const rade::vector3& point, const rade::vector3& ray, rade::vector3* intersect) const;
 
         bool GetLineSegmentIntersect(vector3& p1, vector3& p2, vector3& intersect,
                 bool recalcUV = true) const;

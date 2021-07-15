@@ -111,10 +111,41 @@ namespace rade
             return false;
 
         float t = -(m_normal.Dot(p1) + m_dist) / dot_norm_ray;
-        intersect->Set(p1.x + (ray.x * t),
-                p1.y + (ray.y * t),
-                p1.z + (ray.z * t));
-        return true;
+        if( fabs(t) >rade::math::cEpsilonLarger )
+        {
+            intersect->Set(p1.x + (ray.x * t),
+                    p1.y + (ray.y * t),
+                    p1.z + (ray.z * t));
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool plane3d::GetRayIntersection(const rade::vector3& point, const rade::vector3& ray, rade::vector3* intersect) const
+    {
+        bool hit = false;
+
+        float dot_norm_ray = m_normal.Dot(ray);
+
+        // early out if ray is opposite direction
+        if (dot_norm_ray <= rade::math::cEpsilon)
+            return false;
+
+        float t = -(m_normal.Dot(point) + m_dist) / dot_norm_ray;
+        if( t>rade::math::cEpsilon)
+        {
+            hit = true;
+            if (intersect)
+            {
+                intersect->Set(point.x + (ray.x * t),
+                        point.y + (ray.y * t),
+                        point.z + (ray.z * t));
+            }
+        }
+        return hit;
     }
 
     bool plane3d::Get3PlaneIntersection(plane3d& plane1, plane3d& plane2, rade::vector3* p) const

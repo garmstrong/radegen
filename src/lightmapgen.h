@@ -52,6 +52,9 @@ public:
         bool createAO;
         bool createShadows;
         int postBlur;
+        bool createSun;
+        float sunColour[3];
+        float sunDir[3];
     } lmoptions_t;
 
     // generate lightmaps
@@ -85,14 +88,17 @@ protected:
     }
 
     lmoptions_t m_options = {
-            40,     // numSphereRays
-            15.0f,  // spheresize
+            30,     // numSphereRays
+            7.0f,   // spheresize
             200,    // lit
             10,     // unlit
             0.6f,   // lmDetail
             true,   // AO
             true,   // shadows
-            2       // blur
+            1,      // blur
+            true,   // genereate sun
+            { 102, 178, 255 },  // sun colour
+            { 0.1, 0.6, 0.3 }   // sun dir
     };
 
     std::mutex m_lmMutex;
@@ -172,6 +178,10 @@ protected:
             const std::vector<rade::Light>& lights,
             CLightmapImg* lightmap);
 
-
+    bool DoesRayIntersectWithPolyList(
+            const rade::vector3& pos,
+            const rade::vector3& ray,
+            const std::vector<rade::poly3d>& polyList,
+            float* distance);
 };
 

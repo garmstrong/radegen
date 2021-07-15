@@ -301,6 +301,9 @@ bool CAppMain::GenerateLightmaps(CLightmapGen::lmoptions_t lampOptions, std::vec
             i = std::min<float>(i * 255, 255);
     }
 
+    lampOptions.sunColour[0] = std::min<float>(lampOptions.sunColour[0] * 255, 255);
+    lampOptions.sunColour[1] = std::min<float>(lampOptions.sunColour[1] * 255, 255);
+    lampOptions.sunColour[2] = std::min<float>(lampOptions.sunColour[2] * 255, 255);
     DeleteLightmaps();
 
     CLightmapGen lmGen;
