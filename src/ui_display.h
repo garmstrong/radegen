@@ -27,7 +27,7 @@ private:
 
     CAppMain& m_appMain;
 
-    NRadeLamp::lmOptions_t m_lampOptions = {
+    CLightmapGen::lmoptions_t m_lampOptions = {
             40,     // numSphereRays for AO
             15.0f,  // spheresize for AO
             230,    // lit

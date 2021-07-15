@@ -104,23 +104,16 @@ namespace rade
 
     void polymesh::Reset()
     {
-        // and delete material from materialmgr too?
-        for (auto& lmap : m_lightmaps)
-        {
-            if (lmap.texID)
-                m_display->GetMaterialMgr().DeleteTextureID(lmap.texID);
-        }
+        // TODO: and delete material from materialmgr too?
+//        for (auto& lmap : m_lightmaps)
+//        {
+//            if (lmap.texID)
+//                m_display->GetMaterialMgr().DeleteTextureID(lmap.texID);
+//        }
         m_lightmaps.clear();
 
         m_polyList.clear();
         m_hasLightmaps = false;
-
-        if (m_meshID != 0)
-        {
-            if (m_display)
-                //m_display->DeleteMesh(m_meshID);
-            m_meshID = 0;
-        }
     }
 
     void polymesh::ClearLightmaps()
@@ -131,21 +124,4 @@ namespace rade
             poly.SetLightTexID(0);
         }
     }
-
-//    bool polymesh::RegisterWithDisplay(CDisplayGL& display, Camera* camera)
-//    {
-//        m_display = &display;
-//        m_camera = camera;
-//
-//        // remove if loaded already
-//        if (m_meshID != 0)
-//        {
-//            display.DeleteMesh(m_meshID);
-//            m_meshID = 0;
-//        }
-//
-//        // add this to the renderer
-//        m_meshID = display.AddPolyMesh(*this);
-//        return m_meshID;
-//    }
 };

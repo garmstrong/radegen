@@ -290,7 +290,7 @@ void CAppMain::UpdateTransformViaInputs(float deltaTime)
     }
 }
 
-bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<Light> lights)
+bool CAppMain::GenerateLightmaps(CLightmapGen::lmoptions_t lampOptions, std::vector<Light> lights)
 {
     std::string outFile(ResourcePath("meshes/default.rbmesh"));
 
@@ -314,7 +314,7 @@ bool CAppMain::GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector
                 m_uiDisplay.SetPercentComplete(pctComplete, false);
             });
 
-    lmGen.GenerateLightmaps(lampOptions, m_polyMesh.GetPolyListRef(), lights, &m_lightMapList);
+    lmGen.Generate(lampOptions, m_polyMesh.GetPolyListRef(), lights, &m_lightMapList);
 
     float elapsedTime = timer.ElapsedTime();
     Log("lightmap generation took %.2f seconds\n", elapsedTime);

@@ -150,29 +150,6 @@ void CMeshGL::PrepareMesh()
         x.second.copiedSoFar = 0;
     }
 
-
-    // TODO: can this be deleted now (uploaded to card via VAO?)
-    // allocate mem for each new buffer
-//    for (auto & x : m_vertBuffers)
-//    {
-//        delete [] x.second.vertBuffer;
-//    }
-
-
-//    // diffuse shader
-//    if (!m_meshShader.CreateShader("basicmesh",
-//            "data/shaders/vs.glsl",
-//            "data/shaders/fs.glsl"))
-////            "data/shaders/diffuse_spec_vert.shader",
-////            "data/shaders/diffuse_spec_frag.shader"))
-//    {
-//        rade::Abort("Failed to create shader\n");
-//    }
-
-//    if(loadTextures)
-//    {
-//        LoadMeshTexures(displayGl, usePlatformAssets);
-//    }
     m_tmpFaces.clear();
 }
 
@@ -199,9 +176,6 @@ void CMeshGL::LoadMeshTexures(CMaterialManager& materialMgr, bool usePlatformAss
 
 void CMeshGL::InitFromPolyMesh(rade::polymesh& polyMesh)
 {
-    //rade::Assert(polyMesh.m_camera, "camera cant be null\n");
-    //m_camera = polyMesh.m_camera;
-
     std::vector<rade::poly3d>& polyList = polyMesh.GetPolyListRef();
     m_hasLightmaps = polyMesh.HasLightmaps();
     for (rade::poly3d& poly : polyList)

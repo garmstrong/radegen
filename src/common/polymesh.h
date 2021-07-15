@@ -65,8 +65,7 @@ namespace rade
         std::vector<lightmapInfo_t> m_lightmaps;
         bool m_hasLightmaps = false;
 
-        IRenderObj* m_meshID = nullptr;
-        CDisplayGL* m_display = nullptr;
+        //CDisplayGL* m_display = nullptr;
 
     };
 

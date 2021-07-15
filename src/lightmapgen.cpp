@@ -8,21 +8,7 @@
 #include "rmath.h"
 #include "osutils.h"
 
-//using namespace rade;
-
-//#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-//#define PBWIDTH 60
-//
-//void PrintProgress(double percentage)
-//{
-//    int val = (int)(percentage * 100);
-//    int lpad = (int)(percentage * PBWIDTH);
-//    int rpad = PBWIDTH - lpad;
-//    OS::Log("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-//    fflush(stdout);
-//}
-
-CLightmapGen::sphereMap_t* CLightmapGen::GetSphereRaysForNormal(const rade::vector3& normal)
+CLightmapGen::shpheremap_t* CLightmapGen::GetSphereRaysForNormal(const rade::vector3& normal)
 {
     for (auto& m_sphere : m_spheres)
     {
@@ -32,7 +18,7 @@ CLightmapGen::sphereMap_t* CLightmapGen::GetSphereRaysForNormal(const rade::vect
         }
     }
 
-    auto* newMap = new sphereMap_t;
+    auto* newMap = new CLightmapGen::shpheremap_t;
     newMap->normal = normal;
 
     for (int i = 0; i < m_options.numSphereRays; i++)
@@ -47,7 +33,9 @@ CLightmapGen::sphereMap_t* CLightmapGen::GetSphereRaysForNormal(const rade::vect
     return m_spheres.at(m_spheres.size() - 1);
 }
 
-void CLightmapGen::GenerateHemisphereRay(const rade::vector3& normal, rade::vector3* ret)
+void CLightmapGen::GenerateHemisphereRay(
+        const rade::vector3& normal,
+        rade::vector3* ret)
 {
     while (true)
     {
@@ -70,7 +58,9 @@ void CLightmapGen::GenerateHemisphereRay(const rade::vector3& normal, rade::vect
     }
 }
 
-bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, const rade::vector3& lumelPos,
+bool CLightmapGen::DoesLineIntersectWithPolyList(
+        const rade::vector3& lightPos,
+        const rade::vector3& lumelPos,
         const std::vector<rade::poly3d>& polyList)
 {
     int count = 0;
@@ -96,16 +86,18 @@ bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, 
     return false;
 }
 
-bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, const rade::vector3& lumelPos,
-        const std::vector<rade::poly3d>& polyList, float* distance)
+bool CLightmapGen::DoesLineIntersectWithPolyList(
+        const rade::vector3& lightPos,
+        const rade::vector3& lumelPos,
+        const std::vector<rade::poly3d>& polyList,
+        float* distance)
 {
     int count = 0;
-
     for (const rade::poly3d& poly: polyList)
     {
         count++;
-        //rade::plane3d plane(poly);
         rade::plane3d plane = poly.GetPlane();
+
         // does this line cross the plane at any point
         rade::math::ESide lightSide = plane.ClassifyPoint(lightPos);
         rade::math::ESide lumelSide = plane.ClassifyPoint(lumelPos);
@@ -125,8 +117,7 @@ bool CLightmapGen::DoesLineIntersectWithPolyList(const rade::vector3& lightPos, 
     return false;
 }
 
-void
-CLightmapGen::CalcEdgeVectors(const rade::plane3d& plane, const float* uvMin, const float* uvMax, rade::vector3& edge1,
+void CLightmapGen::CalcEdgeVectors(const rade::plane3d& plane, const float* uvMin, const float* uvMax, rade::vector3& edge1,
         rade::vector3& edge2,
         rade::vector3& UVVector)
 {
@@ -275,11 +266,134 @@ void CLightmapGen::CalcLightmapUV(std::vector<rade::vector3>& polyPoints, rade::
     }
 }
 
-int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList,
-        const std::vector<rade::Light>& lights,
-        CLightmapImg* lightmap) const
+bool CLightmapGen::GetSunFactor(
+        rade::poly3d* poly,
+        rade::vector3* lumelPos,
+        const rade::vector3& sunColor,
+        const rade::vector3& sunDir,
+        std::vector<rade::poly3d>& polyList,
+        rade::vector3* outColor)
 {
-    //rade::plane3d plane(poly);
+    bool dataModified = false;
+    rade::plane3d plane = poly->GetPlane();
+    rade::vector3 lightVector = (*lumelPos + sunDir) - *lumelPos;
+    lightVector.Normalize();
+    //float distanceFromLightToLumel = light.pos.Distance(*lumelPos);
+    //float radius = light.radius;
+    //if (distanceFromLightToLumel < radius)
+    {
+        // TODO: is this the best way to do this?
+        rade::vector3 fakeSunPos = *lumelPos + (lightVector * 1000);
+        fakeSunPos = fakeSunPos * 2000;
+
+        //if (plane.ClassifyPoint(fakeSunPos) == RMATH::ESide_FRONT)
+        {
+            // do a ray test on this vector with the polyset, if it doesnt intersect
+            // set the light, otherwise leave black!
+            //if (RayIntersect(&lights[i], lumelData->pos[iX][iY], brushList) == 0)
+            if (!DoesLineIntersectWithPolyList(fakeSunPos, *lumelPos, polyList))
+            {
+                outColor->Set(outColor->x + sunColor.x, outColor->y + sunColor.y, outColor->z + sunColor.z);
+                dataModified = true;
+            }
+        }
+
+        if (outColor->x > 254) outColor->x = 254;
+        if (outColor->y > 254) outColor->y = 254;
+        if (outColor->z > 254) outColor->z = 254;
+    }
+    return dataModified;
+}
+
+bool CLightmapGen::GetAmbientFactor(
+        rade::poly3d* poly,
+        rade::vector3* lumelPos,
+        const std::vector<rade::Light>& lights,
+        std::vector<rade::poly3d>& polyList,
+        rade::vector3* outColor)
+{
+    rade::plane3d plane = poly->GetPlane();
+    shpheremap_t* sphere = GetSphereRaysForNormal(plane.GetNormal());
+
+    int numhits = 0;
+    float avgDist = 0;
+    for (uint16_t i = 0; i < m_options.numSphereRays; i++)
+    {
+        rade::vector3 testPos = (*lumelPos + sphere->rays.at(i));
+        float distance = 0;
+        if (DoesLineIntersectWithPolyList(testPos, *lumelPos, polyList, &distance))
+        {
+            numhits++;
+            avgDist += distance;
+        }
+    }
+    avgDist /= (m_options.numSphereRays);
+
+    float shadeAmt = avgDist * 40;
+
+    if (shadeAmt > 254)
+        shadeAmt = 254;
+
+    outColor->x = outColor->x - shadeAmt;
+    outColor->y = outColor->y - shadeAmt;
+    outColor->z = outColor->z - shadeAmt;
+
+    if (outColor->x > 254) outColor->x = 254;
+    if (outColor->y > 254) outColor->y = 254;
+    if (outColor->z > 254) outColor->z = 254;
+
+    if (outColor->x < 0) outColor->x = 0;
+    if (outColor->y < 0) outColor->y = 0;
+    if (outColor->z < 0) outColor->z = 0;
+
+    // AO is always generated
+    return true;
+}
+
+bool CLightmapGen::GetShadowFactor(
+        rade::poly3d* poly,
+        rade::vector3* lumelPos,
+        const std::vector<rade::Light>& lights,
+        std::vector<rade::poly3d>& polyList,
+        rade::vector3* outColor)
+{
+    bool dataModified = false;
+
+    rade::plane3d plane = poly->GetPlane();
+
+    for (auto& light :lights)
+    {
+        rade::vector3 lightVector = *lumelPos - light.pos;
+        lightVector.Normalize();
+        float distanceFromLightToLumel = light.pos.Distance(*lumelPos);
+        float radius = light.radius;
+
+        if (distanceFromLightToLumel < radius)
+        {
+            if (plane.ClassifyPoint(light.pos) == rade::math::ESide_FRONT)
+            {
+                // do a ray test on this vector with the polyset, if it doesnt intersect
+                // set the light, otherwise leave it at "m_options.shadowUnlit" colour
+                if (!DoesLineIntersectWithPolyList(light.pos, *lumelPos, polyList))
+                {
+                    float intensity = (radius / distanceFromLightToLumel) - 1.0f;
+                    float r = (light.color[0] * light.brightness) * intensity;
+                    float g = (light.color[1] * light.brightness) * intensity;
+                    float b = (light.color[2] * light.brightness) * intensity;
+
+                    outColor->Set(outColor->x + r, outColor->y + g, outColor->z + b);
+                    dataModified = true;
+                }
+            }
+        }
+    }
+    return dataModified;
+}
+
+int CLightmapGen::GenerateLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList,
+        const std::vector<rade::Light>& lights,
+        CLightmapImg* lightmap)
+{
     rade::plane3d plane = poly->GetPlane();
     std::vector<rade::vector3>& polyPoints = poly->GetPointListRef();
     rade::plane3d::EPlaneAxis bestAxis = plane.GetPlaneAxis();
@@ -324,39 +438,20 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
             rade::vector3 color((float)m_options.shadowUnlit, (float)m_options.shadowUnlit,
                     (float)m_options.shadowUnlit);
 
-            for (auto& light :lights)
-            {
-                rade::vector3* lumelPos = lumelData.GetPosition(iX, iY);
+            rade::vector3* lumelPos = lumelData.GetPosition(iX, iY);
 
-                rade::vector3 lightVector = *lumelPos - light.pos;
-                lightVector.Normalize();
-                float distanceFromLightToLumel = light.pos.Distance(*lumelPos);
-                float radius = light.radius;
+            rade::vector3 sunDir(0.1, 0.6, 0.3);
+            rade::vector3 sunColor(102, 178, 255);
 
-                if (distanceFromLightToLumel < radius)
-                {
-                    if (plane.ClassifyPoint(light.pos) == rade::math::ESide_FRONT)
-                    {
-                        // do a ray test on this vector with the polyset, if it doesnt intersect
-                        // set the light, otherwise leave black!
-                        //if (RayIntersect(&lights[i], lumelData->pos[iX][iY], brushList) == 0)
-                        if (!DoesLineIntersectWithPolyList(light.pos, *lumelPos, polyList))
-                        {
-                            float intensity = (radius / distanceFromLightToLumel) - 1.0f;
-                            float r = (light.color[0] * light.brightness) * intensity;
-                            float g = (light.color[1] * light.brightness) * intensity;
-                            float b = (light.color[2] * light.brightness) * intensity;
+            bool hasShadows = false; //GetShadowFactor(poly, lumelPos, lights, polyList, &color);
+            bool hasAmbient = false; //GetAmbientFactor(poly, lumelPos, lights, polyList, &color);
+            bool hasSun = GetSunFactor(poly, lumelPos, sunColor, sunDir, polyList, &color);
+            if(hasAmbient || hasShadows || hasSun)
+                dataModified = true;
 
-                            color.Set(color.x + r, color.y + g, color.z + b);
-                            dataModified = true;
-                        }
-                    }
-                }
-            }
             if (color.x > 254) color.x = 254;
             if (color.y > 254) color.y = 254;
             if (color.z > 254) color.z = 254;
-
             lumelData.SetColor(iX, iY, color);
         }
     }
@@ -375,7 +470,6 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
         for (int i = 0; i < m_options.postBlur; i++)
             bm.Blur();
 
-//
 //        static int counter = 0;
 //        char fname[128];
 //        sprintf(fname, "smooth%d.png", counter);
@@ -400,245 +494,9 @@ int CLightmapGen::CalcShadowLightmap(rade::poly3d* poly, std::vector<rade::poly3
     return dataModified;
 }
 
-int CLightmapGen::CalcSunLightmap(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, const rade::vector3& sunDir,
-        const rade::vector3& sunColor,
-        CLightmapImg& lightmap) const
-{
-    rade::plane3d plane = poly->GetPlane();
-    std::vector<rade::vector3>& polyPoints = poly->GetPointListRef();
-    rade::plane3d::EPlaneAxis bestAxis = plane.GetPlaneAxis();
-
-    // calc new planar mapped uvs for lightmap (world position values based on best/closest axis)
-    CalcLightmapUV(polyPoints, bestAxis);
-
-    // convert the world based vertex positions to texture space ones (0-1 range)
-    float uvMin[2];
-    float uvMax[2];
-    uint16_t lightmapWidth = 0;
-    uint16_t lightmapHeight = 0;
-    NormalizeLightmapUVs(polyPoints, uvMin, uvMax, &lightmapWidth, &lightmapHeight);
-
-    lightmapWidth = static_cast<uint16_t>(lightmapWidth * m_options.lmDetail);
-    lightmapHeight = static_cast<uint16_t>(lightmapHeight * m_options.lmDetail);
-
-    lightmap.Allocate(lightmapWidth, lightmapHeight);
-
-    // calculate the edge vectors to interpolate over later
-    rade::vector3 edge1, edge2, UVVector;
-    CalcEdgeVectors(plane, uvMin, uvMax, edge1, edge2, UVVector);
-
-    // now that we have the two edge vectors, we can find the lumel positions in world space by
-    // interpolating along these edges using the width and height of the lightmap
-    LumelData lumelData(lightmapWidth, lightmapHeight);
-
-    bool dataModified = false;
-
-    for (int iX = 0; iX < lightmapWidth; iX++)
-    {
-        for (int iY = 0; iY < lightmapHeight; iY++)
-        {
-            float ufactor = ((float)iX / (float)lightmapWidth); //  - 0.1f;
-            float vfactor = ((float)iY / (float)lightmapHeight); //- 0.1f;
-
-            rade::vector3 newedge1, newedge2;
-            newedge1 = edge1 * ufactor;
-            newedge2 = edge2 * vfactor;
-            lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
-
-            rade::vector3 color(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
-
-
-            rade::vector3* lumelPos = lumelData.GetPosition(iX, iY);
-
-            rade::vector3 lightVector = (*lumelPos + sunDir) - *lumelPos;
-            lightVector.Normalize();
-            //float distanceFromLightToLumel = light.pos.Distance(*lumelPos);
-            //float radius = light.radius;
-
-            //if (distanceFromLightToLumel < radius)
-            {
-                // TODO: is this the best way to do this?
-                rade::vector3 fakeSunPos = *lumelPos + (lightVector * 1000);
-                fakeSunPos = fakeSunPos * 2000;
-
-                //if (plane.ClassifyPoint(fakeSunPos) == RMATH::ESide_FRONT)
-                {
-                    // do a ray test on this vector with the polyset, if it doesnt intersect
-                    // set the light, otherwise leave black!
-                    //if (RayIntersect(&lights[i], lumelData->pos[iX][iY], brushList) == 0)
-                    if (!DoesLineIntersectWithPolyList(fakeSunPos, *lumelPos, polyList))
-                    {
-                        color.Set(color.x + sunColor.x, color.y + sunColor.y, color.z + sunColor.z);
-                        dataModified = true;
-                    }
-                }
-            }
-
-            if (color.x > 254) color.x = 254;
-            if (color.y > 254) color.y = 254;
-            if (color.z > 254) color.z = 254;
-
-            lumelData.SetColor(iX, iY, color);
-        }
-    }
-
-    if (dataModified)
-    {
-        for (int iX = 0; iX < lightmapWidth; iX++)
-        {
-            for (int iY = 0; iY < lightmapHeight; iY++)
-            {
-                lightmap.SetPixel(iX, iY, *lumelData.GetColor(iX, iY));
-            }
-        }
-
-        rade::Image bm(lightmapWidth, lightmapHeight, rade::Image::Format_RGBA, lightmap.m_data);
-//        for (uint16_t i = 0; i < 3; i++)
-//            bm.Blur();
-//
-//        static int counter = 0;
-//        char fname[128];
-//        sprintf(fname, "smooth%d.png", counter);
-//        counter++;
-//        bm.SavePNG(fname);
-
-        unsigned char* pixBuff = bm.GetPixelBuffer();
-        memcpy(lightmap.m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
-    }
-    else
-    {
-        for (int iX = 0; iX < lightmapWidth; iX++)
-        {
-            for (int iY = 0; iY < lightmapHeight; iY++)
-            {
-                rade::vector3 p(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
-                lightmap.SetPixel(iX, iY, p);
-            }
-        }
-    }
-    return dataModified;
-}
-
-int
-CLightmapGen::CalcPolyAmbientOcclusion(rade::poly3d* poly, std::vector<rade::poly3d>& polyList, CLightmapImg& lightmap)
-{
-    rade::plane3d plane = poly->GetPlane();
-    std::vector<rade::vector3>& polyPoints = poly->GetPointListRef();
-    rade::plane3d::EPlaneAxis bestAxis = plane.GetPlaneAxis();
-
-    // calc new planar mapped uvs for lightmap (world position values based on best/closest axis)
-    CalcLightmapUV(polyPoints, bestAxis);
-
-    // convert the world based vertex positions to texture space ones (0-1 range)
-    float uvMin[2];
-    float uvMax[2];
-    uint16_t lightmapWidth = 0;
-    uint16_t lightmapHeight = 0;
-    NormalizeLightmapUVs(polyPoints, uvMin, uvMax, &lightmapWidth, &lightmapHeight);
-
-    lightmapWidth = static_cast<uint16_t>(lightmapWidth * m_options.lmDetail);
-    lightmapHeight = static_cast<uint16_t>(lightmapHeight * m_options.lmDetail);
-
-    lightmap.Allocate(lightmapWidth, lightmapHeight);
-
-    // calculate the edge vectors to interpolate over later
-    rade::vector3 edge1, edge2, UVVector;
-    CalcEdgeVectors(plane, uvMin, uvMax, edge1, edge2, UVVector);
-
-    // now that we have the two edge vectors, we can find the lumel positions in world space by
-    // interpolating along these edges using the width and height of the lightmap
-    LumelData lumelData(lightmapWidth, lightmapHeight);
-
-    bool dataModified = false;
-
-    sphereMap_t* sphere = GetSphereRaysForNormal(plane.GetNormal());
-
-    for (int iX = 0; iX < lightmapWidth; iX++)
-    {
-        for (int iY = 0; iY < lightmapHeight; iY++)
-        {
-            // 0.0025f -> perfect for detail of 1.0 0.7 0.4
-            // 2.0 (noticed white line in images, but not in game, so moved down to 0.0015 and all good)
-            // 0.0015f -> 2.0 OK, 0.4 OK
-
-            float ufactor = ((float)iX / (float)lightmapWidth) + 0.0015f;
-            float vfactor = ((float)iY / (float)lightmapHeight) + 0.0015f;
-
-            rade::vector3 newedge1 = edge1 * ufactor;
-            rade::vector3 newedge2 = edge2 * vfactor;
-            lumelData.SetPosition(iX, iY, UVVector + newedge2 + newedge1);
-
-            rade::vector3 color(m_options.shadowUnlit, m_options.shadowUnlit, m_options.shadowUnlit);
-            dataModified = true;
-
-            rade::vector3* lumelPos = lumelData.GetPosition(iX, iY);
-
-            int numhits = 0;
-            float avgDist = 0;
-            for (uint16_t i = 0; i < m_options.numSphereRays; i++)
-            {
-                rade::vector3 testPos = (*lumelPos + /*sphereRays[i]*/ sphere->rays.at(i));
-                float distance = 0;
-                if (DoesLineIntersectWithPolyList(testPos, *lumelPos, polyList, &distance))
-                {
-                    numhits++;
-                    avgDist += distance;
-                }
-            }
-            avgDist /= (m_options.numSphereRays);
-
-            float shadeAmt = avgDist * 40;
-
-            //shadeAmt *= 1.5;
-            if (shadeAmt > 254)
-                shadeAmt = 254;
-
-            color.x = color.x - shadeAmt;
-            color.y = color.y - shadeAmt;
-            color.z = color.z - shadeAmt;
-
-
-            if (color.x > 254) color.x = 254;
-            if (color.y > 254) color.y = 254;
-            if (color.z > 254) color.z = 254;
-
-            if (color.x < 0) color.x = 0;
-            if (color.y < 0) color.y = 0;
-            if (color.z < 0) color.z = 0;
-
-            lumelData.SetColor(iX, iY, color);
-        }
-    }
-
-    if (dataModified)
-    {
-        for (int iX = 0; iX < lightmapWidth; iX++)
-        {
-            for (int iY = 0; iY < lightmapHeight; iY++)
-            {
-                rade::vector3* color = lumelData.GetColor(iX, iY);
-                lightmap.SetPixel(iX, iY, *color);
-            }
-        }
-    }
-
-    rade::Image bm(lightmapWidth, lightmapHeight, rade::Image::Format_RGBA, lightmap.m_data);
-    //bm.Blur();
-    static int counter = 0;
-    char fname[128];
-    sprintf(fname, "smooth%d.png", counter);
-    counter++;
-    //bm.SavePNG(fname);
-    unsigned char* pixBuff = bm.GetPixelBuffer();
-    memcpy(lightmap.m_data, pixBuff, lightmapWidth * lightmapHeight * 4);
-
-    return dataModified;
-}
-
 void CLightmapGen::GenerateLMData(unsigned char val, CLightmapImg& lm)
 {
-    lm.Allocate(64, 64);
-
+    lm.Allocate(32, 32);
     for (int iX = 0; iX < lm.m_width; iX++)
     {
         for (int iY = 0; iY < lm.m_height; iY++)
@@ -649,96 +507,57 @@ void CLightmapGen::GenerateLMData(unsigned char val, CLightmapImg& lm)
     }
 }
 
-int CLightmapGen::GenerateLightMapDataRange(std::vector<rade::poly3d>& polyList,
+int CLightmapGen::GenerateLightMapDataRange(
+        std::vector<rade::poly3d>& polyList,
         const std::vector<rade::Light>& lights,
-        threadData_t* threadData)
+        threaddata_t* threadData)
 {
     for (unsigned int i = threadData->startIndex; i < threadData->endIndex; i++)
     {
         rade::poly3d& poly = polyList.at(i);
+        auto* lm = new CLightmapImg();
+        bool hasShadows = GenerateLightmap(&poly, polyList, lights, lm);
 
-        bool writeLM = false;
-
-
-//		CLightmapImg lmAO;
-//		vector3 sunDir(0.1, 0.6, 0.3);
-//		vector3 sunColor(102, 178, 255);
-//		CalcSunLightmap(&poly, polyList, sunDir, sunColor, lmAO);
-//		writeLM = true;
-
-
-
-
-        int hasAmbient = 0;
-//        CLightmapImg lmAO;
-//        hasAmbient = CalcPolyAmbientOcclusion(&poly, polyList, lmAO);
-//        writeLM = true;
-
-        int hasShadows = 0;
-        CLightmapImg* lmShadow = new CLightmapImg();
-        hasShadows = CalcShadowLightmap(&poly, polyList, lights, lmShadow);
         if (hasShadows)
         {
-            // lmShadow contains shadow pixel data
-            writeLM = true;
-        }
-        else
-        {
-            // no lights touched, use standard black lightmap, unless ambient already there
-            // lmShadow will have unlit default texture data, we need to mix it into lmAO
-            if (!hasAmbient)
-            {
-                // no ambient - so just blank out LM
-                poly.SetLightmapDataIndex(0);
-            }
-        }
-
-        //lmAO.Combine(lmShadow);
-        //lmShadow.Free();
-
-        if (writeLM)
-        {
             m_lmMutex.lock();
-
             // copy the ptr to the shared list, get an index and quickly get out of here
-            m_lightMapList.emplace_back(lmShadow);
+            m_lightMapList.emplace_back(lm);
             uint32_t lmIndex = static_cast<uint32_t>(m_lightMapList.size()) - 1;
-
             m_lmMutex.unlock();
-
             poly.SetLightmapDataIndex(lmIndex);
         }
         else
         {
-            delete lmShadow;
+            poly.SetLightmapDataIndex(0);
+            delete lm;
         }
-
         threadData->completedItems++;
     }
     return 0;
 }
 
-void CLightmapGen::ThreadWorkerLightmapRange(std::vector<rade::poly3d>* polyList,
+void CLightmapGen::ThreadWorkerLightmapRange(
+        std::vector<rade::poly3d>* polyList,
         const std::vector<rade::Light>* lights,
-        threadData_t* threadData,
-        int threadID)
+        threaddata_t* threadData)
 {
     GenerateLightMapDataRange(*polyList, *lights, threadData);
 }
 
-void CLightmapGen::ThreadStatusUpdate(threadData_t* threadData, uint16_t numThreads, uint16_t totalItems)
+void CLightmapGen::ThreadStatusUpdate(
+        threaddata_t* threadData,
+        uint16_t numThreads,
+        uint16_t totalItems)
 {
     bool complete = false;
-    uint16_t totalDone = 0;
+    uint16_t totalDone;
     do
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
         totalDone = 0;
         for (uint16_t i = 0; i < numThreads; i++)
-        {
             totalDone += threadData[i].completedItems;
-        }
 
         float pctComplete = static_cast<float>(totalDone) / static_cast<float>(totalItems) * 100;
         //PrintProgress(pctComplete);
@@ -750,12 +569,11 @@ void CLightmapGen::ThreadStatusUpdate(threadData_t* threadData, uint16_t numThre
         NotifyCallbacks();
 
     } while (!complete);
-
     m_progress = 0;
 }
 
-int CLightmapGen::GenerateLightmaps(
-        NRadeLamp::lmOptions_t lampOptions,
+int CLightmapGen::Generate(
+        lmoptions_t lampOptions,
         std::vector<rade::poly3d>& polyList,
         const std::vector<rade::Light>& lights,
         std::vector<CLightmapImg*>* lightMapList)
@@ -769,7 +587,10 @@ int CLightmapGen::GenerateLightmaps(
         processor_count = 1;
     }
 
-    threadData_t threadData[/*processor_count*/ 128];
+    // FOR SANE DEBUGGING
+    //processor_count = 1;
+
+    threaddata_t threadData[/*processor_count*/ 128];
     rade::Log("Spawning %i threads\n", processor_count);
 
     auto polyCount = static_cast<unsigned int>(polyList.size());
@@ -795,7 +616,7 @@ int CLightmapGen::GenerateLightmaps(
         threadData[i].completedItems = 0;
 
         workers.emplace_back(&CLightmapGen::ThreadWorkerLightmapRange,
-                this, &polyList, &lights, &threadData[i], i);
+                this, &polyList, &lights, &threadData[i]);
     }
 
     std::thread statusThread(&CLightmapGen::ThreadStatusUpdate, this,
@@ -804,21 +625,28 @@ int CLightmapGen::GenerateLightmaps(
     for (std::thread& t: workers)
     {
         if (t.joinable())
-        {
             t.join();
-        }
     }
     statusThread.join();
 
     for (auto sphere : m_spheres)
-    {
         delete sphere;
-    }
 
     // copy the pointers to the returned list
     for (auto& j : m_lightMapList)
-    {
         lightMapList->push_back(j);
-    }
+
     return 0;
 }
+
+//#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+//#define PBWIDTH 60
+//
+//void PrintProgress(double percentage)
+//{
+//    int val = (int)(percentage * 100);
+//    int lpad = (int)(percentage * PBWIDTH);
+//    int rpad = PBWIDTH - lpad;
+//    OS::Log("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+//    fflush(stdout);
+//}

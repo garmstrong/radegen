@@ -40,7 +40,7 @@ public:
 
     void OnMouseWheel(int y);
 
-    bool GenerateLightmaps(NRadeLamp::lmOptions_t lampOptions, std::vector<rade::Light> lights);
+    bool GenerateLightmaps(CLightmapGen::lmoptions_t lampOptions, std::vector<rade::Light> lights);
 
     void OnUILightmapsComplete();
 
