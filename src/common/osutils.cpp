@@ -2,7 +2,6 @@
 #include <iostream>
 #include <map>
 #include <sys/stat.h>
-
 #include "osutils.h"
 
 #ifdef __ANDROID__
@@ -14,14 +13,14 @@ struct android_app*  g_App = NULL;
 
 #ifdef _WIN32
 #include <direct.h>
+#include <windows.h>
+#include <tchar.h>
 #define getcwd _getcwd
 #elif __linux__
-
 #include <unistd.h>
 #include <dirent.h>
 #include <uuid/uuid.h>
 #include <climits>
-
 #endif
 
 namespace rade
@@ -173,9 +172,50 @@ namespace rade
         return data;
     }
 
-    bool
-    GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles, bool returnDirectories)
+
+    bool GetFilesInDir(const std::string& path,
+                       std::vector<std::string>& files,
+                       bool returnFiles,
+                       bool returnDirectories)
     {
+#ifdef _WIN32
+        HANDLE hFind;
+        WIN32_FIND_DATA wfd;
+        TCHAR GeneralPath[0xFF];
+        //TCHAR AgainFolder[0xFF];
+        //TCHAR FileFullPath[0xFF];
+
+        _stprintf(GeneralPath, _T("%s\\*.*"), path.c_str());
+        hFind = FindFirstFile(GeneralPath, &wfd);
+
+        if(INVALID_HANDLE_VALUE==hFind)
+            return false;
+
+        do
+        {
+            bool isDir = wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+
+            if( isDir && returnDirectories )
+            {
+                //if( !_tcscmp(wfd.cFileName, _T(".")) || !_tcscmp(wfd.cFileName, _T("..")) )
+                    //continue;
+                files.emplace_back(wfd.cFileName);
+            }
+            else
+            {
+                //std::string fullPath = path.c_str() + std::string("\\") + wfd.cFileName;
+                //_stprintf(FileFullPath, _T("%s\\%s"), path.c_str(), wfd.cFileName); //  "Folder\\fileName.extension"
+                //_tprintf(_T("%s\n"),FileFullPath);
+                if(returnFiles)
+                    files.emplace_back(wfd.cFileName);
+            }
+
+        }while(FindNextFile(hFind, &wfd));
+
+        //CloseHandle(hFind);
+        hFind=INVALID_HANDLE_VALUE;
+        return true;
+#else
         bool retVal = true;
 
         DIR* dir;
@@ -201,6 +241,7 @@ namespace rade
             retVal = false;
         }
         return retVal;
+#endif
     }
 
     char* ReadPlatformAssetFile(const char* filename, long* size)

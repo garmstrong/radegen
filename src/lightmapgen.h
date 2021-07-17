@@ -98,7 +98,7 @@ protected:
             1,      // blur
             true,   // genereate sun
             { 102, 178, 255 },  // sun colour
-            { 0.1, 0.6, 0.3 }   // sun dir
+            { 0.1f, 0.6f, 0.3f }   // sun dir
     };
 
     std::mutex m_lmMutex;
