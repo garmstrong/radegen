@@ -122,7 +122,7 @@ int main(int, char**)
     int screen_height = 1080;
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "radegen", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "radegen", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
