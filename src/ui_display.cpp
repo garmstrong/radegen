@@ -192,7 +192,7 @@ void CUIDisplay::DrawLightInspector()
 
             if (ImGui::Button("Set from camera"))
             {
-                rade::vector3 camPos = m_appMain.GetCamera().GetPosition();
+                rade::vector3 camPos = m_appMain.GetCamera().GetTransform().GetPosition();
                 m_appMain.ChangeLightPos(light, camPos);
             }
 

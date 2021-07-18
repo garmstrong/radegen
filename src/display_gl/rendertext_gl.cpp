@@ -57,9 +57,7 @@ void CRenderTextGL::RenderAllFaces(CDisplayGL& display)
     shader->Use();
     shader->SetMat4("projection", m_camera->GetProjection());
     shader->SetMat4("view", m_camera->GetView());
-    shader->SetMat4("model", m_transform.GetModelMatrix());
-
-
+    shader->SetMat4("model", m_transform.GetMatrix());
 
     OnRenderStart();
     glBindVertexArray(m_vaoId);

@@ -4,6 +4,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "point3d.h"
+#include "transform.h"
 
 //class vector3;
 
@@ -42,30 +43,21 @@ namespace rade
         // Same as the `matrix` method, except the return value does not include the projection
         glm::mat4 GetView() const;
 
-        // rotation matrix that determines the direction the camera is looking.Does not include translation (the camera's position).
-        glm::mat4 GetOrientation() const;
+        glm::mat4 GetMatrix();
 
-        rade::vector3 ForwardVector() const;
+//        void SetPosition(const rade::vector3& position);
+//
+//        void OffsetPosition(const rade::vector3& offset);
+//
+//        void SetHorizontalAngle(float horizontalAngle);
+//
+//        void SetVerticalAngle(float verticalAngle);
+//
+//        void SetRotation(const rade::vector3& rotation);
 
-        rade::vector3 RightVector() const;
-
-        rade::vector3 UpVector() const;
-
-        glm::mat4 GetMatrix() const;
-
-        void SetPosition(const rade::vector3& position);
-
-        void OffsetPosition(const rade::vector3& offset);
-
-        void SetHorizontalAngle(float horizontalAngle);
-
-        void SetVerticalAngle(float verticalAngle);
-
-        void SetRotation(const rade::vector3& rotation);
-
-        float GetHorizontalAngle() const;
-
-        float GetVerticalAngle() const;
+//        float GetHorizontalAngle() const;
+//
+//        float GetVerticalAngle() const;
 
         void SetOrtho(bool ortho)
         {
@@ -80,7 +72,7 @@ namespace rade
         // closest visible distance from the camera
         float GetNearPlane() const;
 
-        rade::vector3 GetPosition() const;
+        //rade::vector3 GetPosition() const;
 
         // the farthest visible distance from the camera.
         float GetFarPlane() const;
@@ -92,10 +84,10 @@ namespace rade
         // vertical angle is constrained between 85deg and -85deg to avoid gimbal lock.
         // upAngle     the angle (in degrees) to offset upwards. Negative values are downwards.
         // rightAngle  the angle (in degrees) to offset rightwards. Negative values are leftwards.
-        void OffsetOrientation(float upAngle, float rightAngle);
+        //void OffsetOrientation(float upAngle, float rightAngle);
 
         // Orients the camera so that is it directly facing `position`
-        void LookAt(const rade::vector3& position);
+        //void LookAt(const rade::vector3& position);
 
         // Width divided by the Height of the screen/window/viewport
         float GetViewportAspectRatio() const;
@@ -114,14 +106,16 @@ namespace rade
             m_viewportAspectRatio = m_videoWidth / m_videoHeight;
         }
 
+        rade::transform& GetTransform()
+        {
+            return m_transform;
+        }
+
     private:
 
 //	CFrustrum m_frustrum;
 
-        rade::vector3 m_position;
-        float m_horizontalAngle;
-        float m_verticalAngle;
-
+        rade::transform m_transform;
         float m_fieldOfView;
         float m_nearPlane;
         float m_farPlane;

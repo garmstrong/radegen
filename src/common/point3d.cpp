@@ -107,12 +107,12 @@ namespace rade
 //    }
 
     // invert
-    vector3 vector3::Negate()
+    vector3 vector3::GetNegative() const
     {
-        x = -x;
-        y = -y;
-        z = -z;
-        return *this;
+//        x = -x;
+//        y = -y;
+//        z = -z;
+        return { -x, -y, -z };
     }
 
     float vector3::Dot(const vector3& p) const

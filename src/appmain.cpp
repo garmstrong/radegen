@@ -51,7 +51,7 @@ bool CAppMain::Init(int videoWidth, int videoHeight)
     m_cameraUI.SetViewport((float)videoWidth, (float)videoHeight);
 
     // setup camera
-    m_camera.SetPosition(rade::vector3(0, 0, 0));
+    m_camera.GetTransform().SetTranslation(rade::vector3(0, 0, 0));
     m_camera.SetViewportAspectRatio(static_cast<float>(videoWidth) / static_cast<float>(videoHeight));
     m_camera.SetFieldOfView(90);
     m_camera.SetNearAndFarPlanes(0.1f, 1500.0f);
@@ -164,7 +164,7 @@ void CAppMain::DrawTick(float deltaTime)
     m_display.RenderTextObjects();
 
 
-    //m_textObj->SetText("time since start: %f", m_timer.ElapsedTime());
+    m_textObj->SetText("deltatime: %f", m_lastDeltaTime);
 
 //    static float x = 0.0f;
 //    x+= 10.0f * m_lastDeltaTime;
@@ -176,7 +176,8 @@ void CAppMain::DrawTick(float deltaTime)
 
 void CAppMain::UpdateCameraInputs(float deltaTime)
 {
-    UpdateTransformViaInputs(deltaTime);
+    //UpdateTransformViaInputs(deltaTime);
+    UpdateTransformViaInputs(m_camera.GetTransform());
 }
 
 void CAppMain::Shutdown()
@@ -221,12 +222,14 @@ void CAppMain::OnMouseMove(float xrel, float yrel)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    float delta = 10.0f * m_lastDeltaTime;
+    float delta = 0.2f * m_lastDeltaTime;
 
     if (m_isMouseDown)
     {
-        m_camera.OffsetOrientation(0.0f, xrel * delta);
-        m_camera.OffsetOrientation(yrel * delta, 0.0f);
+        rade::vector3 rot(yrel * delta, xrel * delta, 0.0f);
+        m_camera.GetTransform().OffsetRotation(rot);
+        //m_camera.OffsetOrientation(0.0f, xrel * delta);
+        //m_camera.OffsetOrientation(yrel * delta, 0.0f);
     }
 }
 
@@ -235,59 +238,34 @@ void CAppMain::OnMouseWheel(int y)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    float movementDelta = 900.0f * m_lastDeltaTime;
+    float movementDelta = 8.0f * m_lastDeltaTime;
     if (y == -1)
     {
         movementDelta = -movementDelta;
     }
-    m_camera.OffsetPosition(m_camera.ForwardVector() * movementDelta);
+    m_camera.GetTransform().OffsetTranslation(m_camera.GetTransform().ForwardVector() * movementDelta);
 }
 
-void CAppMain::UpdateTransformViaInputs(float deltaTime)
+void CAppMain::UpdateTransformViaInputs(rade::transform &trans)
 {
-    float moveSpeed = deltaTime * 250.0f; //250 units per second
-
+    float moveSpeed = m_lastDeltaTime * 1.0f; //250 units per second
     using namespace rade::keys;
-
     if (m_inputs.IsPressed(KB_KEY_W))
-    {
-        m_camera.OffsetPosition(m_camera.ForwardVector() * moveSpeed);
-    }
-
+        trans.OffsetTranslation(trans.ForwardVector() * moveSpeed);
     if (m_inputs.IsPressed(KB_KEY_S))
-    {
-        m_camera.OffsetPosition(m_camera.ForwardVector() * -moveSpeed);
-    }
-
+        trans.OffsetTranslation(trans.ForwardVector() * -moveSpeed);
     if (m_inputs.IsPressed(KB_KEY_A))
-    {
-        m_camera.OffsetPosition(m_camera.RightVector() * -moveSpeed);
-    }
-
+        trans.OffsetTranslation(trans.RightVector() * -moveSpeed);
     if (m_inputs.IsPressed(KB_KEY_D))
-    {
-        m_camera.OffsetPosition(m_camera.RightVector() * moveSpeed);
-    }
-
+        trans.OffsetTranslation(trans.RightVector() * moveSpeed);
     if (m_inputs.IsPressed(KB_KEY_LEFT))
-    {
-        m_camera.OffsetOrientation(0.0f, -70.0f * deltaTime);
-    }
-
+        trans.OffsetRotation( {0.0f, -1.0f * moveSpeed, 0.0f});
     if (m_inputs.IsPressed(KB_KEY_RIGHT))
-    {
-        m_camera.OffsetOrientation(0.0f, 70.0f * deltaTime);
-    }
-
+        trans.OffsetRotation( {0.0f, 1.0f * moveSpeed, 0.0f});
     if (m_inputs.IsPressed(KB_KEY_SPACE))
-    {
-        m_camera.OffsetPosition(m_camera.UpVector() * moveSpeed);
-    }
-
+        trans.OffsetTranslation(trans.UpVector() * moveSpeed);
     if (m_inputs.IsPressed(KB_KEY_Z))
-    {
-        m_camera.OffsetPosition(m_camera.UpVector() * -moveSpeed);
-    }
+        trans.OffsetTranslation(trans.UpVector() * -moveSpeed);
 }
 
 bool CAppMain::GenerateLightmaps(CLightmapGen::lmoptions_t lampOptions, std::vector<Light> lights)

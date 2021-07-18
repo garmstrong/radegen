@@ -115,7 +115,7 @@ namespace rade
         // multiplication
         vector3 operator*(const vector3& v) const;
 
-        vector3 Negate();
+        vector3 GetNegative() const;
 
         float Dot(const vector3& p) const;
 

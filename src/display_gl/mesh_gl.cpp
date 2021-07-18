@@ -46,8 +46,8 @@ void CMeshGL::RenderAllFaces(CDisplayGL *display)
         shader->Use();
         shader->SetMat4("projection", m_camera->GetProjection());
         shader->SetMat4("view", m_camera->GetView());
-        shader->SetMat4("model", m_transform.GetModelMatrix());
-        shader->SetVec3("viewPos", m_camera->GetPosition());
+        shader->SetMat4("model", m_transform.GetMatrix());
+        shader->SetVec3("viewPos", m_camera->GetTransform().GetPosition());
         shader->SetVec3("lightPos", rade::vector3(0, 0, 0));
         shader->SetVec3("lightColor", rade::vector3(1, 1, 1));
         shader->SetInt("lightmapTexture", 1);

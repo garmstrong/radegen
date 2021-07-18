@@ -78,9 +78,6 @@ static const float MaxVerticalAngle = 88.0f; //must be less than 90 to avoid gim
 namespace rade
 {
     Camera::Camera() :
-            m_position(0.0f, 0.0f, 1.0f),
-            m_horizontalAngle(0.0f),
-            m_verticalAngle(0.0f),
             m_fieldOfView(50.0f),
             m_nearPlane(0.01f),
             m_farPlane(100.0f),
@@ -88,13 +85,13 @@ namespace rade
     {
     }
 
-    glm::mat4 Camera::GetOrientation() const
-    {
-        glm::mat4 orientation;
-        orientation = glm::rotate(orientation, glm::radians(m_verticalAngle), glm::vec3(1, 0, 0));
-        orientation = glm::rotate(orientation, glm::radians(m_horizontalAngle), glm::vec3(0, 1, 0));
-        return orientation;
-    }
+//    glm::mat4 Camera::GetOrientation() const
+//    {
+//        glm::mat4 orientation;
+//        orientation = glm::rotate(orientation, glm::radians(m_verticalAngle), glm::vec3(1, 0, 0));
+//        orientation = glm::rotate(orientation, glm::radians(m_horizontalAngle), glm::vec3(0, 1, 0));
+//        return orientation;
+//    }
 
     glm::mat4 Camera::GetProjection() const
     {
@@ -116,75 +113,61 @@ namespace rade
 
     glm::mat4 Camera::GetView() const
     {
-        return GetOrientation() * glm::translate(glm::mat4(), -glm::vec3(m_position.x, m_position.y, m_position.z));
+        return m_transform.GetMatrix();
+        //return GetOrientation() * glm::translate(glm::mat4(), -glm::vec3(m_position.x, m_position.y, m_position.z));
     }
 
-    void Camera::LookAt(const rade::vector3& position)
-    {
-        glm::vec3 direction = glm::normalize(glm::vec3(position.x, position.y, position.z) - glm::vec3(m_position.x, m_position.y, m_position.z));
-        m_verticalAngle = glm::degrees(asinf(-direction.y));
-        m_horizontalAngle = -glm::degrees(atan2f(-direction.x, -direction.z));
-        NormalizeAngles();
-    }
+//    void Camera::LookAt(const rade::vector3& position)
+//    {
+//        glm::vec3 direction = glm::normalize(glm::vec3(position.x, position.y, position.z) - glm::vec3(m_position.x, m_position.y, m_position.z));
+//        m_verticalAngle = glm::degrees(asinf(-direction.y));
+//        m_horizontalAngle = -glm::degrees(atan2f(-direction.x, -direction.z));
+//        NormalizeAngles();
+//    }
 
-    rade::vector3 Camera::ForwardVector() const
+    glm::mat4 Camera::GetMatrix()
     {
-        glm::vec4 fwd = glm::inverse(GetOrientation()) * glm::vec4(0, 0, -1, 1);
-        return {fwd.x, fwd.y, fwd.z};
+        return GetProjection() * m_transform.GetMatrix();
     }
-
-    rade::vector3 Camera::RightVector() const
-    {
-        glm::vec4 right = glm::inverse(GetOrientation()) * glm::vec4(1, 0, 0, 1);
-        return {right.x, right.y, right.z};
-    }
-
-    rade::vector3 Camera::UpVector() const
-    {
-        glm::vec4 up = glm::inverse(GetOrientation()) * glm::vec4(0, 1, 0, 1);
-        return {up.x, up.y, up.z};
-    }
-
-    glm::mat4 Camera::GetMatrix() const
-    {
-        return GetProjection() * GetView();
-    }
-
-    void Camera::SetPosition(const rade::vector3& position)
-    {
-        m_position = position;
-    }
-
-    void Camera::OffsetPosition(const rade::vector3& offset)
-    {
-        m_position = m_position + offset;
-    }
-
-    void Camera::SetHorizontalAngle(const float horizontalAngle)
-    {
-        m_horizontalAngle = horizontalAngle;
-    }
-
-    void Camera::SetVerticalAngle(const float verticalAngle)
-    {
-        m_verticalAngle = verticalAngle;
-    }
-
-    void Camera::SetRotation(const rade::vector3& rotation)
-    {
-        m_horizontalAngle = rotation.x;
-        m_verticalAngle = rotation.y;
-    }
-
-    float Camera::GetHorizontalAngle() const
-    {
-        return m_horizontalAngle;
-    }
-
-    float Camera::GetVerticalAngle() const
-    {
-        return m_verticalAngle;
-    }
+//
+//    void Camera::SetPosition(const rade::vector3& position)
+//    {
+//        m_transform.SetTranslation(position.GetNegative());
+//    }
+//
+//    void Camera::OffsetPosition(const rade::vector3& offset)
+//    {
+//        m_transform.OffsetTranslation(offset.GetNegative());
+//    }
+//
+//    void Camera::SetHorizontalAngle(const float horizontalAngle)
+//    {
+//        //m_horizontalAngle = horizontalAngle;
+//        m_transform.SetRotationHorizontal(horizontalAngle);
+//    }
+//
+//    void Camera::SetVerticalAngle(const float verticalAngle)
+//    {
+//        //m_verticalAngle = verticalAngle;
+//        m_transform.SetRotationVertical(verticalAngle);
+//    }
+//
+//    void Camera::SetRotation(const rade::vector3& rotation)
+//    {
+//        //m_horizontalAngle = rotation.x;
+//        //m_verticalAngle = rotation.y;
+//        m_transform.SetRotation(rotation);
+//    }
+//
+//    float Camera::GetHorizontalAngle() const
+//    {
+//        return m_horizontalAngle;
+//    }
+//
+//    float Camera::GetVerticalAngle() const
+//    {
+//        return m_verticalAngle;
+//    }
 
     float Camera::GetFieldOfView() const
     {
@@ -207,10 +190,10 @@ namespace rade
         return m_nearPlane;
     }
 
-    rade::vector3 Camera::GetPosition() const
-    {
-        return m_position;
-    }
+//    rade::vector3 Camera::GetPosition() const
+//    {
+//        return m_transform.GetPosition();
+//    }
 
     float Camera::GetFarPlane() const
     {
@@ -225,12 +208,15 @@ namespace rade
         m_farPlane = farPlane;
     }
 
-    void Camera::OffsetOrientation(float upAngle, float rightAngle)
-    {
-        m_horizontalAngle += rightAngle;
-        m_verticalAngle += upAngle;
-        NormalizeAngles();
-    }
+//    void Camera::OffsetOrientation(float upAngle, float rightAngle)
+//    {
+//
+//        //m_horizontalAngle += rightAngle;
+//        //m_verticalAngle += upAngle;
+//        rade::vector3 rot(upAngle, rightAngle, 0.0f);
+//        m_transform.OffsetRotation(rot);
+//        NormalizeAngles();
+//    }
 
     float Camera::GetViewportAspectRatio() const
     {
@@ -245,15 +231,15 @@ namespace rade
 
     void Camera::NormalizeAngles()
     {
-        m_horizontalAngle = fmodf(m_horizontalAngle, 360.0f);
-        //fmodf can return negative values, but this will make them all positive
-        if (m_horizontalAngle < 0.0f)
-            m_horizontalAngle += 360.0f;
-
-        if (m_verticalAngle > MaxVerticalAngle)
-            m_verticalAngle = MaxVerticalAngle;
-        else if (m_verticalAngle < -MaxVerticalAngle)
-            m_verticalAngle = -MaxVerticalAngle;
+//        m_horizontalAngle = fmodf(m_horizontalAngle, 360.0f);
+//        //fmodf can return negative values, but this will make them all positive
+//        if (m_horizontalAngle < 0.0f)
+//            m_horizontalAngle += 360.0f;
+//
+//        if (m_verticalAngle > MaxVerticalAngle)
+//            m_verticalAngle = MaxVerticalAngle;
+//        else if (m_verticalAngle < -MaxVerticalAngle)
+//            m_verticalAngle = -MaxVerticalAngle;
     }
 
 //void Camera::Update()
