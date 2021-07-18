@@ -221,11 +221,11 @@ void CAppMain::OnMouseMove(float xrel, float yrel)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    float delta = 0.2f * m_lastDeltaTime;
+    float unitsPerSecond = 20.0f * m_lastDeltaTime;
 
     if (m_isMouseDown)
     {
-        rade::vector3 rot(yrel * delta, xrel * delta, 0.0f);
+        rade::vector3 rot(yrel * unitsPerSecond, xrel * unitsPerSecond, 0.0f);
         m_camera.GetTransform().OffsetRotation(rot);
         //m_camera.OffsetOrientation(0.0f, xrel * delta);
         //m_camera.OffsetOrientation(yrel * delta, 0.0f);
@@ -237,17 +237,17 @@ void CAppMain::OnMouseWheel(int y)
     if (m_uiDisplay.IsAnyItemActive())
         return;
 
-    float movementDelta = 8.0f * m_lastDeltaTime;
+    float unitsPerSecond = 80.0f * m_lastDeltaTime;
     if (y == -1)
     {
-        movementDelta = -movementDelta;
+        unitsPerSecond = -unitsPerSecond;
     }
-    m_camera.GetTransform().OffsetTranslation(m_camera.GetTransform().ForwardVector() * movementDelta);
+    m_camera.GetTransform().OffsetTranslation(m_camera.GetTransform().ForwardVector() * unitsPerSecond);
 }
 
 void CAppMain::UpdateTransformViaInputs(rade::transform &trans)
 {
-    float moveSpeed = m_lastDeltaTime * 1.0f; //250 units per second
+    float moveSpeed = m_lastDeltaTime * 150.0f; //250 units per second
     using namespace rade::keys;
     if (m_inputs.IsPressed(KB_KEY_W))
         trans.OffsetTranslation(trans.ForwardVector() * moveSpeed);
