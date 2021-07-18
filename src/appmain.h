@@ -18,11 +18,11 @@ public:
 
     bool Init(int videoWidth, int videoHeight);
 
-    int UpdateTick(double deltaTime);
+    int UpdateTick(float deltaTime);
 
-    void DrawTick(double deltaTime);
+    void DrawTick(float deltaTime);
 
-    void UpdateCameraInputs(double deltaTime);
+    void UpdateCameraInputs(float deltaTime);
 
     void Shutdown();
 
@@ -80,7 +80,7 @@ protected:
 
     rade::InputSystem m_inputs;
     bool m_isMouseDown = false;
-    double m_lastDeltaTime = 1/60.0f;
+    float m_lastDeltaTime = 0.033f;
     rade::polymesh m_polyMesh;
     std::vector<CLightmapImg*> m_lightMapList;
     std::vector<rade::Light> m_lights;

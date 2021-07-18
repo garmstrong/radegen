@@ -8,20 +8,15 @@ namespace rade
         Start();
     }
 
-    timer::~timer()
-    {
-        Start();
-    }
-
     void timer::Start()
     {
-        m_start_time = glfwGetTime();
+        m_start_time = static_cast<float>(glfwGetTime());
     }
 
     // returns time elapses since start() or constructor called
-    double timer::ElapsedTime()
+    float timer::ElapsedTime() const
     {
-        double now = glfwGetTime();
+        auto now = static_cast<float>(glfwGetTime());
         return now - m_start_time;
     }
 }

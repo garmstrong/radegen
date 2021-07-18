@@ -24,7 +24,7 @@ public:
 
     void SetActiveCamera(rade::Camera* camera);
 
-    void Draw(float deltaTime);
+    void Draw(double deltaTime);
 
     bool LoadRAWTextureData(const unsigned char* data,
             unsigned int width,

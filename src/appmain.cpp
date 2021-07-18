@@ -147,14 +147,13 @@ bool CAppMain::LoadAppShaders()
     return true;
 }
 
-int CAppMain::UpdateTick(double deltaTime)
+int CAppMain::UpdateTick(float deltaTime)
 {
     UpdateCameraInputs(deltaTime);
-
     return m_appDone;
 }
 
-void CAppMain::DrawTick(double deltaTime)
+void CAppMain::DrawTick(float deltaTime)
 {
     m_lastDeltaTime = deltaTime;
     m_display.Draw(deltaTime);
@@ -174,7 +173,7 @@ void CAppMain::DrawTick(double deltaTime)
     m_uiDisplay.Draw();
 }
 
-void CAppMain::UpdateCameraInputs(double deltaTime)
+void CAppMain::UpdateCameraInputs(float deltaTime)
 {
     //UpdateTransformViaInputs(deltaTime);
     UpdateTransformViaInputs(m_camera.GetTransform());

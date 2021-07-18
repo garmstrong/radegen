@@ -6,13 +6,12 @@ namespace rade
     {
     public:
         timer();
-        ~timer();
 
         void Start();
 
-        double ElapsedTime();
+        float ElapsedTime() const;
 
     private:
-        double m_start_time;
+        float m_start_time;
     };
 }

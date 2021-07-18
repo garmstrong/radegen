@@ -94,7 +94,7 @@ void CDisplayGL::OnToggleDebug()
 }
 
 // update the scene based on the time elapsed since last update
-void CDisplayGL::Draw(float deltaTime)
+void CDisplayGL::Draw(double deltaTime)
 {
     glClearColor(0.06f, 0.06f, 0.06f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
