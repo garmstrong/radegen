@@ -37,8 +37,8 @@ private:
             true,   // shadows
             1,      // blur
             true,   // genereate sun
-            { 0.2, 0.2, 0.6 },  // sun colour
-            { 0.1, 0.6, 0.3 }   // sun dir
+            { 0.2f, 0.2f, 0.6f },  // sun colour
+            { 0.1f, 0.6f, 0.3f }   // sun dir
     };
 
     CLightmapGen::lmoptions_t m_lampOptions = {
@@ -51,8 +51,8 @@ private:
             true,   // shadows
             1,      // blur
             true,   // genereate sun
-            { 0.2, 0.2, 0.6 },  // sun colour
-            { 0.1, 0.6, 0.3 }   // sun dir
+            { 0.2f, 0.2f, 0.6f },  // sun colour
+            { 0.1f, 0.6f, 0.3f }   // sun dir
     };
 
     void DrawMenuBar();

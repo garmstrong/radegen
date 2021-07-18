@@ -18,8 +18,7 @@ namespace rade
     float timer::ElapsedTime() const
     {
         std::chrono::steady_clock::time_point now = steady_clock::now();
-
-        milliseconds duration = duration_cast<milliseconds>(now-m_startTime);
-        return duration.count() / 10.0f;
+        std::chrono::duration<float> elapsed_seconds = now-m_startTime;
+        return elapsed_seconds.count()*1000;
     }
 }
