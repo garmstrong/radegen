@@ -37,7 +37,7 @@ private:
             true,   // shadows
             1,      // blur
             true,   // genereate sun
-            { 102, 178, 255 },  // sun colour
+            { 0.2, 0.2, 0.6 },  // sun colour
             { 0.1, 0.6, 0.3 }   // sun dir
     };
 
@@ -51,7 +51,7 @@ private:
             true,   // shadows
             1,      // blur
             true,   // genereate sun
-            { 102, 178, 255 },  // sun colour
+            { 0.2, 0.2, 0.6 },  // sun colour
             { 0.1, 0.6, 0.3 }   // sun dir
     };
 

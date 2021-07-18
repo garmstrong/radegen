@@ -97,7 +97,7 @@ protected:
             true,   // shadows
             1,      // blur
             true,   // genereate sun
-            { 102, 178, 255 },  // sun colour
+            { 0.2f, 0.2f, 0.6f },  // sun colour
             { 0.1, 0.6, 0.3 }   // sun dir
     };
 
