@@ -19,7 +19,7 @@ namespace rade
     {
         std::chrono::steady_clock::time_point now = steady_clock::now();
 
-        duration<float> time_span = duration_cast<duration<float>>(now - m_startTime);
-        return time_span.count() * 100;
+        milliseconds duration = duration_cast<milliseconds>(now-m_startTime);
+        return duration.count() / 10.0f;
     }
 }
