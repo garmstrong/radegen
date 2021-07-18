@@ -1,10 +1,10 @@
 #include "timer.h"
+#include <GLFW/glfw3.h>
 
 namespace rade
 {
     timer::timer()
     {
-        //m_plfTimer = new plf::nanotimer();
         Start();
     }
 
@@ -15,12 +15,13 @@ namespace rade
 
     void timer::Start()
     {
-        m_plfTimer.start();
+        m_start_time = glfwGetTime();
     }
 
     // returns time elapses since start() or constructor called
-    float timer::ElapsedTime()
+    double timer::ElapsedTime()
     {
-        return static_cast<float>(m_plfTimer.get_elapsed_ms());
+        double now = glfwGetTime();
+        return now - m_start_time;
     }
 }

@@ -232,16 +232,11 @@ int main(int, char**)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
-        static rade::timer updateTimer;
-
-        static float deltaTime = 0.0f;
-        updateTimer.Start();
-        bool done = appMain.UpdateTick(deltaTime);
+        bool done = appMain.UpdateTick(io.DeltaTime);
         if (!done)
         {
-            appMain.DrawTick(deltaTime);
+            appMain.DrawTick(io.DeltaTime);
         }
-        deltaTime = updateTimer.ElapsedTime();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

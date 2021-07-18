@@ -1,5 +1,4 @@
 #pragma once
-#include "plf_timer.h"
 
 namespace rade
 {
@@ -11,9 +10,9 @@ namespace rade
 
         void Start();
 
-        float ElapsedTime();
+        double ElapsedTime();
 
     private:
-        plf::nanotimer m_plfTimer;
+        double m_start_time;
     };
 }
