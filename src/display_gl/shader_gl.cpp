@@ -17,13 +17,13 @@ void Shader::Use() const
 bool Shader::CreateShaderFromString(const std::string& key, const std::string& vs, const std::string& fs)
 {
     m_name = key;
-    m_prog.vs = CompileShader(vs.c_str(), GL_VERTEX_SHADER, vs.size());
+    m_prog.vs = CompileShader(vs.c_str(), GL_VERTEX_SHADER, static_cast<int>(vs.size()));
     if(!m_prog.vs)
     {
         return false;
     }
 
-    m_prog.fs = CompileShader(fs.c_str(), GL_FRAGMENT_SHADER, fs.size());
+    m_prog.fs = CompileShader(fs.c_str(), GL_FRAGMENT_SHADER, static_cast<int>(fs.size()));
     if(!m_prog.fs)
     {
         return false;

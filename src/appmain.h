@@ -70,7 +70,7 @@ protected:
 
     rade::timer m_timer;
 
-    void UpdateTransformViaInputs(float deltaTime);
+    void UpdateTransformViaInputs(rade::transform &trans);
 
     bool m_appDone = false;
     CDisplayGL m_display;
