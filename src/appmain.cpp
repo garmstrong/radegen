@@ -162,7 +162,6 @@ void CAppMain::DrawTick(float deltaTime)
 
     m_display.RenderTextObjects();
 
-
     m_textObj->SetText("deltatime: %f", m_lastDeltaTime);
 
 //    static float x = 0.0f;
@@ -170,12 +169,25 @@ void CAppMain::DrawTick(float deltaTime)
 //    m_mainMesh->GetTransform().SetRotation( vector3(x, 0.0f, 0.0f) );
 //    m_mainMesh->GetTransform().SetScale( {1.0f, 0.5f, 1.0f} );
 
+    rade::vector3 viewTest(0.0f, 0.0f, 0.0f);
+    static bool lastInview = false;
+
+    if(m_camera.IsInView(viewTest))
+    {
+        if(!lastInview) rade::Log("In view!\n");
+        lastInview = true;
+    }
+    else
+    {
+        if(lastInview) rade::Log("Out of view!\n");
+        lastInview = false;
+    }
+
     m_uiDisplay.Draw();
 }
 
 void CAppMain::UpdateCameraInputs(float deltaTime)
 {
-    //UpdateTransformViaInputs(deltaTime);
     UpdateTransformViaInputs(m_camera.GetTransform());
 }
 

@@ -409,14 +409,13 @@ namespace rade
             globalSettings.posixMonotonic = true;
             globalSettings.timerFrequency = 1000000000;
         }
-        else
 #endif
     }
 
     uint64_t _GetTimerValue_POSIX(void)
     {
 #if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK)
-        if (_glfw.timer.posix.monotonic)
+        if (globalSettings.posixMonotonic)
         {
             struct timespec ts;
             clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -464,10 +463,10 @@ namespace rade
         CoCreateGuid(&newId);
         memcpy(out_bytes, &newId, 16);
 #else
-        uuid_t id;
-        uuid_generate(id);
-        rade::Assert(sizeof(uuid_t) == 128/CHAR_BIT, "GUID size mis-match\n");
-        memcpy(out_bytes, id, 16);
+//        uuid_t id;
+//        uuid_generate(id);
+//        rade::Assert(sizeof(uuid_t) == 128/CHAR_BIT, "GUID size mis-match\n");
+//        memcpy(out_bytes, id, 16);
 #endif
     }
 };

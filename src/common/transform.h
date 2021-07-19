@@ -96,6 +96,16 @@ namespace rade
             return {up.x, up.y, up.z};
         }
 
+        void LookAt(const rade::vector3& position)
+        {
+            glm::vec3 direction = glm::normalize(glm::vec3(position.x, position.y, position.z) - glm::vec3(m_position.x, m_position.y, m_position.z));
+            float vAngle = glm::degrees(asinf(-direction.y));
+            float hAngle = -glm::degrees(atan2f(-direction.x, -direction.z));
+            vAngle = std::min(vAngle, MaxVerticalAngle);
+            SetRotationHorizontal(hAngle);
+            SetRotationVertical(vAngle);
+        }
+
     private:
 
         static constexpr float MaxVerticalAngle = 88.0f; //must be less than 90 to avoid gimbal lock
