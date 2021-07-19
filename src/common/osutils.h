@@ -16,6 +16,8 @@
 
 namespace rade
 {
+    void UtilsInit();
+
     std::string DefaultTextureFileName();
 
     std::string TexturePath(const std::string& resourceName);
@@ -35,7 +37,7 @@ namespace rade
     char* ReadFile(const std::string& filename, long* size);
 
     bool GetFilesInDir(const std::string& path, std::vector<std::string>& files, bool returnFiles,
-            bool returnDirectories);
+        bool returnDirectories);
 
     char* ReadPlatformAssetFile(const char* filename, long* size);
 
@@ -51,14 +53,14 @@ namespace rade
 
     std::string ResourcePath(const std::string& resourceName);
 
-    std::chrono::high_resolution_clock::time_point GetTimeCount();
-
     void Warning(const char* pszFormat, ...);
 
     uint32_t HashString(const char* s);
 
-    //void GenerateGUID(unsigned char* out_bytes);
+    double GetTimer(); // time since startup because of offset
+    double GetTimerFrequency(); // frequency based on the timer in use by platform
 
+    void GenerateGUID(unsigned char* out_bytes);
 #ifdef __ANDROID__
     static long GetAssetData(const char* filename, void** outData);
     extern struct android_app*  g_App;

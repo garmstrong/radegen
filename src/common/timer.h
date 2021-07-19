@@ -1,17 +1,18 @@
 #pragma once
+#include <cstdint>
 
 namespace rade
 {
     class timer
     {
-    public:
+     public:
         timer();
 
         void Start();
 
         float ElapsedTime() const;
 
-    private:
-        float m_start_time;
+     private:
+        double m_startTime = 0;
     };
 }

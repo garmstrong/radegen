@@ -1,5 +1,5 @@
 #include "timer.h"
-#include <GLFW/glfw3.h>
+#include "osutils.h"
 
 namespace rade
 {
@@ -10,13 +10,14 @@ namespace rade
 
     void timer::Start()
     {
-        m_start_time = static_cast<float>(glfwGetTime());
+        m_startTime = rade::GetTimer();
     }
 
     // returns time elapses since start() or constructor called
     float timer::ElapsedTime() const
     {
-        auto now = static_cast<float>(glfwGetTime());
-        return now - m_start_time;
+        double endTime = rade::GetTimer();
+        double elapsedSec = (endTime - m_startTime) / rade::GetTimerFrequency();
+        return static_cast<float>(elapsedSec);
     }
 }

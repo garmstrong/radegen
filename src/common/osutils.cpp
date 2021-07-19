@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include "osutils.h"
 
+#include <inttypes.h>
+
 #ifdef __ANDROID__
 #include <android/log.h>
 #include <android/asset_manager.h>
@@ -23,16 +25,31 @@ struct android_app*  g_App = NULL;
 #include <climits>
 #endif
 
+struct utilsSettings_t
+{
+    bool hasPerformanceCounter ;
+    uint64_t timerFrequency;
+    bool timerInited;
+    bool posixMonotonic;
+    uint64_t offset;
+};
+
+static utilsSettings_t globalSettings
+    {
+        false, //hasPerformanceCounter
+        1000,        // timerFrequency
+        false,          // timerInited
+        false,      // posixMonotonic
+        0                  //offset
+    };
+
 namespace rade
 {
+
+
     std::string DefaultTextureFileName()
     {
         return "notexture.png";
-    }
-
-    std::chrono::high_resolution_clock::time_point GetTimeCount()
-    {
-        return std::chrono::high_resolution_clock::now();
     }
 
     std::string GetWorkingDir()
@@ -99,7 +116,7 @@ namespace rade
             if (pos == std::string::npos)
 #if defined(_WIN32)
                 pos = path.find_last_of('\\');
-                if (pos == std::string::npos)
+            if (pos == std::string::npos)
 #endif
                 return false;
             if (!rade::CreateDirectories(path.substr(0, pos)))
@@ -173,33 +190,33 @@ namespace rade
     }
 
     bool GetFilesInDir(const std::string& path,
-                       std::vector<std::string>& files,
-                       bool returnFiles,
-                       bool returnDirectories)
+        std::vector<std::string>& files,
+        bool returnFiles,
+        bool returnDirectories)
     {
 #ifdef _WIN32
         WIN32_FIND_DATA wfd;
         TCHAR GeneralPath[0xFF];
         _stprintf(GeneralPath, _T("%s\\*.*"), path.c_str());
         HANDLE hFind = FindFirstFile(GeneralPath, &wfd);
-        if(INVALID_HANDLE_VALUE==hFind)
+        if (INVALID_HANDLE_VALUE == hFind)
             return false;
         do
         {
             bool isDir = wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
 
-            if( isDir && returnDirectories )
+            if (isDir && returnDirectories)
             {
                 files.emplace_back(wfd.cFileName);
             }
             else
             {
-                if(returnFiles)
+                if (returnFiles)
                     files.emplace_back(wfd.cFileName);
             }
-        }while(FindNextFile(hFind, &wfd));
+        } while (FindNextFile(hFind, &wfd));
         FindClose(hFind);
-        hFind=INVALID_HANDLE_VALUE;
+        hFind = INVALID_HANDLE_VALUE;
         return true;
 #else
         bool retVal = true;
@@ -245,9 +262,9 @@ namespace rade
     {
         static char szBuff[512];
         va_list vArgs;
-        va_start(vArgs, pszFormat);
+            va_start(vArgs, pszFormat);
         vsprintf(szBuff, pszFormat, vArgs);
-        va_end(vArgs);
+            va_end(vArgs);
         std::cout << szBuff;
         std::cout << std::flush;
 
@@ -264,9 +281,9 @@ namespace rade
 
         static char szBuff[512];
         va_list vArgs;
-        va_start(vArgs, pszFormat);
+            va_start(vArgs, pszFormat);
         vsprintf(szBuff, pszFormat, vArgs);
-        va_end(vArgs);
+            va_end(vArgs);
 
         std::size_t hashID = std::hash<std::string>{}(szBuff);
 
@@ -284,9 +301,9 @@ namespace rade
         {
             static char szBuff[512];
             va_list vArgs;
-            va_start(vArgs, pszFormat);
+                va_start(vArgs, pszFormat);
             vsprintf(szBuff, pszFormat, vArgs);
-            va_end(vArgs);
+                va_end(vArgs);
             rade::Log(szBuff);
             exit(0);
         }
@@ -353,20 +370,104 @@ namespace rade
     }
 #endif
 
-//    void GenerateGUID(unsigned char* out_bytes)
-//    {
-//#ifdef _WIN32
-//        GUID newId;
-//        CoCreateGuid(&newId);
-//
-//        unsigned char bytes[16];
-//        ::CopyMemory(&bytes, &newId, sizeof(bytes));
-//        out_bytes.assign(bytes, bytes + 16);
-//#else
-//        uuid_t id;
-//        uuid_generate(id);
-//        rade::Assert(sizeof(uuid_t) == 128/CHAR_BIT, "GUID size mis-match\n");
-//        memcpy(out_bytes, id, 16);
-//#endif
-//    }
+#ifdef _WIN32
+    void _InitTimer_WIN32()
+    {
+        globalSettings.hasPerformanceCounter = false;
+        globalSettings.timerFrequency = 1000;
+        uint64_t frequency;
+        if (QueryPerformanceFrequency((LARGE_INTEGER*)&frequency))
+        {
+            globalSettings.hasPerformanceCounter = true;
+            globalSettings.timerFrequency = frequency;
+        }
+        globalSettings.timerInited = true;
+    }
+
+    uint64_t _GetTimerValue_WIN32()
+    {
+        if (globalSettings.hasPerformanceCounter)
+        {
+            uint64_t value;
+            QueryPerformanceCounter((LARGE_INTEGER*)&value);
+            return value;
+        }
+        else
+        {
+            return (uint64_t)timeGetTime();
+        }
+    }
+#else
+    void _InitTimer_POSIX(void)
+    {
+        globalSettings.posixMonotonic = false;
+        globalSettings.timerFrequency = 1000000;
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK)
+        struct timespec ts;
+        if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+        {
+            globalSettings.posixMonotonic = true;
+            globalSettings.timerFrequency = 1000000000;
+        }
+        else
+#endif
+    }
+
+    uint64_t _GetTimerValue_POSIX(void)
+    {
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK)
+        if (_glfw.timer.posix.monotonic)
+        {
+            struct timespec ts;
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+            return (uint64_t) ts.tv_sec * (uint64_t) 1000000000 + (uint64_t) ts.tv_nsec;
+        }
+        else
+#endif
+        {
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+            return (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
+        }
+    }
+#endif
+
+    void UtilsInit()
+    {
+#ifdef _WIN32
+        _InitTimer_WIN32();
+        globalSettings.offset = _GetTimerValue_WIN32();
+#else
+        _InitTimer_POSIX();
+        globalSettings.offset = _GetTimerValue_POSIX();
+#endif
+    }
+
+    double GetTimer()
+    {
+#ifdef _WIN32
+        return (double) (_GetTimerValue_WIN32() - globalSettings.offset);
+#else
+        return (double) (_GetTimerValue_POSIX() - globalSettings.offset);
+#endif
+    }
+
+    double GetTimerFrequency()
+    {
+        return (double)globalSettings.timerFrequency;
+    }
+
+    void GenerateGUID(unsigned char* out_bytes)
+    {
+#ifdef _WIN32
+        GUID newId;
+        CoCreateGuid(&newId);
+        memcpy(out_bytes, &newId, 16);
+#else
+        uuid_t id;
+        uuid_generate(id);
+        rade::Assert(sizeof(uuid_t) == 128/CHAR_BIT, "GUID size mis-match\n");
+        memcpy(out_bytes, id, 16);
+#endif
+    }
 };

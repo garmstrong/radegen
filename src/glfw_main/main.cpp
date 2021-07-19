@@ -7,7 +7,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "appmain.h"
-
+#include "osutils.h"
 
 CAppMain appMain;
 bool isMouseDown = false;
@@ -218,9 +218,15 @@ int main(int, char**)
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
+    rade::UtilsInit();
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
+        static rade::timer timer;
+        static float deltaTime = 1.0f/60.0f;
+        timer.Start();
+
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -232,15 +238,17 @@ int main(int, char**)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
-        bool done = appMain.UpdateTick(io.DeltaTime);
+        bool done = appMain.UpdateTick(deltaTime);
         if (!done)
         {
-            appMain.DrawTick(io.DeltaTime);
+            appMain.DrawTick(deltaTime);
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
+
+        deltaTime = timer.ElapsedTime();
     }
 
     appMain.Shutdown();
