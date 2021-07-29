@@ -1,3 +1,3 @@
 # radegen
-c++ opengl lightmap generator for the rade engine
+Static lightmap generator for the rade engine. Lighmap texture data is zlib compressed and stored in the custom rbmesh format
 ![Alt text](data/docs/screenshot5.png?raw=true "Screenshot")
